@@ -2,12 +2,23 @@
 name = "startup"
 version = "0.1.0"
 authors = ["abdinajib716 <your email>"]
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 dioxus = { version = "0.7.1", features = ["router", "fullstack"] }
+gloo-timers = { version = "0.3", features = ["futures"] }
+heck = "0.5"
+icons = { version = "0.19", features = ["dioxus", "dioxus_animated"] }
+js-sys = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+strum = { version = "0.28", features = ["derive"] }
+time = { version = "0.3", features = ["formatting", "macros"] }
+tw_merge = "0.1"
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", default-features = false, features = ["Attr", "Blob", "console", "CssStyleDeclaration", "Document", "DomRect", "DomTokenList", "DragEvent", "Element", "Event", "EventTarget", "History", "HtmlAnchorElement", "HtmlDocument", "HtmlElement", "HtmlInputElement", "InputEvent", "KeyboardEvent", "Location", "MediaQueryList", "MouseEvent", "MutationObserver", "MutationObserverInit", "MutationRecord", "Navigator", "NamedNodeMap", "Node", "NodeList", "PointerEvent", "ScrollBehavior", "ScrollIntoViewOptions", "ScrollLogicalPosition", "ScrollToOptions", "Storage", "Url", "Window"] }
 
 [features]
 default = ["web"]
