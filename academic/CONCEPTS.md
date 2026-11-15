@@ -214,6 +214,27 @@ a panic (`assert!`, `assert_eq!`, `unwrap` on `Err`) or a returned `Err` fails t
 tests in a `#[cfg(test)] mod tests` inside the file under test gives access to private items
 through `use super::*`. First seen: entry 12. Book ch. 11.
 
+<a id="conversion"></a>
+### Conversions: `From`/`Into`, `FromStr` and `parse`
+`From<T> for U` defines an infallible conversion; it automatically provides `Into<U> for T`, so APIs
+can accept "anything convertible" (`impl Into<Locale>`). `FromStr` defines parsing from text, used by
+`"en".parse::<LanguageIdentifier>()`; the target type comes from the turbofish or a type annotation,
+and the result is a `Result` because parsing can fail. First seen: entry 13. Book ch. 10.2; std docs `From`.
+
+<a id="iterator"></a>
+### Iterators and adapters
+An iterator yields items one at a time through `next()`, returning `Option<Item>`. Adapters such as
+`map`, `filter_map`, `flat_map` build new lazy iterators; nothing runs until a consumer pulls items:
+`collect()` (build a collection), `find_map()` (first `Some`), `for` loops. `iter()` borrows a
+collection's items, `into_iter()` consumes the collection and yields owned items, `copied()` turns
+`&T` items into `T` for `Copy` types. First seen: entry 14. Book ch. 13.2.
+
+<a id="vec"></a>
+### `Vec<T>` and tuples
+`Vec<T>` is a growable, heap-allocated array that owns its elements. A tuple `(A, B)` groups a fixed
+number of values of possibly different types, accessed by position (`t.0`, `t.1`) or destructured
+in patterns (`|(_, tag)|`). First seen: entry 14. Book ch. 8.1, ch. 3.2.
+
 ---
 
 ## Libraries and architecture
@@ -302,3 +323,27 @@ Structured logging: events (`tracing::info!(field = value, "message")`) and span
 one HTTP request) carry key-value fields. `%x` records a field with `Display`, `?x` with `Debug`.
 All events inside a span inherit its fields, which is how `request_id` appears on every log line of
 a request. First seen: entry 6. docs.rs/tracing.
+
+<a id="fluent"></a>
+### Fluent (`.ftl`) translations
+Project Fluent's message format: each line `key = text` defines a message; `{ $name }` inserts an
+argument; selectors `{ $count -> [one] ... *[other] ... }` choose a variant by CLDR plural category
+(languages differ: English has `one`/`other`, others have up to six). The default variant `*[...]`
+is mandatory. Arguments are wrapped in invisible Unicode isolation marks (U+2068/U+2069) so mixed
+left-to-right and right-to-left text renders correctly. In this project `dioxus-i18n` loads the
+files and `t!("key", name: value)` translates. First seen: entry 13. projectfluent.org.
+
+<a id="context"></a>
+### Context (Dioxus)
+A value provided by a component (`use_context_provider`, or a library hook such as `use_init_i18n`)
+that any descendant can obtain (`use_context`, `i18n()`) without passing it through props. When the
+provided value is a signal, readers re-render on change. First seen: entry 15. Dioxus guide, "Context".
+
+<a id="cookie"></a>
+### HTTP cookies
+A server sets a cookie with a `Set-Cookie` response header; the browser stores it and sends it back
+in the `Cookie` request header to matching paths. Attributes: `Path`, `Max-Age` (lifetime in
+seconds), `SameSite=Lax` (not sent on cross-site sub-requests, a CSRF defence), `HttpOnly`
+(invisible to JavaScript; used for the session cookie in M1), `Secure` (HTTPS only). The `locale`
+cookie is not secret, so it is not `HttpOnly`. First seen: entry 16. MDN, "Using HTTP cookies".
+

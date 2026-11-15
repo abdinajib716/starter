@@ -553,3 +553,196 @@ mod tests {
 **Concepts:** [unit tests and cfg(test)](CONCEPTS.md#tests), [sqlx query macros](CONCEPTS.md#sqlx-macros), [Result and ?](CONCEPTS.md#result), [module](CONCEPTS.md#module)
 
 **Try it:** change line 47 to `assert_eq!(n, 2);` and run `just test`. Expected: `default_org_is_created_once` fails with `left: 1, right: 2`. Restore it.
+
+---
+
+# Milestone 0 — i18n spike, M0.25 (commit `d838bcd`)
+
+## 13. Translation catalogue and bundle configuration
+**Feature:** UI text lives in per-language Fluent files; the app embeds them and falls back to English for any missing key (M0.25).
+
+**Code:**
+
+`locales/en.ftl` lines 2–7
+
+```
+home-title = Rust/UI is working
+home-subtitle = Dioxus 0.7 + Tailwind v4 theme
+home-clicks = { $count ->
+    [one] Clicked once
+   *[other] Clicked { $count } times
+}
+```
+
+`src/i18n.rs` lines 16–22
+
+```rust
+pub fn config(locale: &str) -> I18nConfig {
+    let selected: LanguageIdentifier = locale.parse().unwrap_or(langid!("en"));
+    I18nConfig::new(selected)
+        .with_locale((langid!("en"), include_str!("../locales/en.ftl")))
+        .with_locale((langid!("so"), include_str!("../locales/so.ftl")))
+        .with_fallback(langid!("en"))
+}
+```
+
+**Line notes:**
+
+1. L4 (en.ftl) — `{ $count -> ... }` is a Fluent selector: the branch is chosen by the plural category of `$count` for the active language (`one`, `other`; other languages have more).
+2. L6 (en.ftl) — `*[other]` marks the default branch, which Fluent requires in every selector.
+3. L17 (i18n.rs) — `locale.parse()` converts text into a `LanguageIdentifier` through the `FromStr` trait; the annotation on `selected` tells `parse` which type to produce.
+4. L17 — `unwrap_or(langid!("en"))` substitutes English if the text is not a valid language tag; `langid!` validates its literal at compile time.
+5. L19 — `include_str!` reads the file at compile time and embeds its contents as a `&'static str`, so the `.ftl` files ship inside both binaries.
+6. L19 — `(langid!("en"), include_str!(...))` is a tuple; `with_locale` accepts it because the crate implements `From<(LanguageIdentifier, T)>` for `Locale`.
+7. L21 — `with_fallback` loads the English resources first, so the selected language overrides only the keys it defines.
+
+**Concepts:** [Fluent](CONCEPTS.md#fluent), [traits](CONCEPTS.md#trait), [From/Into and parse](CONCEPTS.md#conversion), [macro](CONCEPTS.md#macro)
+
+**Try it:** remove the existing `home-title` line from `so.ftl` instead and reload with Somali selected. Expected: the title shows the English "Rust/UI is working", because the key is missing in `so` and `en` is the fallback.
+
+## 14. Resolving the request locale
+**Feature:** chooses the language from the user setting, cookie or browser preference, in that order, limited to enabled locales (M0.25, §26).
+
+**Code:**
+
+`src/i18n.rs` lines 47–70
+
+```rust
+    let pick = |tag: &str| {
+        let p = primary(tag);
+        enabled.contains(&p.as_str()).then_some(p)
+    };
+    if let Some(found) = user.and_then(pick).or_else(|| cookie.and_then(pick)) {
+        return found;
+    }
+    if let Some(header) = accept_language {
+        // "so-SO,so;q=0.9,en;q=0.8" → highest q first; q=0 means "not acceptable".
+        let mut langs: Vec<(f32, &str)> = header
+            .split(',')
+            .filter_map(|part| {
+                let mut it = part.trim().split(';');
+                let tag = it.next()?.trim();
+                let q = it
+                    .find_map(|p| p.trim().strip_prefix("q="))
+                    .and_then(|q| q.parse().ok())
+                    .unwrap_or(1.0);
+                (!tag.is_empty() && q > 0.0).then_some((q, tag))
+            })
+            .collect();
+        langs.sort_by(|a, b| b.0.total_cmp(&a.0));
+        if let Some(found) = langs.into_iter().find_map(|(_, tag)| pick(tag)) {
+            return found;
+```
+
+**Line notes:**
+
+1. L47 — `let pick = |tag: &str| { ... }` stores a closure in a variable; it captures `enabled` by reference from the surrounding function.
+2. L49 — `bool::then_some(p)` yields `Some(p)` when the condition is true and `None` otherwise.
+3. L51 — `user.and_then(pick).or_else(|| cookie.and_then(pick))` tries the user setting first and evaluates the cookie only if that produced `None`.
+4. L56 — `Vec<(f32, &str)>` is a growable array of tuples; the `&str` items borrow from `header`, so no strings are copied.
+5. L57 — `.split(',')` returns an iterator, a lazy sequence that produces items only when consumed.
+6. L58 — `filter_map` applies a closure returning `Option` and keeps only the `Some` values.
+7. L60 — `it.next()?` uses `?` on an `Option` inside the closure: a missing item makes the closure return `None`.
+8. L67 — `.collect()` consumes the iterator and builds the collection named in the type annotation (`Vec<...>`).
+9. L68 — `sort_by(|a, b| b.0.total_cmp(&a.0))` sorts in place by the first tuple field, descending; `total_cmp` gives floats a total order.
+10. L69 — `into_iter()` consumes the vector, and `find_map` returns the first `Some` produced by `pick`.
+
+**Concepts:** [closure](CONCEPTS.md#closure), [iterators](CONCEPTS.md#iterator), [Option combinators](CONCEPTS.md#option), [Vec and tuples](CONCEPTS.md#vec), [references and borrowing](CONCEPTS.md#borrow)
+
+**Try it:** add `assert_eq!(resolve(None, None, Some("so;q=0.2, en;q=0.9"), ENABLED, "en"), "en");` to the test `accept_language_respects_q_and_enabled_list` and run `just test`. It passes. Then change the expected value to `"so"`. Expected: the test fails, because the higher `q` value (`en`, 0.9) wins.
+
+## 15. Same language on server and client
+**Feature:** the locale chosen during server rendering is reused by the browser, so hydration starts in the same language with no flash (M0.25).
+
+**Code:**
+
+`src/app.rs` lines 25–31
+
+```rust
+#[component]
+pub fn App() -> Element {
+    // Resolved on the server during SSR; the client reuses that value when hydrating.
+    let initial = use_server_cached(i18n::request_locale);
+    use_init_i18n(|| i18n::config(&initial));
+
+    rsx! {
+```
+
+`src/app.rs` lines 46–56
+
+```rust
+/// Sets `lang`/`dir` for the current locale. A separate component so that a language
+/// switch re-renders only this subtree, not `App`'s `<head>` elements.
+#[component]
+fn LocaleRoot(children: Element) -> Element {
+    let lang = dioxus_i18n::prelude::i18n().language().to_string();
+    let dir = if i18n::is_rtl(&lang) { "rtl" } else { "ltr" };
+    // Tailwind `rtl:` variants and logical utilities key off the nearest `dir`.
+    rsx! {
+        div { class: "h-full", lang: "{lang}", dir: "{dir}", {children} }
+    }
+}
+```
+
+**Line notes:**
+
+1. L28 — `use_server_cached(i18n::request_locale)` runs the function on the server during SSR, serialises the result into the page, and on the client returns that stored value instead of calling the function.
+2. L29 — `use_init_i18n` provides the i18n state as context to every descendant component; children obtain it with `i18n()` and `t!`.
+3. L42 — `LocaleRoot { Router::<Route> {} }` passes the router as the `children` prop of `LocaleRoot`.
+4. L49 — `children: Element` is the conventional prop name for nested content written inside a component's braces.
+5. L50 — `i18n().language()` reads a signal, so `LocaleRoot` (and only it) re-renders when the language changes.
+6. L54 — `{children}` places the received elements inside the `div`.
+
+**Concepts:** [SSR and hydration](CONCEPTS.md#hydration), [context](CONCEPTS.md#context), [signals and hooks](CONCEPTS.md#signals), [component and Element](CONCEPTS.md#component)
+
+**Try it:** move the two lines `let lang = ...` and `let dir = ...` from `LocaleRoot` into `App`, use them on a `div` there, and switch language in the browser while `just dev` runs. Expected: the dev server log prints the warning "Changing the props of `Style {}` is not supported", because `App` now re-renders its `<head>` elements on every switch. Revert afterwards.
+
+## 16. Switching language and persisting it in a cookie
+**Feature:** the language buttons change the UI immediately and store the choice in a cookie so the next server render uses it (M0.25).
+
+**Code:**
+
+`src/pages/home.rs` lines 52–63
+
+```rust
+                        for code in crate::i18n::SUPPORTED.iter().copied() {
+                            Button {
+                                id: "lang-{code}",
+                                size: ButtonSize::Sm,
+                                variant: if code == current { ButtonVariant::Default } else { ButtonVariant::Outline },
+                                onclick: move |_| async move {
+                                    i18n.set_language(code.parse().expect("valid locale"));
+                                    let _ = set_locale(code.to_string()).await;
+                                },
+                                "{code}"
+                            }
+                        }
+```
+
+`src/api/i18n.rs` lines 11–19
+
+```rust
+    let ctx = FullstackContext::current().ok_or_else(|| ServerFnError::new("no request"))?;
+    let cookie = format!(
+        "{}={locale}; Path=/; Max-Age=31536000; SameSite=Lax",
+        crate::i18n::LOCALE_COOKIE
+    );
+    ctx.add_response_header(
+        SET_COOKIE,
+        HeaderValue::from_str(&cookie).map_err(|e| ServerFnError::new(e.to_string()))?,
+    );
+```
+
+**Line notes:**
+
+1. L52 (home.rs) — `for` inside `rsx!` renders one element per item; `.copied()` turns the iterator's `&&str` items into `&str`.
+2. L57 — `move |_| async move { ... }` is an event handler returning a future; Dioxus spawns it, so the handler may `.await`.
+3. L58 — `set_language` writes the i18n signal, which re-renders every component that translated text.
+4. L59 — `let _ = set_locale(...).await;` calls the server function over HTTP and deliberately ignores a failure, since the switch already happened locally.
+5. L11 (i18n.rs) — `FullstackContext::current()` gives the server function access to the current request and response.
+6. L12 — `format!` builds a `String`; `{locale}` captures the variable of that name directly (inline format arguments).
+7. L16 — `add_response_header(SET_COOKIE, ...)` adds a `Set-Cookie` header, so the browser stores `locale=...` and sends it with later requests.
+
+**Concepts:** [rsx!](CONCEPTS.md#rsx), [async/await and Future](CONCEPTS.md#async), [server function](CONCEPTS.md#serverfn), [cookies](CONCEPTS.md#cookie), [signals and hooks](CONCEPTS.md#signals)
+
+**Try it:** run `curl -si -X POST http://127.0.0.1:8080/api/i18n/locale -H 'content-type: application/json' -d '{"locale":"so"}' | grep -i set-cookie`, then the same with `"fr"`. Expected: the first prints `set-cookie: locale=so; Path=/; Max-Age=31536000; SameSite=Lax`; the second returns an error body containing "unsupported locale" and no cookie.
