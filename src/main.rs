@@ -1,6 +1,11 @@
 mod hooks;
 mod ui;
 use dioxus::prelude::*;
+use ui::avatar::{Avatar, AvatarFallback, AvatarSize};
+use ui::button::{Button, ButtonSize, ButtonVariant};
+use ui::theme_toggle::ThemeToggle;
+use ui::toast::{ToastToaster, ToastType, show_toast};
+use ui::card::{Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle};
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -16,6 +21,11 @@ const FAVICON: Asset = asset!("/assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("/assets/main.css");
 const HEADER_SVG: Asset = asset!("/assets/header.svg");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
+// Rust/UI runtimes (copied from rust-ui/ui @ 4f5a516)
+const TOAST_RUNTIME_JS: Asset = asset!("/public/app_components/toast.js");
+const TOAST_RUNTIME_CSS: Asset = asset!("/public/app_components/toast.css");
+const APEXCHARTS_JS: Asset = asset!("/public/cdn/apexcharts.5.3.6.min.js");
+const CHART_INIT_JS: Asset = asset!("/public/app_components/chart_init.js");
 
 fn main() {
     dioxus::launch(App);
@@ -25,7 +35,15 @@ fn main() {
 fn App() -> Element {
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
-        document::Link { rel: "stylesheet", href: MAIN_CSS } document::Link { rel: "stylesheet", href: TAILWIND_CSS }
+        // Dioxus mounts the app inside <div id="main">; give it full height so
+        // Rust/UI's html(100dvh) -> body(h-full) chain keeps working.
+        document::Style { "#main {{ height: 100%; overflow-y: auto; }}" }
+        document::Stylesheet { href: TAILWIND_CSS }
+        document::Stylesheet { href: TOAST_RUNTIME_CSS }
+        document::Script { src: APEXCHARTS_JS }
+        document::Script { src: CHART_INIT_JS }
+        ToastToaster {}
+        script { src: TOAST_RUNTIME_JS }
         Router::<Route> {}
     }
 }
@@ -48,12 +66,39 @@ pub fn Hero() -> Element {
     }
 }
 
-/// Home page
+/// Home page: Rust/UI smoke test
 #[component]
 fn Home() -> Element {
+    let mut count = use_signal(|| 0);
+
     rsx! {
-        Hero {}
-        Echo {}
+        div { class: "min-h-screen bg-background text-foreground p-8 flex items-start justify-center",
+            Card { class: "w-full max-w-md",
+                CardHeader {
+                    div { class: "flex items-center gap-3",
+                        Avatar { size: AvatarSize::Lg,
+                            AvatarFallback { "AM" }
+                        }
+                        div { class: "flex-1",
+                            CardTitle { "Rust/UI is working" }
+                            CardDescription { "Dioxus 0.7 + Tailwind v4 theme" }
+                        }
+                        ThemeToggle {}
+                    }
+                }
+                CardContent {
+                    p { "Clicked {count} times" }
+                }
+                CardFooter { class: "gap-2",
+                    Button { onclick: move |_| count += 1, "Increment" }
+                    Button { variant: ButtonVariant::Outline, onclick: move |_| count.set(0), "Reset" }
+                    Button { variant: ButtonVariant::Destructive, size: ButtonSize::Sm,
+                        onclick: move |_| show_toast(ToastType::Error, "Delete clicked (toast works)"),
+                        "Delete"
+                    }
+                }
+            }
+        }
     }
 }
 
