@@ -598,7 +598,7 @@ pub fn config(locale: &str) -> I18nConfig {
 
 **Concepts:** [Fluent](CONCEPTS.md#fluent), [traits](CONCEPTS.md#trait), [From/Into and parse](CONCEPTS.md#conversion), [macro](CONCEPTS.md#macro)
 
-**Try it:** remove the existing `home-title` line from `so.ftl` instead and reload with Somali selected. Expected: the title shows the English "Rust/UI is working", because the key is missing in `so` and `en` is the fallback.
+**Try it:** remove the existing `home-title` line from `so.ftl` and reload with Somali selected. Expected: the title shows the English "Rust/UI is working", because the key is missing in `so` and `en` is the fallback.
 
 ## 14. Resolving the request locale
 **Feature:** chooses the language from the user setting, cookie or browser preference, in that order, limited to enabled locales (M0.25, §26).
