@@ -14,11 +14,11 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 
 | # | Milestone | Status | Notes |
 |---|---|---|---|
-| 0 | Toolchain, skeleton, Postgres, migrations, org + `Ctx` | 🟡 in progress | UI stack done; DB not started |
+| 0 | Toolchain, skeleton, Postgres, migrations, org + `Ctx` | 🟡 in progress | 23/25 done; open: M0.24 (after M1), M0.25 i18n spike |
 | 1 | Auth core | ⚪ | |
 | 2 | RBAC core + `ModuleFlags` + settings cache | ⚪ | |
 | 3 | App shell + i18n layer | ⚪ | |
-| 4 | Audit | ⚪ | |
+| 4 | Audit | ⚪ | M4.8 done early |
 | 5 | Users + DataTable (bulk, CSV, Deleted tab) | ⚪ | |
 | 6 | Roles + Permissions | ⚪ | |
 | 7 | System Setting (tabs, deps, feature flags) | ⚪ | |
@@ -47,23 +47,23 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 - [x] M0.4 Rust/UI components copied into `src/ui/` (35) + hooks into `src/hooks/` (4), pinned to rust-ui `4f5a516`
 - [x] M0.5 Toast runtime (`toast.js/css`) + ApexCharts + `chart_init.js` loaded in `App`
 - [x] M0.6 Smoke-test page: Card / Avatar / Button variants / ThemeToggle / Toast render correctly
-- [ ] M0.7 Cargo features split: `web` / `server`; server-only crates (`sqlx`, `argon2`, `tokio` process…) `optional` under `server` (§15.4)
-- [ ] M0.8 Restructure to §31.2 layout: `app.rs`, `routes.rs`, `components/{ui,layout}`, `pages/`, `api/`, `domain/`, `server/`
-- [ ] M0.9 `docker-compose.yml` with `postgres:17` + healthcheck (§5)
-- [ ] M0.10 `.env.example` (`DATABASE_URL`, `APP_SECRET`, `SITE_ADDR`, `COOKIE_SECURE`, `BACKUP_DIR`, `SEED_ADMIN_*`, `TENANCY_MODE`)
-- [ ] M0.11 Config loader (`figment`/`config` + `.env`) and `tracing` subscriber with request id
-- [ ] M0.12 SQLx pool + `sqlx migrate` on boot; commit `.sqlx/` offline data (§15.3)
-- [ ] M0.13 Core migrations from §6, timestamp-named via `sqlx migrate add`: `init_auth` (organizations first; roles, users, sessions), `rbac` (permissions, role_permissions), `audit` (audit_logs + immutability trigger), `settings`, `backups`, `notify_triggers`
-- [ ] M0.14 Seed: default organization (`is_default = true`)
-- [ ] M0.15 `Ctx { org_id, user, permissions }` built per request (§18 Enforcement 1)
-- [ ] M0.16 Custom Axum router next to the Dioxus app (`serve_dioxus_application`) — proves custom routes work (§31.4.2)
-- [ ] M0.17 `/healthz` (DB ping) — shows `tenancy: single|multi`
-- [ ] M0.18 Remove template leftovers (`Hero`, `Echo`, `Blog`, `Navbar`, `assets/main.css`, `header.svg`)
-- [ ] M0.19 **Risk spike (throwaway branch `spike/dioxus-server`)**: (a) a server function that reads a request cookie and returns it; (b) a custom Axum route `/spike/ping` next to the Dioxus app; (c) a 3-line SSE stream route that emits one event per second; (d) confirm `sqlx` and other server-only crates are absent from the WASM build. Record results in Decisions. Ticks R3, R4, R5, R6.
-- [ ] M0.20 Test DB setup: `#[sqlx::test]` with a separate test database (`starter_test`), documented in README
-- [ ] M0.21 `justfile` with: `dev`, `db-up`, `db-down`, `migrate`, `prepare` (`cargo sqlx prepare`), `lint` (fmt + clippy server + wasm), `test`
-- [ ] M0.22 Pre-commit hook: `cargo fmt --check` and clippy; `.sqlx/` freshness check
-- [ ] M0.23 `NOTICE` / `src/ui/README.md`: record Rust/UI source commit `4f5a516`, its license and attribution
+- [x] M0.7 Cargo features split: `web` / `server`; server-only crates (`sqlx`, `argon2`, `tokio` process…) `optional` under `server` (§15.4) — `server` feature enables sqlx, figment, dotenvy, tower-http, tokio, tracing, anyhow (all `optional`); wasm tree verified clean
+- [x] M0.8 Restructure to §31.2 layout: `app.rs`, `routes.rs`, `components/{ui,layout}`, `pages/`, `api/`, `domain/`, `server/` — `ui/` + `hooks/` kept at crate root (see Decisions); `components/layout` is an empty placeholder for M3
+- [x] M0.9 `docker-compose.yml` with `postgres:17` + healthcheck (§5) — compose already existed; host port **5440** (5432 is taken on this machine)
+- [x] M0.10 `.env.example` (`DATABASE_URL`, `APP_SECRET`, `SITE_ADDR`, `COOKIE_SECURE`, `BACKUP_DIR`, `SEED_ADMIN_*`, `TENANCY_MODE`) — `SITE_ADDR` replaced by `IP`/`PORT` (read by Dioxus); adds `APP_ENV`, `TEST_DATABASE_URL`, `DB_MAX_CONNECTIONS`
+- [x] M0.11 Config loader (`figment`/`config` + `.env`) and `tracing` subscriber with request id — figment + dotenvy; prod refuses short `APP_SECRET` / `COOKIE_SECURE=false`; tracing via the Dioxus logger + `x-request-id` (set, propagated, in span)
+- [x] M0.12 SQLx pool + `sqlx migrate` on boot; commit `.sqlx/` offline data (§15.3) — pool + `sqlx::migrate!` on boot; `.sqlx/` committed
+- [x] M0.13 Core migrations from §6, timestamp-named via `sqlx migrate add`: `init_auth` (organizations first; roles, users, sessions), `rbac` (permissions, role_permissions), `audit` (audit_logs + immutability trigger), `settings`, `backups`, `notify_triggers` — applied to dev DB
+- [x] M0.14 Seed: default organization (`is_default = true`) — `seed::ensure_default_org`, race-safe via `one_default_org`; test `default_org_is_created_once`
+- [x] M0.15 `Ctx { org_id, user, permissions }` built per request (§18 Enforcement 1) — `ctx_layer` middleware + `Ctx::current()` in server fns; proven by `/api/system/info`
+- [x] M0.16 Custom Axum router next to the Dioxus app (`serve_dioxus_application`) — proves custom routes work (§31.4.2) — `dioxus::serve` + `dioxus::server::router(App)` + own routes and layers
+- [x] M0.17 `/healthz` (DB ping) — shows `tenancy: single|multi` — `GET /healthz` → 200/503 with `db`, `tenancy`, `version`
+- [x] M0.18 Remove template leftovers (`Hero`, `Echo`, `Blog`, `Navbar`, `assets/main.css`, `header.svg`)
+- [x] M0.19 **Risk spike (throwaway branch `spike/dioxus-server`)**: (a) a server function that reads a request cookie and returns it; (b) a custom Axum route `/spike/ping` next to the Dioxus app; (c) a 3-line SSE stream route that emits one event per second; (d) confirm `sqlx` and other server-only crates are absent from the WASM build. Record results in Decisions. Ticks R3, R4, R5, R6. — all four passed — see Decisions; code kept on branch `spike/dioxus-server` (`efda3c5`)
+- [x] M0.20 Test DB setup: `#[sqlx::test]` with a separate test database (`starter_test`), documented in README — `just test`; documented in README
+- [x] M0.21 `justfile` with: `dev`, `db-up`, `db-down`, `migrate`, `prepare` (`cargo sqlx prepare`), `lint` (fmt + clippy server + wasm), `test` — `just --list`; also `migration <name>` and `hooks`
+- [x] M0.22 Pre-commit hook: `cargo fmt --check` and clippy; `.sqlx/` freshness check — `.githooks/pre-commit`, install with `just hooks`; `#[rustfmt::skip]` keeps vendored files untouched
+- [x] M0.23 `NOTICE` / `src/ui/README.md`: record Rust/UI source commit `4f5a516`, its license and attribution — `NOTICE`, `src/ui/README.md`, `src/ui/LICENSE-rust-ui` (MIT, Max Wells)
 - [ ] M0.24 Early production smoke build: `dx bundle --release` and a minimal Docker build run once (after M1), to catch WASM/server split and `pg_dump` version problems (R6, R9) early
 - [ ] M0.25 i18n spike: chosen crate works with SSR + hydration; record decision. Must be done before M3 (ticks R7)
 
@@ -143,7 +143,7 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 - [ ] M4.5 `export_audit_csv` (streamed, `audit.export`, itself audited)
 - [ ] M4.6 Actions rendered via i18n keys (`audit.action.user.create`)
 - [ ] M4.7 Live mode hook (wired in M8)
-- [ ] M4.8 Test: append-only trigger rejects UPDATE/DELETE
+- [x] M4.8 Test: append-only trigger rejects UPDATE/DELETE — `audit_log_rejects_update_and_delete` (done early, with the M0 test setup)
 - [ ] M4.9 Growth plan: decide and document one of (a) monthly partitioning of `audit_logs`, (b) archive-to-storage after `audit.retention_days`. The append-only trigger must still hold for the active partition. Record decision.
 
 ---
@@ -363,10 +363,10 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 
 Blockers first; each names the item that proves it.
 
-- [ ] R3 Session cookie readable in server functions (blocks M1) → proven by **M0.19**
-- [ ] R4 Custom Axum routes next to Dioxus (SSE, downloads, webhooks) (blocks M8, M11, M13) → proven by **M0.19**
-- [ ] R5 SSE through Dioxus fullstack (blocks M8) → proven by **M0.19**
-- [ ] R6 Server-only crates excluded from WASM (`optional` under `server`) → proven by **M0.19** and **M0.24**
+- [x] R3 Session cookie readable in server functions (blocks M1) → proven by **M0.19**
+- [x] R4 Custom Axum routes next to Dioxus (SSE, downloads, webhooks) (blocks M8, M11, M13) → proven by **M0.19**
+- [x] R5 SSE through Dioxus fullstack (blocks M8) → proven by **M0.19**
+- [~] R6 Server-only crates excluded from WASM (`optional` under `server`) → proven by **M0.19** and **M0.24** (M0.19 ✓: no sqlx/figment/tower-http/dotenvy in the wasm tree; M0.24 pending)
 - [ ] R7 i18n crate with SSR + hydration (blocks M3) → proven by **M0.25**
 - [x] R1 Rust/UI on Dioxus 0.7 compiles on stable — verified (pinned `4f5a516`)
 - [x] R2 Rust/UI theme reconciled with dx Tailwind — verified
@@ -390,6 +390,12 @@ Blockers first; each names the item that proves it.
 | 2026-11-15 | SQLx timestamp migrations instead of fixed 00NN numbers | Migrations are created in milestone order, not numeric order |
 | 2026-11-15 | Security headers and `__Host-` cookie move into M1 | Cheap now, easy to forget at M17 |
 | 2026-11-15 | Blueprint `0011_feature_flags` was missing from the tracker; added as M7.11 (`org_limits` was never numbered, kept optional in M16.6) | Patch 1, section C check |
+| 2026-11-15 | **Spike results (M0.19)** on Dioxus 0.7.10: (a) server fn sets a cookie with `FullstackContext::add_response_header(SET_COOKIE, …)` and reads it with `#[post("/…", headers: HeaderMap)]` ✓ (b) `dioxus::serve` + `dioxus::server::router(App).route(…)` serves plain Axum routes ✓ (c) plain `axum::response::Sse` route streams through the dx dev proxy ✓ (d) `sqlx` only in the server tree ✓ | Unblocks M1 (sessions), M8 (SSE), M11/M13 (download, webhook routes). Server fns can also read middleware-inserted extensions via `FullstackContext::extract::<Extension<T>>()` (used by `Ctx`) |
+| 2026-11-15 | `src/ui` + `src/hooks` stay at the crate root, not `components/ui` (§31.2) | Upstream files import `crate::ui::…`/`crate::hooks::…`; moving them means editing vendored code. App components go in `src/components/` |
+| 2026-11-15 | Vendored modules get `#[rustfmt::skip]` and `#[allow(dead_code, unused_imports, clippy::all)]` | Keeps them byte-identical to upstream while `just lint` / the hook run with `-D warnings` |
+| 2026-11-15 | Migrations run on app boot during development; the separate `starter migrate` step comes in M14.7 | Simplest for M0; §28 wants single-runner migrations for multi-instance |
+| 2026-11-15 | `SITE_ADDR` replaced by Dioxus' `IP` / `PORT`; dev DB on host port 5440 | Dioxus reads IP/PORT; 5432 is already used on this machine |
+| 2026-11-15 | Removed unused deps `heck`, `gloo-timers`, `time` (came with the Rust/UI copy) | No current file uses them; re-add when a copied component needs one |
 | 2026-11-15 | Password minimum length uses the blueprint's existing key `security.password_min_length`, not a new `security.min_password_length` | Avoid two keys for one setting |
 
 ## Rust/UI components installed

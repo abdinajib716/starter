@@ -8,16 +8,23 @@ edition = "2024"
 
 [dependencies]
 dioxus = { version = "0.7.1", features = ["router", "fullstack"] }
-gloo-timers = { version = "0.3", features = ["futures"] }
-heck = "0.5"
 icons = { version = "0.19", features = ["dioxus", "dioxus_animated"] }
 js-sys = "0.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 strum = { version = "0.28", features = ["derive"] }
-time = { version = "0.3", features = ["formatting", "macros"] }
 tw_merge = "0.1"
 wasm-bindgen = "0.2"
+uuid = { version = "1", features = ["serde"] }
+
+# ---- server-only (feature "server"); must never reach the wasm build ----
+anyhow = { version = "1", optional = true }
+dotenvy = { version = "0.15", optional = true }
+figment = { version = "0.10", features = ["env"], optional = true }
+sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "postgres", "macros", "migrate", "uuid", "time", "json"], optional = true }
+tokio = { version = "1", features = ["sync", "time"], optional = true }
+tower-http = { version = "0.6", features = ["request-id", "trace", "util"], optional = true }
+tracing = { version = "0.1", optional = true }
 web-sys = { version = "0.3", default-features = false, features = ["Attr", "Blob", "console", "CssStyleDeclaration", "Document", "DomRect", "DomTokenList", "DragEvent", "Element", "Event", "EventTarget", "History", "HtmlAnchorElement", "HtmlDocument", "HtmlElement", "HtmlInputElement", "InputEvent", "KeyboardEvent", "Location", "MediaQueryList", "MouseEvent", "MutationObserver", "MutationObserverInit", "MutationRecord", "Navigator", "NamedNodeMap", "Node", "NodeList", "PointerEvent", "ScrollBehavior", "ScrollIntoViewOptions", "ScrollLogicalPosition", "ScrollToOptions", "Storage", "Url", "Window"] }
 
 [features]
@@ -25,4 +32,13 @@ default = ["web"]
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop"]
 mobile = ["dioxus/mobile"]
-server = ["dioxus/server"]
+server = [
+    "dioxus/server",
+    "dep:anyhow",
+    "dep:dotenvy",
+    "dep:figment",
+    "dep:sqlx",
+    "dep:tokio",
+    "dep:tower-http",
+    "dep:tracing",
+]

@@ -1,0 +1,89 @@
+//! 12-factor config from env (+ `.env` in dev), see `.env.example` and §5.
+use std::path::PathBuf;
+
+use anyhow::{Context, bail};
+use figment::{Figment, providers::Env};
+use serde::Deserialize;
+
+use crate::domain::TenancyMode;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AppEnv {
+    #[default]
+    Development,
+    Production,
+}
+
+/// No `Debug` derive on purpose: this holds secrets.
+#[derive(Clone, Deserialize)]
+pub struct Config {
+    pub database_url: String,
+    #[serde(default)]
+    pub app_env: AppEnv,
+    pub app_secret: Option<String>,
+    #[serde(default)]
+    pub cookie_secure: bool,
+    #[allow(dead_code)] // M11
+    #[serde(default = "default_backup_dir")]
+    pub backup_dir: PathBuf,
+    #[allow(dead_code)] // M1.12
+    pub seed_admin_email: Option<String>,
+    #[allow(dead_code)] // M1.12
+    pub seed_admin_password: Option<String>,
+    #[serde(default)]
+    pub tenancy_mode: TenancyMode,
+    #[serde(default = "default_db_max_connections")]
+    pub db_max_connections: u32,
+}
+
+fn default_backup_dir() -> PathBuf {
+    "./data/backups".into()
+}
+fn default_db_max_connections() -> u32 {
+    10
+}
+
+const KEYS: &[&str] = &[
+    "DATABASE_URL",
+    "APP_ENV",
+    "APP_SECRET",
+    "COOKIE_SECURE",
+    "BACKUP_DIR",
+    "SEED_ADMIN_EMAIL",
+    "SEED_ADMIN_PASSWORD",
+    "TENANCY_MODE",
+    "DB_MAX_CONNECTIONS",
+];
+
+impl Config {
+    pub fn load() -> anyhow::Result<Self> {
+        // `.env` is optional (absent in containers); real env vars win.
+        let _ = dotenvy::dotenv();
+        let cfg: Config = Figment::new()
+            .merge(Env::raw().only(KEYS))
+            .extract()
+            .context("invalid configuration (see .env.example)")?;
+        cfg.validate()?;
+        Ok(cfg)
+    }
+
+    pub fn is_production(&self) -> bool {
+        self.app_env == AppEnv::Production
+    }
+
+    fn validate(&self) -> anyhow::Result<()> {
+        if self.is_production() {
+            match &self.app_secret {
+                Some(s) if s.len() >= 32 => {}
+                _ => bail!("APP_SECRET must be set and at least 32 bytes in production"),
+            }
+            if !self.cookie_secure {
+                bail!("COOKIE_SECURE must be true in production");
+            }
+        } else if self.app_secret.as_deref().is_none_or(|s| s.len() < 32) {
+            tracing::warn!("APP_SECRET missing or < 32 bytes; acceptable in development only");
+        }
+        Ok(())
+    }
+}

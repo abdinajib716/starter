@@ -1,0 +1,10 @@
+This project includes third-party code:
+
+Rust/UI — https://github.com/rust-ui/ui
+  Commit:   4f5a516 (2026-10-30)
+  License:  MIT, Copyright (c) 2026 Max Wells — full text in src/ui/LICENSE-rust-ui
+  Files:    src/ui/*.rs, src/hooks/*.rs, style/, the theme section of tailwind.css,
+            public/app_components/{toast.js,toast.css,chart_init.js}
+
+ApexCharts 5.3.6 — https://apexcharts.com (MIT)
+  File:     public/cdn/apexcharts.5.3.6.min.js (shipped via the Rust/UI repo)

@@ -1,50 +1,67 @@
-# Development
+# Starter
 
-Your new bare-bones project includes minimal organization with a single `main.rs` file and a few assets.
+Rust fullstack starter: **Dioxus 0.7 fullstack** (SSR + hydration, Axum) · **SQLx** · **PostgreSQL 17** · **Rust/UI** + Tailwind v4.
 
-```
-project/
-├─ assets/ # Any assets that are used by the app should be placed here
-├─ src/
-│  ├─ main.rs # main.rs is the entry point to your application and currently contains all components for the app
-├─ Cargo.toml # The Cargo.toml file defines the dependencies and feature flags for your project
-```
+- Design: [RUST FULLSTACK STARTER BLUEPRINT.md](RUST%20FULLSTACK%20STARTER%20BLUEPRINT.md)
+- Progress: [TRACKER.md](TRACKER.md)
 
-### Automatic Tailwind (Dioxus 0.7+)
+## Prerequisites
 
-As of Dioxus 0.7, there no longer is a need to manually install tailwind. Simply `dx serve` and you're good to go!
+- Rust stable + `rustup target add wasm32-unknown-unknown`
+- `dx` (`cargo install dioxus-cli`), `sqlx-cli` (`cargo install sqlx-cli --no-default-features --features postgres,rustls`), `just`
+- Docker (for Postgres), `psql`
 
-Automatic tailwind is supported by checking for a file called `tailwind.css` in your app's manifest directory (next to Cargo.toml). To customize the file, use the dioxus.toml:
+## First run
 
-```toml
-[application]
-tailwind_input = "my.css"
-tailwind_output = "assets/out.css" # also customize the location of the out file!
+```sh
+cp .env.example .env        # adjust if needed
+just db-up                  # Postgres 17 on 127.0.0.1:5440
+just hooks                  # pre-commit: fmt, clippy (server + wasm), .sqlx freshness
+just dev                    # http://127.0.0.1:8080  (migrations run on boot)
 ```
 
-### Tailwind Manual Install
+Check: `curl http://127.0.0.1:8080/healthz` → `{"status":"ok","db":"ok","tenancy":"single",...}`.
 
-To use tailwind plugins or manually customize tailwind, you can can install the Tailwind CLI and use it directly.
+## Everyday commands
 
-### Tailwind
-1. Install npm: https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
-2. Install the Tailwind CSS CLI: https://tailwindcss.com/docs/installation/tailwind-cli
-3. Run the following command in the root of the project to start the Tailwind CSS compiler:
+| Command | What it does |
+|---|---|
+| `just dev` | `dx serve` with hot reload |
+| `just migration <name>` | new timestamped migration in `migrations/` |
+| `just migrate` | apply migrations to `$DATABASE_URL` |
+| `just prepare` | refresh `.sqlx/` offline query data — **commit it** whenever a `query!` changes |
+| `just lint` | `cargo fmt --check` + clippy for server and wasm (`-D warnings`) |
+| `just test` | server tests (see below) |
 
-```bash
-npx @tailwindcss/cli -i ./input.css -o ./assets/tailwind.css --watch
+## Tests and the test database
+
+Tests that touch the database use `#[sqlx::test(migrations = "./migrations")]`. Each test gets a
+**fresh, migrated, throwaway database**, so tests never see each other's data or the dev data.
+
+`just test` points `DATABASE_URL` at a separate database, `starter_test` (created on first run), on
+the same Postgres server; sqlx creates the per-test databases next to it. Override it with
+`TEST_DATABASE_URL` in `.env`. Tests compile with `SQLX_OFFLINE=true`, so `.sqlx/` must be current
+(`just prepare`).
+
+## Layout (§31.2)
+
+```
+src/
+  main.rs        entry: web → dioxus::launch, server → dioxus::serve(custom Axum router)
+  app.rs         App root, Route enum, document head
+  pages/         route components
+  components/    app components (layout/ = shell, built in M3)
+  api/           #[get]/#[post] server functions — thin
+  domain/        shared DTOs (server + wasm)
+  server/        feature "server" only: config, state, db, ctx, routes, seed
+  ui/ hooks/     Rust/UI, vendored verbatim (see src/ui/README.md) — don't edit or rustfmt
+migrations/      SQLx, timestamp-named
+.sqlx/           SQLx offline data (committed)
 ```
 
-### Serving Your App
+Server-only crates (`sqlx`, `figment`, `tower-http`, …) are `optional` and enabled only by the
+`server` feature, so they never reach the wasm bundle.
 
-Run the following command in the root of your project to start developing with the default platform:
+## Licenses
 
-```bash
-dx serve --platform web
-```
-
-To run for a different platform, use the `--platform platform` flag. E.g.
-```bash
-dx serve --platform desktop
-```
-
+Includes Rust/UI (MIT) and ApexCharts (MIT) — see [NOTICE](NOTICE).

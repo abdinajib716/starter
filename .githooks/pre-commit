@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Pre-commit (M0.22): formatting, clippy on server + wasm, .sqlx freshness.
+# Install with `just hooks` (sets core.hooksPath). Skip once with `git commit --no-verify`.
+set -euo pipefail
+
+echo "pre-commit: cargo fmt --check"
+cargo fmt --all --check
+
+echo "pre-commit: clippy (server)"
+SQLX_OFFLINE=true cargo clippy -q --no-default-features --features server -- -D warnings
+
+echo "pre-commit: clippy (wasm)"
+cargo clippy -q --target wasm32-unknown-unknown -- -D warnings
+
+# .sqlx must match the queries; needs the dev DB. Skipped (with a warning) if it's down.
+if [ -f .env ]; then set -a; . ./.env; set +a; fi
+if [ -n "${DATABASE_URL:-}" ] && pg_isready -q -d "$DATABASE_URL" 2>/dev/null; then
+  echo "pre-commit: cargo sqlx prepare --check"
+  cargo sqlx prepare --check -- --no-default-features --features server
+else
+  echo "pre-commit: WARNING dev DB not reachable, skipping .sqlx freshness check"
+fi
