@@ -26,6 +26,7 @@ tokio = { version = "1", features = ["sync", "time"], optional = true }
 tower-http = { version = "0.6", features = ["request-id", "trace", "util"], optional = true }
 tracing = { version = "0.1", optional = true }
 web-sys = { version = "0.3", default-features = false, features = ["Attr", "Blob", "console", "CssStyleDeclaration", "Document", "DomRect", "DomTokenList", "DragEvent", "Element", "Event", "EventTarget", "History", "HtmlAnchorElement", "HtmlDocument", "HtmlElement", "HtmlInputElement", "InputEvent", "KeyboardEvent", "Location", "MediaQueryList", "MouseEvent", "MutationObserver", "MutationObserverInit", "MutationRecord", "Navigator", "NamedNodeMap", "Node", "NodeList", "PointerEvent", "ScrollBehavior", "ScrollIntoViewOptions", "ScrollLogicalPosition", "ScrollToOptions", "Storage", "Url", "Window"] }
+dioxus-i18n = "0.6.0"
 
 [features]
 default = ["web"]

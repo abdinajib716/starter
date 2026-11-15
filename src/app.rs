@@ -1,6 +1,9 @@
 //! Root component, route table and document head.
 use dioxus::prelude::*;
 
+use dioxus_i18n::prelude::use_init_i18n;
+
+use crate::i18n;
 use crate::pages::home::Home;
 use crate::ui::toast::ToastToaster;
 
@@ -21,6 +24,10 @@ const CHART_INIT_JS: Asset = asset!("/public/app_components/chart_init.js");
 
 #[component]
 pub fn App() -> Element {
+    // Resolved on the server during SSR; the client reuses that value when hydrating.
+    let initial = use_server_cached(i18n::request_locale);
+    use_init_i18n(|| i18n::config(&initial));
+
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
         // Dioxus mounts the app inside <div id="main">; give it full height so
@@ -32,6 +39,18 @@ pub fn App() -> Element {
         document::Script { src: CHART_INIT_JS }
         ToastToaster {}
         script { src: TOAST_RUNTIME_JS }
-        Router::<Route> {}
+        LocaleRoot { Router::<Route> {} }
+    }
+}
+
+/// Sets `lang`/`dir` for the current locale. A separate component so that a language
+/// switch re-renders only this subtree, not `App`'s `<head>` elements.
+#[component]
+fn LocaleRoot(children: Element) -> Element {
+    let lang = dioxus_i18n::prelude::i18n().language().to_string();
+    let dir = if i18n::is_rtl(&lang) { "rtl" } else { "ltr" };
+    // Tailwind `rtl:` variants and logical utilities key off the nearest `dir`.
+    rsx! {
+        div { class: "h-full", lang: "{lang}", dir: "{dir}", {children} }
     }
 }

@@ -6,6 +6,7 @@ mod api;
 mod app;
 mod components;
 mod domain;
+mod i18n;
 // Rust/UI library code (copied verbatim); not every component/hook is used yet.
 #[allow(dead_code, unused_imports, clippy::all)]
 #[rustfmt::skip]

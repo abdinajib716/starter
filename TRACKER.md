@@ -14,7 +14,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 
 | # | Milestone | Status | Notes |
 |---|---|---|---|
-| 0 | Toolchain, skeleton, Postgres, migrations, org + `Ctx` | 🟡 in progress | 23/25 done; open: M0.24 (after M1), M0.25 i18n spike |
+| 0 | Toolchain, skeleton, Postgres, migrations, org + `Ctx` | 🟡 in progress | 24/25 done; open: M0.24 (runs after M1) |
 | 1 | Auth core | ⚪ | |
 | 2 | RBAC core + `ModuleFlags` + settings cache | ⚪ | |
 | 3 | App shell + i18n layer | ⚪ | |
@@ -65,7 +65,7 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 - [x] M0.22 Pre-commit hook: `cargo fmt --check` and clippy; `.sqlx/` freshness check — `.githooks/pre-commit`, install with `just hooks`; `#[rustfmt::skip]` keeps vendored files untouched
 - [x] M0.23 `NOTICE` / `src/ui/README.md`: record Rust/UI source commit `4f5a516`, its license and attribution — `NOTICE`, `src/ui/README.md`, `src/ui/LICENSE-rust-ui` (MIT, Max Wells)
 - [ ] M0.24 Early production smoke build: `dx bundle --release` and a minimal Docker build run once (after M1), to catch WASM/server split and `pg_dump` version problems (R6, R9) early
-- [ ] M0.25 i18n spike: chosen crate works with SSR + hydration; record decision. Must be done before M3 (ticks R7)
+- [x] M0.25 i18n spike: chosen crate works with SSR + hydration; record decision. Must be done before M3 (ticks R7) — `dioxus-i18n` 0.6.0 (Fluent) chosen; verified in a real browser, see Decisions
 
 ---
 
@@ -125,7 +125,7 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 - [ ] M3.5 Avatar dropdown: name + email + role badge → Profile / Logout
 - [ ] M3.6 `/403` and `*` Not Found pages
 - [ ] M3.7 Loading skeletons, empty states (`Empty`), error boundaries pattern
-- [ ] M3.8 i18n layer wired in, using the crate chosen in M0.25 (no UI strings before M0.25 is decided); `en` source of truth
+- [ ] M3.8 i18n layer wired in, using the crate chosen in M0.25 (no UI strings before M0.25 is decided); `en` source of truth. Base already in place from M0.25 (`src/i18n.rs`, `locales/*.ftl`, `App` init); remaining: own `t!` wrapper that logs a missing key once and returns the key instead of panicking (`dioxus_i18n::t!` panics when even `en` lacks it), move every UI string to keys
 - [ ] M3.9 Locale resolution: `users.locale` → cookie → `Accept-Language` → default; SSR first paint correct
 - [ ] M3.10 RTL: `dir="rtl"` by locale; logical Tailwind utilities (`ms-*`, `ps-*`, `text-start`)
 - [ ] M3.11 `fmt::date()` / `fmt::number()` helpers (UTC stored, user timezone + locale displayed)
@@ -367,7 +367,7 @@ Blockers first; each names the item that proves it.
 - [x] R4 Custom Axum routes next to Dioxus (SSE, downloads, webhooks) (blocks M8, M11, M13) → proven by **M0.19**
 - [x] R5 SSE through Dioxus fullstack (blocks M8) → proven by **M0.19**
 - [~] R6 Server-only crates excluded from WASM (`optional` under `server`) → proven by **M0.19** and **M0.24** (M0.19 ✓: no sqlx/figment/tower-http/dotenvy in the wasm tree; M0.24 pending)
-- [ ] R7 i18n crate with SSR + hydration (blocks M3) → proven by **M0.25**
+- [x] R7 i18n crate with SSR + hydration (blocks M3) → proven by **M0.25**
 - [x] R1 Rust/UI on Dioxus 0.7 compiles on stable — verified (pinned `4f5a516`)
 - [x] R2 Rust/UI theme reconciled with dx Tailwind — verified
 - [ ] R8 Rust/UI charts hydrate cleanly (ApexCharts is client-side JS)
@@ -396,6 +396,11 @@ Blockers first; each names the item that proves it.
 | 2026-11-15 | Migrations run on app boot during development; the separate `starter migrate` step comes in M14.7 | Simplest for M0; §28 wants single-runner migrations for multi-instance |
 | 2026-11-15 | `SITE_ADDR` replaced by Dioxus' `IP` / `PORT`; dev DB on host port 5440 | Dioxus reads IP/PORT; 5432 is already used on this machine |
 | 2026-11-15 | Removed unused deps `heck`, `gloo-timers`, `time` (came with the Rust/UI copy) | No current file uses them; re-add when a copied component needs one |
+| 2026-11-15 | **i18n (M0.25): `dioxus-i18n` 0.6.0** (Fluent `.ftl` files in `locales/`, embedded with `include_str!`), not JSON | Only maintained Dioxus 0.7 option (0.7.0-alpha targets Dioxus 0.8). Fluent gives ICU plurals (§26 rule 8) and en fallback (rule 9). Verified with headless Chromium: SSR language from cookie/`Accept-Language`, no hydration warnings, plural change on click, switch + cookie persists across reload, missing `so` key falls back to `en` |
+| 2026-11-15 | Locale resolved on the server per request and passed to the client with `use_server_cached`; `lang`/`dir` set on the app root `div`, not `<html>` | Dioxus 0.7 has no SSR API for `<html>` attributes; Tailwind `rtl:` variants work from any ancestor. Revisit in M3 |
+| 2026-11-15 | Locales: **en** (source) + **so** (placeholder text, needs native review). No Arabic | User decision |
+| 2026-11-15 | Fluent wraps arguments in Unicode isolation marks (U+2068/U+2069) | Correct for mixed-direction text; tests comparing strings must strip them |
+| 2026-11-15 | Browser checks run with `mcr.microsoft.com/playwright:v1.56.1-noble` via Docker | Host (Ubuntu 26.04) lacks Chromium system libs; installing them needs sudo |
 | 2026-11-15 | Password minimum length uses the blueprint's existing key `security.password_min_length`, not a new `security.min_password_length` | Avoid two keys for one setting |
 
 ## Rust/UI components installed
