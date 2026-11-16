@@ -87,7 +87,7 @@ pub fn Dashboard() -> Element {
                         Card { class: "col-span-1 gap-6 lg:col-span-3",
                             CardHeader {
                                 CardTitle { {t!("dash-recent-sales")} }
-                                CardDescription { {t!("dash-recent-sales-desc", count: 265)} }
+                                CardDescription { {crate::ta!("dash-recent-sales-desc", count: 265)} }
                             }
                             CardContent { recent_sales::RecentSales {} }
                         }

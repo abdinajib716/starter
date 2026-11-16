@@ -18,7 +18,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 1 | Auth core | 🟡 in progress | 17/19 done; open: M1.1 timing check (release build), M1.19 notification (needs M8) |
 | 2 | RBAC core + `ModuleFlags` + settings cache | ⚪ | |
 | 3 | App shell + i18n layer | ⚪ | shell/routes/RTL replaced by the UI port (SPEC-02) |
-| 3b | **UI port (SPEC-02)** | 🟡 in progress | P0–P2 done, P3–P5/P8 partly; dashboard UI done; manifest 61/215 |
+| 3b | **UI port (SPEC-02)** | 🟡 in progress | P0–P2, P6, P7, P9, P10 done; P3–P5/P8 partly; manifest 186/215 |
 | 4 | Audit | ⚪ | M4.8 done early |
 | 5 | Users + DataTable (bulk, CSV, Deleted tab) | ⚪ | |
 | 6 | Roles + Permissions | ⚪ | |
@@ -149,9 +149,9 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 - [~] P5 Appearance drawer (theme, variant, collapsible, layout, direction, font) and RTL — working drawer (theme, sidebar, layout, direction, reset); illustrated cards, font option and RTL review pending
 - [x] P6 Error pages (401, 403, 404, 500, 503) — public `/401`…`/503`, `/errors/:error` in the shell, catch-all = 404 view
 - [x] P7 Auth screens wired to our auth (M1) — `/sign-in` is the real login (old `/login` redirects); sign-in-2, sign-up (self sign-up off), forgot password (email in M13), OTP (2FA in M9)
-- [~] P8 Dashboard and Users pages on real data (M10, M5) — Dashboard **UI** done and matched with the demo at 1440 px (Overview + Analytics tabs, SVG charts with Recharts ticks); real data in M10; Users page pending
+- [~] P8 Dashboard and Users pages on real data (M10, M5) — Dashboard **UI** done and matched with the demo at 1440 px (Overview + Analytics tabs, SVG charts with Recharts ticks); real data in M10. Users **UI** done (`/users?:..query`: username/status/role filters in URL, sort, pagination, view options, sticky mobile columns, row + bulk actions, add/edit/invite/delete dialogs) on faker demo data identical to the demo; real users API in M5
 - [x] P9 Settings pages — layout + 5 reference demo forms with validation; font preference; real profile settings in M9
-- [~] P10 Demo pages behind feature flags (apps, chats, tasks, help-center) — Apps, Chats, Help Center done (flags in M7); Tasks pending
+- [x] P10 Demo pages behind feature flags (apps, chats, tasks, help-center) — Apps, Chats, Help Center, Tasks done (flags in M7). Shared data-table kit in `components/data_table` (URL state, toolbar, faceted filter, view options, column header, pagination, bulk actions)
 - [ ] P11 Final pass: manifest check, side-by-side comparison, a11y, light/dark, RTL
 
 ---
@@ -456,6 +456,9 @@ Blockers first; each names the item that proves it.
 | 2026-11-16 | Sign-up / forgot-password show honest messages instead of the reference's fake "account created" / "email sent" | No self sign-up (invites, §9.2) and no email until M13 |
 | 2026-11-16 | `[profile.wasm-dev] opt-level = 1` | Dev wasm at opt-level 0 made interactions (e.g. collapsing the sidebar) feel laggy |
 | 2026-11-15 | Password minimum length uses the blueprint's existing key `security.password_min_length`, not a new `security.min_password_length` | Avoid two keys for one setting |
+| 2026-11-16 | Data tables: own `components/data_table` kit (signals + `UrlState`) instead of a TanStack port or Rust/UI `data_table` | the reference's behaviour (URL sync, faceted counts, page window, bulk bar) is small; plain filter → sort → paginate over a `Vec` is enough for demo data and maps 1:1 to server-side paging in M5 |
+| 2026-11-16 | URL array filters are comma-separated (`?status=todo,done`), not JSON (`?status=["todo"]`) | readable links; values never contain commas |
+| 2026-11-16 | `crate::ta!` = `t!` with Fluent's U+2068/U+2069 isolation marks stripped | `dioxus-i18n` has no `use_isolating` switch; the marks leaked into aria-labels ("Go to page ⁨3⁩") |
 
 ## Rust/UI components installed
 

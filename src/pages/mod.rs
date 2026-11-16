@@ -6,3 +6,5 @@ pub mod errors;
 pub mod not_found;
 pub mod profile;
 pub mod settings;
+pub mod tasks;
+pub mod users;

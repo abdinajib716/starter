@@ -1452,3 +1452,129 @@ pub fn nice_ticks(max: f64, count: usize) -> Vec<f64> {
 **Concepts:** [SSR and hydration](CONCEPTS.md#hydration), [cookies](CONCEPTS.md#cookie), [closure](CONCEPTS.md#closure), [signals and hooks](CONCEPTS.md#signals), [context](CONCEPTS.md#context)
 
 **Try it:** choose "Dark" in the theme menu and reload with JavaScript disabled in the browser's developer tools. Expected: the page is still dark, because the `theme` cookie was applied before the app's JavaScript runs (the inline script in `index.html`).
+
+## 33. Table state that lives in the URL
+**Feature:** the Tasks and Users tables keep page, page size, search text and column filters in the address bar, so a copied link or a reload shows the same rows (SPEC-02 P8, P10; reference `use-table-url-state.ts`).
+
+**Code:**
+
+`src/components/data_table/mod.rs` lines 104–122
+
+```rust
+    pub fn build(&self, filter_key: &str, filter_columns: &[&'static str]) -> Query {
+        let page = self.page + 1;
+        let mut q = Query::default()
+            .with("page", (page > 1).then(|| page.to_string()))
+            .with(
+                "pageSize",
+                (self.page_size != DEFAULT_PAGE_SIZE).then(|| self.page_size.to_string()),
+            )
+            .with(filter_key, Some(self.filter.trim().to_string()));
+        for c in filter_columns {
+            let v = self
+                .columns
+                .iter()
+                .find(|(k, _)| k == c)
+                .map(|(_, v)| v.join(","));
+            q = q.with(c, v);
+        }
+        q
+    }
+```
+
+**Line notes:**
+
+1. L104 — `build` turns the plain `UrlState` data into a `Query`; it takes `&self` because it only reads.
+2. L105 — the URL is 1-based (`page=2`) while the state is 0-based, so 1 is added once, here.
+3. L107 — `(page > 1).then(|| ...)` gives `None` for the first page; `Query::with(key, None)` removes the key, so default values never appear in the URL.
+4. L112 — the search text is trimmed; an empty string is also removed by `with`, so "   " clears the `filter` key.
+5. L113–119 — for each filter column, `find` looks up its selected values and `join(",")` writes them as `status=todo,done`; a column without a filter maps to `None` and disappears.
+6. L121 — the finished `Query` is returned; the page's `use_effect` compares its text with the last one and calls `navigator().replace(...)` only when it changed.
+
+**Concepts:** [Option combinators](CONCEPTS.md#option), [iterators](CONCEPTS.md#iterator), [query strings in routes](CONCEPTS.md#query-route), [use_effect and peek](CONCEPTS.md#effect), [unit tests](CONCEPTS.md#tests)
+
+**Try it:** open `/tasks`, choose Status → Todo and go to page 2. Expected URL: `/tasks?page=2&status=todo`. Reload: the same page and filter come back. Then run `cargo test --features server url_` to see the four ported tests pass.
+
+## 34. Faceted counts: counting with every other filter applied
+**Feature:** each option in the Status / Priority filter shows how many rows it would match, given the search text and the *other* filters — the same numbers TanStack Table's faceted model shows in the reference.
+
+**Code:**
+
+`src/pages/tasks/table.rs` lines 30–54
+
+```rust
+fn filtered(state: &TableState, skip: Option<&str>) -> Vec<Task> {
+    let term = (state.filter)().trim().to_lowercase();
+    TASKS
+        .iter()
+        .filter(|t| {
+            term.is_empty()
+                || t.id.to_lowercase().contains(&term)
+                || t.title.to_lowercase().contains(&term)
+        })
+        .filter(|t| {
+            FILTER_COLUMNS
+                .iter()
+                .filter(|c| Some(**c) != skip)
+                .all(|c| state.matches(c, field(t, c)))
+        })
+        .cloned()
+        .collect()
+}
+
+fn counts(rows: &[Task], column: &str, values: &[&'static str]) -> Vec<(&'static str, usize)> {
+    values
+        .iter()
+        .map(|v| (*v, rows.iter().filter(|t| field(t, column) == *v).count()))
+        .collect()
+}
+```
+
+**Line notes:**
+
+1. L30 — `skip` names the column whose own filter must be ignored; `None` means "apply everything" (the rows shown in the table).
+2. L31 — the search term is lower-cased once, outside the loop.
+3. L35–38 — the global search matches the task ID or the title, case-insensitively, as `globalFilterFn` does in the reference.
+4. L41–43 — `.filter(|c| Some(**c) != skip)` drops the skipped column; `.all(...)` keeps a row only if every remaining column filter accepts it.
+5. L46 — `.cloned().collect()` turns the borrowed rows into an owned `Vec<Task>` the caller can keep.
+6. L49–53 — `counts` walks the option values and counts matching rows; the Status filter receives `counts(&filtered(&state, Some("status")), ...)`, so selecting "Todo" does not make the other statuses drop to zero.
+
+**Concepts:** [iterators](CONCEPTS.md#iterator), [closures](CONCEPTS.md#closure), [Option](CONCEPTS.md#option), [borrowing](CONCEPTS.md#borrow)
+
+**Try it:** on `/tasks`, open Status and note the count next to "Done". Now set Priority → High. Expected: the Status counts get smaller (they respect Priority), but choosing "Todo" in Status does not change the count shown next to "Done".
+
+## 35. One "which dialog is open" signal, many dialogs
+**Feature:** each feature page keeps a single `Signal<Option<Dialog>>` (the reference's `useDialogState`); every dialog gets its own `bool` signal that follows it, and closing the dialog resets the shared state.
+
+**Code:**
+
+`src/components/ui_extra/dialog.rs` lines 124–137
+
+```rust
+pub fn use_dialog_flag<D: PartialEq + Copy + 'static>(
+    open: Signal<Option<D>>,
+    which: D,
+) -> Signal<bool> {
+    let mut open = open;
+    let mut flag = use_signal(|| false);
+    use_effect(move || flag.set(open() == Some(which)));
+    use_effect(move || {
+        if !flag() && *open.peek() == Some(which) {
+            open.set(None);
+        }
+    });
+    flag
+}
+```
+
+**Line notes:**
+
+1. L124 — the hook is generic over the dialog enum `D`; `Copy + PartialEq` lets it compare and move the value into closures, `'static` is required for values stored in signals.
+2. L128 — `let mut open = open;` rebinds the parameter as mutable so the second effect can call `open.set`.
+3. L129 — the `bool` signal the `Modal` / `SideSheet` / `ConfirmDialog` components expect.
+4. L130 — first effect: whenever `open` changes, the flag becomes `true` only for the matching dialog.
+5. L131–135 — second effect: when the dialog closes itself (Escape, ×, Cancel), its flag turns `false`; if the shared state still names this dialog it is cleared. `peek()` reads `open` without subscribing, so this effect re-runs only when the flag changes.
+
+**Concepts:** [generics](CONCEPTS.md#generics), [use_effect and peek](CONCEPTS.md#effect), [signals](CONCEPTS.md#signals), [context](CONCEPTS.md#context)
+
+**Try it:** on `/tasks`, click Create, press Escape, then click Create again. Expected: the sheet opens both times. Comment out the second `use_effect` and repeat: the second click does nothing, because the shared state was never cleared and setting it to the same value is not a change.

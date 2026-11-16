@@ -106,6 +106,19 @@ pub fn request_locale() -> String {
     DEFAULT_LOCALE.to_string()
 }
 
+/// Fluent wraps every placeable in Unicode isolation marks (U+2068 … U+2069). They are
+/// invisible but end up in `aria-label`s and copied text, and `dioxus-i18n` has no switch
+/// for `use_isolating`, so `ta!` (t! with arguments) strips them.
+pub fn strip_isolation(s: String) -> String {
+    s.replace(['\u{2068}', '\u{2069}'], "")
+}
+
+/// `t!` with arguments, without Fluent's isolation marks.
+#[macro_export]
+macro_rules! ta {
+    ($($arg:tt)*) => { $crate::i18n::strip_isolation(dioxus_i18n::t!($($arg)*)) };
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

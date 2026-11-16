@@ -74,13 +74,13 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/config-drawer.tsx` | component | src/components/config_drawer.rs | in-progress | options + behaviour done; illustrated option cards (assets/custom/*) in P5 |
 | `src/components/confirm-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
 | `src/components/confirm-dialog.tsx` | component | src/components/ui_extra/dialog.rs | done | ConfirmDialog |
-| `src/components/data-table/bulk-actions.tsx` | component | src/components/data_table/bulk_actions.rs | todo |  |
-| `src/components/data-table/column-header.tsx` | component | src/components/data_table/column_header.rs | todo |  |
-| `src/components/data-table/faceted-filter.tsx` | component | src/components/data_table/faceted_filter.rs | todo |  |
-| `src/components/data-table/index.ts` | component | src/components/data_table/mod.rs | todo |  |
-| `src/components/data-table/pagination.tsx` | component | src/components/data_table/pagination.rs | todo |  |
-| `src/components/data-table/toolbar.tsx` | component | src/components/data_table/toolbar.rs | todo |  |
-| `src/components/data-table/view-options.tsx` | component | src/components/data_table/view_options.rs | todo |  |
+| `src/components/data-table/bulk-actions.tsx` | component | src/components/data_table/bulk_actions.rs | done | floating toolbar; Escape clears selection |
+| `src/components/data-table/column-header.tsx` | component | src/components/data_table/column_header.rs | done | Asc/Desc/Hide menu |
+| `src/components/data-table/faceted-filter.tsx` | component | src/components/data_table/faceted_filter.rs | done | search, counts over the other filters, Clear filters |
+| `src/components/data-table/index.ts` | component | src/components/data_table/mod.rs | done | TableState (signals) replaces TanStack Table |
+| `src/components/data-table/pagination.tsx` | component | src/components/data_table/pagination.rs | done | getPageNumbers lives here |
+| `src/components/data-table/toolbar.tsx` | component | src/components/data_table/toolbar.rs | done |  |
+| `src/components/data-table/view-options.tsx` | component | src/components/data_table/view_options.rs | done |  |
 | `src/components/date-picker.tsx` | component | src/components/ui_extra/form.rs | done | `ui_extra::form::DatePicker` (month/year dropdowns, future disabled) |
 | `src/components/layout/app-sidebar.tsx` | layout | src/components/layout/sidebar.rs | done | variant/collapsible from layout state; mobile copy via `mobile` slot |
 | `src/components/layout/app-title.tsx` | layout | src/components/layout/sidebar_top.rs | todo |  |
@@ -94,13 +94,13 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/layout/top-nav.tsx` | layout | src/components/layout/top_nav.rs | done | menu below lg |
 | `src/components/layout/types.ts` | data | src/components/layout/nav_config.rs | done | typed NavGroup/NavItem/NavLink |
 | `src/components/learn-more.tsx` | component | src/components/learn_more.rs | todo |  |
-| `src/components/long-text.tsx` | component | src/components/long_text.rs | todo |  |
+| `src/components/long-text.tsx` | component | src/components/long_text.rs | done | tooltip ≥ sm, popover < sm, only when overflowing |
 | `src/components/navigation-progress.tsx` | component | src/components/navigation_progress.rs | todo |  |
 | `src/components/password-input.test.tsx` | test | src/components/password_input.rs #[cfg(test)] | todo | logic test → Rust #[test] |
 | `src/components/password-input.tsx` | component | src/components/password_input.rs | done |  |
 | `src/components/profile-dropdown.tsx` | component | src/components/profile_dropdown.rs | done | real user |
 | `src/components/search.tsx` | component | src/components/layout/search.rs | done |  |
-| `src/components/select-dropdown.tsx` | component | src/components/select_dropdown.rs | todo |  |
+| `src/components/select-dropdown.tsx` | component | src/components/ui_extra/form.rs | done | SelectBox (no isPending caller in the reference) |
 | `src/components/sign-out-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
 | `src/components/sign-out-dialog.tsx` | component | src/components/layout/sign_out_dialog.rs | done | calls logout, keeps `next` |
 | `src/components/skip-to-main.tsx` | component | src/components/layout/skip_to_main.rs | done |  |
@@ -187,53 +187,53 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/features/settings/notifications/notifications-form.tsx` | feature | src/pages/settings/notifications.rs | done | demo form as in the reference (submit → toast); real data M9 |
 | `src/features/settings/profile/index.tsx` | feature | src/pages/settings/profile.rs | done | demo form as in the reference (submit → toast); real data M9 |
 | `src/features/settings/profile/profile-form.tsx` | feature | src/pages/settings/profile.rs | done | demo form as in the reference (submit → toast); real data M9 |
-| `src/features/tasks/components/data-table-bulk-actions.tsx` | feature | src/pages/tasks/components/data_table_bulk_actions.rs | todo | demo page behind flag `demo.tasks`, default off (§5) |
-| `src/features/tasks/components/data-table-row-actions.tsx` | feature | src/pages/tasks/components/data_table_row_actions.rs | todo | demo page behind flag `demo.tasks`, default off (§5) |
-| `src/features/tasks/components/tasks-columns.tsx` | feature | src/pages/tasks/components/tasks_columns.rs | todo | demo page behind flag `demo.tasks`, default off (§5) |
-| `src/features/tasks/components/tasks-dialogs.tsx` | feature | src/pages/tasks/components/tasks_dialogs.rs | todo | demo page behind flag `demo.tasks`, default off (§5) |
+| `src/features/tasks/components/data-table-bulk-actions.tsx` | feature | src/pages/tasks/actions.rs | done | demo page behind flag `demo.tasks` (M7) |
+| `src/features/tasks/components/data-table-row-actions.tsx` | feature | src/pages/tasks/actions.rs | done | demo page behind flag `demo.tasks` (M7) |
+| `src/features/tasks/components/tasks-columns.tsx` | feature | src/pages/tasks/table.rs | done | demo page behind flag `demo.tasks` (M7) |
+| `src/features/tasks/components/tasks-dialogs.tsx` | feature | src/pages/tasks/dialogs.rs | done | demo page behind flag `demo.tasks` (M7) |
 | `src/features/tasks/components/tasks-import-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/tasks/components/tasks-import-dialog.tsx` | feature | src/pages/tasks/components/tasks_import_dialog.rs | todo | demo page behind flag `demo.tasks`, default off (§5) |
+| `src/features/tasks/components/tasks-import-dialog.tsx` | feature | src/pages/tasks/dialogs.rs | done | demo page behind flag `demo.tasks` (M7) |
 | `src/features/tasks/components/tasks-multi-delete-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/tasks/components/tasks-multi-delete-dialog.tsx` | feature | src/pages/tasks/components/tasks_multi_delete_dialog.rs | todo | demo page behind flag `demo.tasks`, default off (§5) |
+| `src/features/tasks/components/tasks-multi-delete-dialog.tsx` | feature | src/pages/tasks/actions.rs | done | demo page behind flag `demo.tasks` (M7) |
 | `src/features/tasks/components/tasks-mutate-drawer.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/tasks/components/tasks-mutate-drawer.tsx` | feature | src/pages/tasks/components/tasks_mutate_drawer.rs | todo | demo page behind flag `demo.tasks`, default off (§5) |
-| `src/features/tasks/components/tasks-primary-buttons.tsx` | feature | src/pages/tasks/components/tasks_primary_buttons.rs | todo | demo page behind flag `demo.tasks`, default off (§5) |
-| `src/features/tasks/components/tasks-provider.tsx` | feature | src/pages/tasks/components/tasks_provider.rs | todo | demo page behind flag `demo.tasks`, default off (§5) |
-| `src/features/tasks/components/tasks-table.tsx` | feature | src/pages/tasks/components/tasks_table.rs | todo | demo page behind flag `demo.tasks`, default off (§5) |
-| `src/features/tasks/data/data.tsx` | data | src/pages/tasks/data/data.rs | todo | demo seed data, flag `demo.tasks` (§5) |
-| `src/features/tasks/data/schema.ts` | data | src/pages/tasks/data/schema.rs | todo | demo seed data, flag `demo.tasks` (§5) |
-| `src/features/tasks/data/tasks.ts` | data | src/pages/tasks/data/tasks.rs | todo | demo seed data, flag `demo.tasks` (§5) |
-| `src/features/tasks/index.tsx` | feature | src/pages/tasks/mod.rs | todo | demo page behind flag `demo.tasks`, default off (§5) |
-| `src/features/users/components/data-table-bulk-actions.tsx` | feature | src/pages/users/components/data_table_bulk_actions.rs | todo |  |
-| `src/features/users/components/data-table-row-actions.tsx` | feature | src/pages/users/components/data_table_row_actions.rs | todo |  |
+| `src/features/tasks/components/tasks-mutate-drawer.tsx` | feature | src/pages/tasks/dialogs.rs | done | demo page behind flag `demo.tasks` (M7) |
+| `src/features/tasks/components/tasks-primary-buttons.tsx` | feature | src/pages/tasks/mod.rs | done | demo page behind flag `demo.tasks` (M7) |
+| `src/features/tasks/components/tasks-provider.tsx` | feature | src/pages/tasks/mod.rs | done | demo page behind flag `demo.tasks` (M7) |
+| `src/features/tasks/components/tasks-table.tsx` | feature | src/pages/tasks/table.rs | done | demo page behind flag `demo.tasks` (M7) |
+| `src/features/tasks/data/data.tsx` | data | src/pages/tasks/data.rs | done | tasks.json from faker 10.4.0 seed 12345 (same rows as reference) |
+| `src/features/tasks/data/schema.ts` | data | src/pages/tasks/data.rs | done | tasks.json from faker 10.4.0 seed 12345 (same rows as reference) |
+| `src/features/tasks/data/tasks.ts` | data | src/pages/tasks/data.rs | done | tasks.json from faker 10.4.0 seed 12345 (same rows as reference) |
+| `src/features/tasks/index.tsx` | feature | src/pages/tasks/mod.rs | done | demo page behind flag `demo.tasks` (M7) |
+| `src/features/users/components/data-table-bulk-actions.tsx` | feature | src/pages/users/actions.rs | done | UI done on demo data; real users API in M5 |
+| `src/features/users/components/data-table-row-actions.tsx` | feature | src/pages/users/actions.rs | done | UI done on demo data; real users API in M5 |
 | `src/features/users/components/users-action-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/users/components/users-action-dialog.tsx` | feature | src/pages/users/components/users_action_dialog.rs | todo |  |
-| `src/features/users/components/users-columns.tsx` | feature | src/pages/users/components/users_columns.rs | todo |  |
+| `src/features/users/components/users-action-dialog.tsx` | feature | src/pages/users/dialogs.rs | done | UI done on demo data; real users API in M5 |
+| `src/features/users/components/users-columns.tsx` | feature | src/pages/users/table.rs | done | UI done on demo data; real users API in M5 |
 | `src/features/users/components/users-delete-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/users/components/users-delete-dialog.tsx` | feature | src/pages/users/components/users_delete_dialog.rs | todo |  |
-| `src/features/users/components/users-dialogs.tsx` | feature | src/pages/users/components/users_dialogs.rs | todo |  |
+| `src/features/users/components/users-delete-dialog.tsx` | feature | src/pages/users/dialogs.rs | done | UI done on demo data; real users API in M5 |
+| `src/features/users/components/users-dialogs.tsx` | feature | src/pages/users/dialogs.rs | done | UI done on demo data; real users API in M5 |
 | `src/features/users/components/users-invite-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/users/components/users-invite-dialog.tsx` | feature | src/pages/users/components/users_invite_dialog.rs | todo |  |
+| `src/features/users/components/users-invite-dialog.tsx` | feature | src/pages/users/dialogs.rs | done | UI done on demo data; real users API in M5 |
 | `src/features/users/components/users-multi-delete-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/users/components/users-multi-delete-dialog.tsx` | feature | src/pages/users/components/users_multi_delete_dialog.rs | todo |  |
-| `src/features/users/components/users-primary-buttons.tsx` | feature | src/pages/users/components/users_primary_buttons.rs | todo |  |
-| `src/features/users/components/users-provider.tsx` | feature | src/pages/users/components/users_provider.rs | todo |  |
-| `src/features/users/components/users-table.tsx` | feature | src/pages/users/components/users_table.rs | todo |  |
-| `src/features/users/data/data.ts` | data | src/pages/users/data/data.rs | todo | real DB (M5/M10), no mock data (§5) |
-| `src/features/users/data/schema.ts` | data | src/pages/users/data/schema.rs | todo | real DB (M5/M10), no mock data (§5) |
-| `src/features/users/data/users.ts` | data | src/pages/users/data/users.rs | todo | real DB (M5/M10), no mock data (§5) |
-| `src/features/users/index.tsx` | feature | src/pages/users/mod.rs | todo |  |
-| `src/hooks/use-dialog-state.tsx` | hook | src/app_hooks/dialog_state.rs | todo |  |
+| `src/features/users/components/users-multi-delete-dialog.tsx` | feature | src/pages/users/actions.rs | done | UI done on demo data; real users API in M5 |
+| `src/features/users/components/users-primary-buttons.tsx` | feature | src/pages/users/mod.rs | done | UI done on demo data; real users API in M5 |
+| `src/features/users/components/users-provider.tsx` | feature | src/pages/users/mod.rs | done | UI done on demo data; real users API in M5 |
+| `src/features/users/components/users-table.tsx` | feature | src/pages/users/table.rs | done | UI done on demo data; real users API in M5 |
+| `src/features/users/data/data.ts` | data | src/pages/users/data.rs | done | users.json (faker seed 67890) until M5 replaces it with the DB |
+| `src/features/users/data/schema.ts` | data | src/pages/users/data.rs | done | users.json (faker seed 67890) until M5 replaces it with the DB |
+| `src/features/users/data/users.ts` | data | src/pages/users/data.rs | done | users.json (faker seed 67890) until M5 replaces it with the DB |
+| `src/features/users/index.tsx` | feature | src/pages/users/mod.rs | done | UI done on demo data; real users API in M5 |
+| `src/hooks/use-dialog-state.tsx` | hook | src/components/ui_extra/dialog.rs | done | use_dialog_flag |
 | `src/hooks/use-mobile.tsx` | hook | src/components/ui_extra/sidebar.rs (SidebarProvider) | done | matchMedia(<768px) via eval |
-| `src/hooks/use-table-url-state.test.ts` | test | src/app_hooks/table_url_state.rs #[cfg(test)] | todo | logic test → Rust #[test] |
-| `src/hooks/use-table-url-state.ts` | hook | src/app_hooks/table_url_state.rs | todo |  |
+| `src/hooks/use-table-url-state.test.ts` | test | src/components/data_table/mod.rs #[cfg(test)] | done | url_* tests |
+| `src/hooks/use-table-url-state.ts` | hook | src/components/data_table/mod.rs | done | UrlState + TableState::use_from_query/to_query; arrays comma-separated |
 | `src/lib/cookies.test.ts` | test | src/util/cookies.rs #[cfg(test)] | todo | logic test → Rust #[test] |
 | `src/lib/cookies.ts` | lib/util | src/util/cookies.rs | done | request (SSR) + set/remove (browser) |
 | `src/lib/handle-server-error.test.ts` | test | src/i18n.rs (error_text) #[cfg(test)] | todo | logic test → Rust #[test] |
 | `src/lib/handle-server-error.ts` | lib/util | src/i18n.rs (error_text) + domain::errors | todo |  |
 | `src/lib/show-submitted-data.tsx` | lib/util | src/util/mod.rs | done | toast with JSON description |
-| `src/lib/utils.test.ts` | test | src/util/mod.rs #[cfg(test)] | todo | logic test → Rust #[test] |
-| `src/lib/utils.ts` | lib/util | src/util/mod.rs | todo |  |
+| `src/lib/utils.test.ts` | test | src/components/data_table/mod.rs #[cfg(test)] | done | page_numbers_* tests (getPageNumbers) |
+| `src/lib/utils.ts` | lib/util | src/util/mod.rs | done | cn → tw_merge!; sleep → toast_promise; getPageNumbers → data_table/pagination.rs; getDisplayNameInitials → pages/chats initials() |
 | `src/main.tsx` | config | src/main.rs + src/app.rs | in-progress | providers: i18n, Ui prefs, toaster, router; font provider in P5 |
 | `src/routeTree.gen.ts` | route | src/app.rs (Route enum) | n/a | generated by TanStack Router; the Routable enum replaces it |
 | `src/routes/(auth)/forgot-password.tsx` | route | src/app.rs | done | public route |
@@ -259,8 +259,8 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/routes/_authenticated/settings/index.tsx` | route | src/app.rs (#[nest("/settings")]) | done |  |
 | `src/routes/_authenticated/settings/notifications.tsx` | route | src/app.rs (#[nest("/settings")]) | done |  |
 | `src/routes/_authenticated/settings/route.tsx` | route | src/app.rs (#[nest("/settings")]) | done |  |
-| `src/routes/_authenticated/tasks/index.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/tasks/index |
-| `src/routes/_authenticated/users/index.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/users/index |
+| `src/routes/_authenticated/tasks/index.tsx` | route | src/app.rs (Route::Tasks) | done | /tasks?:..query |
+| `src/routes/_authenticated/users/index.tsx` | route | src/app.rs (Route::Users) | done | /users?:..query |
 | `src/routes/clerk/(auth)/route.tsx` | route | — | n/a | §5: Clerk routes removed; their screens map to our own auth/user pages |
 | `src/routes/clerk/(auth)/sign-in.tsx` | route | — | n/a | §5: Clerk routes removed; their screens map to our own auth/user pages |
 | `src/routes/clerk/(auth)/sign-up.tsx` | route | — | n/a | §5: Clerk routes removed; their screens map to our own auth/user pages |

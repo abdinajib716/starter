@@ -137,18 +137,25 @@ pub fn Switch(
 pub fn CheckBox(
     checked: bool,
     onchange: EventHandler<bool>,
+    /// "Some selected" (header checkbox): shows a dash, counts as checked styling.
+    #[props(default)]
+    indeterminate: bool,
     #[props(into, optional)] id: Option<String>,
     #[props(into, optional)] class: Option<String>,
     #[props(into, optional)] aria_label: Option<String>,
 ) -> Element {
-    let state = if checked { "checked" } else { "unchecked" };
+    let state = if checked || indeterminate {
+        "checked"
+    } else {
+        "unchecked"
+    };
     rsx! {
         button {
             r#type: "button",
             role: "checkbox",
             id,
             "aria-label": aria_label,
-            "aria-checked": "{checked}",
+            "aria-checked": if indeterminate && !checked { "mixed".to_string() } else { checked.to_string() },
             "data-state": state,
             onclick: move |e| { e.stop_propagation(); onchange.call(!checked) },
             class: tw_merge!(
@@ -157,6 +164,8 @@ pub fn CheckBox(
             ),
             if checked {
                 span { class: "flex items-center justify-center text-current", Icon { icon: IconType::Check, class: "size-3.5" } }
+            } else if indeterminate {
+                span { class: "flex items-center justify-center text-current", Icon { icon: IconType::Minus, class: "size-3.5" } }
             }
         }
     }

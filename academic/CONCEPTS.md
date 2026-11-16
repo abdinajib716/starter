@@ -413,3 +413,20 @@ reads it with `await dioxus.recv()`. Used for browser APIs Dioxus does not wrap:
 global keyboard shortcuts, `ResizeObserver`, `document.cookie`. Run it from `use_effect` or event
 handlers, never during render. First seen: entry 28. Dioxus guide, "Interacting with JavaScript".
 
+
+<a id="effect"></a>
+### `use_effect`, `use_memo` and `peek`
+`use_memo(move || ...)` caches a value computed from signals and recomputes it only when a signal
+it read changes. `use_effect(move || ...)` runs after render, and again whenever a signal it read
+changes; it is the place for side effects such as changing the URL. `signal.peek()` reads a value
+**without** subscribing, so an effect can compare against it without re-running when it changes
+(and without looping when the effect itself writes it). First seen: entry 33. Dioxus guide,
+"Reactivity".
+
+<a id="query-route"></a>
+### Query strings in routes
+`#[route("/tasks?:..query")]` hands the whole query string to the page as one value. Its type must
+implement `From<&str>` (parse) and `Display` (print) — here `util::query::Query`, an ordered list
+of key/value pairs. `navigator().replace(Route::Tasks { query })` changes the URL without adding
+a history entry, so typing in a search box does not fill the Back button. First seen: entry 33.
+Dioxus router guide, "Query segments".

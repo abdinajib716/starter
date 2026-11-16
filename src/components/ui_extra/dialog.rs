@@ -66,6 +66,13 @@ pub fn ConfirmDialog(
     #[props(default)] destructive: bool,
     on_confirm: EventHandler<()>,
     #[props(into, optional)] class: Option<String>,
+    /// Rich body (replaces `desc`), e.g. the multi-delete "type DELETE" form.
+    #[props(optional)]
+    body: Option<Element>,
+    /// Destructive title with a warning triangle (`text-destructive` + `AlertTriangle`).
+    #[props(default)]
+    title_destructive: bool,
+    #[props(default)] disabled: bool,
 ) -> Element {
     let mut open = open;
     if !open() {
@@ -85,18 +92,46 @@ pub fn ConfirmDialog(
             onmounted: move |e| async move { let _ = e.data().set_focus(true).await; },
             onkeydown: move |e| if e.key() == Key::Escape { open.set(false) },
             div { class: "flex flex-col gap-2 text-start",
-                h2 { class: "text-lg font-semibold", "{title}" }
-                div { class: "text-sm text-muted-foreground", "{desc}" }
+                h2 { class: "text-lg font-semibold",
+                    if title_destructive {
+                        span { class: "text-destructive",
+                            super::icon::Icon { icon: super::icon::IconType::TriangleAlert, class: "me-1 inline-block size-[18px] stroke-destructive" }
+                            " {title}"
+                        }
+                    } else { "{title}" }
+                }
+                div { class: "text-sm text-muted-foreground",
+                    if let Some(body) = body { {body} } else { "{desc}" }
+                }
             }
             div { class: "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
                 Button { variant: ButtonVariant::Outline, onclick: move |_| open.set(false), "{cancel_text}" }
                 Button {
                     id: "confirm-dialog-confirm",
                     variant: if destructive { ButtonVariant::Destructive } else { ButtonVariant::Default },
+                    disabled,
                     onclick: move |_| on_confirm.call(()),
                     "{confirm_text}"
                 }
             }
         }
     }
+}
+
+/// `hooks/use-dialog-state.tsx` for Dioxus: the feature provider keeps one
+/// `Signal<Option<D>>` ("which dialog is open"); each dialog gets a `bool` signal that follows
+/// it, and closing the dialog clears the provider state.
+pub fn use_dialog_flag<D: PartialEq + Copy + 'static>(
+    open: Signal<Option<D>>,
+    which: D,
+) -> Signal<bool> {
+    let mut open = open;
+    let mut flag = use_signal(|| false);
+    use_effect(move || flag.set(open() == Some(which)));
+    use_effect(move || {
+        if !flag() && *open.peek() == Some(which) {
+            open.set(None);
+        }
+    });
+    flag
 }
