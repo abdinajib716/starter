@@ -7,18 +7,17 @@ use crate::app::Route;
 use crate::components::layout::LocaleSwitch;
 use crate::domain::AfterLogin;
 use crate::i18n::error_text;
-use crate::ui::alert::{Alert, AlertDescription, AlertVariant};
 use crate::ui::button::Button;
 use crate::ui::card::{Card, CardContent, CardDescription, CardHeader, CardTitle};
 use crate::ui::input::{Input, InputType};
 use crate::ui::label::Label;
 use crate::ui::theme_toggle::ThemeToggle;
+use crate::ui::toast::{ToastType, show_toast};
 
 #[component]
 pub fn Login(next: String) -> Element {
     let mut email = use_signal(String::new);
     let mut password = use_signal(String::new);
-    let mut error = use_signal(|| None::<String>);
     let mut busy = use_signal(|| false);
 
     let submit = move |evt: FormEvent| {
@@ -29,7 +28,6 @@ pub fn Login(next: String) -> Element {
                 return;
             }
             busy.set(true);
-            error.set(None);
             match login(email(), password()).await {
                 Ok(AfterLogin::ChangePassword) => {
                     navigator().replace(Route::Profile {});
@@ -41,7 +39,7 @@ pub fn Login(next: String) -> Element {
                 }
                 Err(e) => {
                     password.set(String::new());
-                    error.set(Some(error_text(&e)));
+                    show_toast(ToastType::Error, error_text(&e));
                 }
             }
             busy.set(false);
@@ -58,11 +56,6 @@ pub fn Login(next: String) -> Element {
                 }
                 CardContent {
                     form { class: "flex flex-col gap-4", onsubmit: submit,
-                        if let Some(msg) = error() {
-                            Alert { variant: AlertVariant::Destructive,
-                                AlertDescription { span { id: "login-error", "{msg}" } }
-                            }
-                        }
                         div { class: "flex flex-col gap-2",
                             Label { html_for: "email", {t!("field-email")} }
                             Input {

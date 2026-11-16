@@ -81,7 +81,7 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 - [x] M1.6 Server-function extractor reads the session cookie (verify Dioxus 0.7 extractor support early — §31.4.2) — server fns read the user from `Ctx` (set by middleware); spike M0.19 also proved direct cookie extraction
 - [x] M1.7 `logout()` deletes session, clears cookie — deletes the session in the audit transaction; cookie cleared (browser-checked)
 - [x] M1.8 `current_user()` server fn (permissions + `ModuleFlags` + flags later) — `GET /api/auth/me` → `Option<UserInfo>`; `ModuleFlags`/flags added in M2/M7
-- [x] M1.9 CSRF: `Origin`/`Host` check on all non-GET requests — `guard::csrf`: `Origin` must equal `APP_URL` (or the host when unset), `Sec-Fetch-Site: cross-site` refused; foreign origin → 403 (checked)
+- [x] M1.9 CSRF: `Origin`/`Host` check on all non-GET requests — `guard::csrf`: `Sec-Fetch-Site` decides when present (`same-origin`/`none` pass); older browsers fall back to `Origin` = `APP_URL` (or host). Works through tunnels / forwarded ports; cross-site → 403 (checked)
 - [x] M1.10 Route guard: unauthenticated → `/login`; logged-in on `/login` → `/` — server redirect (303) for page loads + `AppLayout` client guard; `/login?next=` round-trip and `/login` → `/` when signed in (browser-checked)
 - [x] M1.11 Login page (Rust/UI `Card`, `Input`, `Label`, `Button`, inline errors) — `pages/login.rs`, translated inline errors (en/so)
 - [x] M1.12 First-run seed: `Super Admin` role + admin from `SEED_ADMIN_*` with `must_change_pw = true` — `seed::ensure_super_admin_role` + `ensure_first_admin` (only when the org has no users)
@@ -410,6 +410,8 @@ Blockers first; each names the item that proves it.
 | 2026-11-16 | `toast.js` loaded with `document::Script { defer }` | A plain `script {}` in the body ran twice (SSR HTML + hydration), throwing "TOAST_PROPS already declared" |
 | 2026-11-16 | CSP keeps `'unsafe-inline'` and `'unsafe-eval'` for scripts | Dioxus hydration injects inline scripts; Rust/UI uses `document::eval`. Revisit with nonces later |
 | 2026-11-16 | `cargo sqlx prepare` runs with `--all-targets` | Test-only `query!` calls need offline data too |
+| 2026-11-16 | CSRF check uses Fetch Metadata (`Sec-Fetch-Site`) first, `Origin` vs `APP_URL` only as fallback | Origin-only check returned 403 for every login opened via `localhost`, a forwarded port or a tunnel, because the origin differs from `APP_URL`. Browsers set `Sec-Fetch-Site` and page scripts cannot change it |
+| 2026-11-16 | Form errors are shown as toasts, not inline alerts | User decision; the informational "must change password" banner stays inline |
 | 2026-11-15 | Password minimum length uses the blueprint's existing key `security.password_min_length`, not a new `security.min_password_length` | Avoid two keys for one setting |
 
 ## Rust/UI components installed

@@ -6,7 +6,7 @@ use dioxus_i18n::t;
 use crate::api::auth::change_password;
 use crate::components::layout::UserResource;
 use crate::i18n::error_text;
-use crate::ui::alert::{Alert, AlertDescription, AlertVariant};
+use crate::ui::alert::Alert;
 use crate::ui::button::Button;
 use crate::ui::card::{Card, CardContent, CardDescription, CardHeader, CardTitle};
 use crate::ui::input::{Input, InputType};
@@ -26,7 +26,6 @@ pub fn Profile() -> Element {
     let mut current = use_signal(String::new);
     let mut new = use_signal(String::new);
     let mut confirm = use_signal(String::new);
-    let mut error = use_signal(|| None::<String>);
     let mut busy = use_signal(|| false);
 
     let submit = move |evt: FormEvent| {
@@ -37,11 +36,10 @@ pub fn Profile() -> Element {
                 return;
             }
             if new() != confirm() {
-                error.set(Some(t!("password-mismatch")));
+                show_toast(ToastType::Error, t!("password-mismatch"));
                 return;
             }
             busy.set(true);
-            error.set(None);
             match change_password(current(), new()).await {
                 Ok(()) => {
                     current.set(String::new());
@@ -51,7 +49,7 @@ pub fn Profile() -> Element {
                     // `must_change_pw` is now false: refresh the shared user.
                     user.restart();
                 }
-                Err(e) => error.set(Some(error_text(&e))),
+                Err(e) => show_toast(ToastType::Error, error_text(&e)),
             }
             busy.set(false);
         }
@@ -85,11 +83,6 @@ pub fn Profile() -> Element {
                 }
                 CardContent {
                     form { class: "flex flex-col gap-4", onsubmit: submit,
-                        if let Some(msg) = error() {
-                            Alert { variant: AlertVariant::Destructive,
-                                AlertDescription { span { id: "profile-error", "{msg}" } }
-                            }
-                        }
                         {field("current-password", t!("field-current-password"), current)}
                         {field("new-password", t!("field-new-password"), new)}
                         {field("confirm-password", t!("field-confirm-password"), confirm)}

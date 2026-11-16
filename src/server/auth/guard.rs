@@ -13,13 +13,7 @@ use dioxus::server::axum::{
 use crate::server::ctx::Ctx;
 use crate::server::state::AppState;
 
-/// Reject cross-site state-changing requests (M1.9). Browsers always send `Origin` on
-/// cross-origin POSTs, and `Sec-Fetch-Site` on modern ones; non-browser clients send
-/// neither and are not a CSRF vector.
-///
-/// The `Origin` must equal `APP_URL` when configured. Otherwise it must match the request's
-/// host (`X-Forwarded-Host` from a proxy, else `Host`). `APP_URL` is needed whenever a
-/// proxy rewrites `Host`, as the `dx serve` dev proxy does.
+/// Reject cross-site state-changing requests (M1.9).
 pub async fn csrf(State(state): State<AppState>, req: Request, next: Next) -> Response {
     if matches!(*req.method(), Method::GET | Method::HEAD | Method::OPTIONS) {
         return next.run(req).await;
@@ -27,20 +21,40 @@ pub async fn csrf(State(state): State<AppState>, req: Request, next: Next) -> Re
     let h = req.headers();
     let text = |name| h.get(name).and_then(|v| v.to_str().ok());
     let origin = text(header::ORIGIN.as_str());
-    let allowed = match (origin, state.config.app_url.as_deref()) {
-        (None, _) => true,
-        (Some(o), Some(app_url)) => same_origin(o, app_url),
-        (Some(o), None) => {
-            let host = text("x-forwarded-host").or_else(|| text(header::HOST.as_str()));
-            host.is_some_and(|h| o.split_once("://").is_some_and(|(_, rest)| rest == h))
-        }
-    };
-    let cross_site = text("sec-fetch-site") == Some("cross-site");
-    if !allowed || cross_site {
-        tracing::warn!(?origin, "blocked cross-origin request");
+    let host = text("x-forwarded-host").or_else(|| text(header::HOST.as_str()));
+    let fetch_site = text("sec-fetch-site");
+    if !allowed(fetch_site, origin, state.config.app_url.as_deref(), host) {
+        tracing::warn!(?origin, ?fetch_site, "blocked cross-origin request");
         return (StatusCode::FORBIDDEN, "cross-origin request blocked").into_response();
     }
     next.run(req).await
+}
+
+/// The decision, kept pure for testing.
+///
+/// 1. `Sec-Fetch-Site` (sent by every current browser, not settable by page scripts) decides
+///    when present: `same-origin` and `none` (typed URL / bookmark) pass, `same-site` and
+///    `cross-site` are refused. This works behind any proxy or tunnel, even when it rewrites
+///    `Host` (the `dx serve` dev proxy does, and a forwarded port or tunnel changes the origin).
+/// 2. Older browsers without it: `Origin` must equal `APP_URL`, or the request host when
+///    `APP_URL` is unset.
+/// 3. No `Origin` and no `Sec-Fetch-Site`: not a browser, so not a CSRF vector.
+fn allowed(
+    fetch_site: Option<&str>,
+    origin: Option<&str>,
+    app_url: Option<&str>,
+    host: Option<&str>,
+) -> bool {
+    if let Some(site) = fetch_site {
+        return matches!(site, "same-origin" | "none");
+    }
+    match (origin, app_url) {
+        (None, _) => true,
+        (Some(o), Some(app_url)) => same_origin(o, app_url),
+        (Some(o), None) => {
+            host.is_some_and(|h| o.split_once("://").is_some_and(|(_, rest)| rest == h))
+        }
+    }
 }
 
 /// Scheme + host + port equality; trailing slash on `APP_URL` ignored.
@@ -52,20 +66,53 @@ fn same_origin(origin: &str, app_url: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use super::allowed;
+
+    const APP: Option<&str> = Some("http://127.0.0.1:8080");
+
     #[test]
-    fn origin_matching() {
-        assert!(super::same_origin(
-            "http://127.0.0.1:8080",
-            "http://127.0.0.1:8080/"
+    fn fetch_metadata_decides_when_present() {
+        // Same page reached through a tunnel or forwarded port: Origin differs, browser says same-origin.
+        assert!(allowed(
+            Some("same-origin"),
+            Some("https://x.devtunnels.ms"),
+            APP,
+            None
         ));
-        assert!(!super::same_origin(
-            "https://evil.example",
-            "http://127.0.0.1:8080"
+        assert!(allowed(Some("none"), None, APP, None));
+        assert!(!allowed(
+            Some("cross-site"),
+            Some("http://127.0.0.1:8080"),
+            APP,
+            None
         ));
-        assert!(!super::same_origin(
-            "http://127.0.0.1:8081",
-            "http://127.0.0.1:8080"
+        assert!(!allowed(
+            Some("same-site"),
+            Some("https://other.example.com"),
+            APP,
+            None
         ));
+    }
+
+    #[test]
+    fn origin_fallback_for_older_browsers() {
+        assert!(allowed(None, Some("http://127.0.0.1:8080/"), APP, None));
+        assert!(!allowed(None, Some("https://evil.example"), APP, None));
+        assert!(!allowed(None, Some("http://127.0.0.1:8081"), APP, None));
+        assert!(allowed(
+            None,
+            Some("https://app.example.com"),
+            None,
+            Some("app.example.com")
+        ));
+        assert!(!allowed(
+            None,
+            Some("https://evil.example"),
+            None,
+            Some("app.example.com")
+        ));
+        // Non-browser client (curl, mobile app): neither header.
+        assert!(allowed(None, None, APP, None));
     }
 }
 
