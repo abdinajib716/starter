@@ -45,7 +45,7 @@ pub const PRIORITIES: [(&str, &str, IconType); 4] = [
 pub fn options(list: &[(&'static str, &'static str, IconType)]) -> Vec<FilterOption> {
     list.iter()
         .map(|(value, key, icon)| FilterOption {
-            value,
+            value: value.to_string(),
             label: t!(*key),
             icon: Some(*icon),
         })

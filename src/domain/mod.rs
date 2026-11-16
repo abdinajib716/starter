@@ -1,6 +1,8 @@
 //! Shared DTOs + validation; compiled for both the server and wasm (§31.2).
 use serde::{Deserialize, Serialize};
 
+pub mod users;
+
 /// `TENANCY_MODE` (§18). Install-time, read-only in the UI.
 #[cfg_attr(not(feature = "server"), allow(dead_code))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -100,6 +102,21 @@ impl UserInfo {
             .take(2)
             .collect::<String>()
             .to_uppercase()
+    }
+}
+
+/// Email shape check (the reference's `z.email()`), shared by forms and the server.
+pub fn valid_email(s: &str) -> bool {
+    let s = s.trim();
+    match s.split_once('@') {
+        Some((user, host)) => {
+            !user.is_empty()
+                && host.contains('.')
+                && !host.starts_with('.')
+                && !host.ends_with('.')
+                && !s.contains(' ')
+        }
+        None => false,
     }
 }
 

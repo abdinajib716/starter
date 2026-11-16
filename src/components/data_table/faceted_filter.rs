@@ -25,12 +25,12 @@ pub fn FacetedFilter(state: TableState, def: FilterDef) -> Element {
     let column = def.column;
     let toggle = {
         let selected = selected.clone();
-        move |value: &'static str| {
+        move |value: String| {
             let mut next = selected.clone();
-            if let Some(i) = next.iter().position(|v| v == value) {
+            if let Some(i) = next.iter().position(|v| *v == value) {
                 next.remove(i);
             } else {
-                next.push(value.to_string());
+                next.push(value);
             }
             state.set_column_filter(column, next);
         }
@@ -38,7 +38,7 @@ pub fn FacetedFilter(state: TableState, def: FilterDef) -> Element {
     let chosen: Vec<_> = def
         .options
         .iter()
-        .filter(|o| selected.iter().any(|s| s == o.value))
+        .filter(|o| selected.contains(&o.value))
         .cloned()
         .collect();
     rsx! {
@@ -73,10 +73,10 @@ pub fn FacetedFilter(state: TableState, def: FilterDef) -> Element {
                     button {
                         r#type: "button",
                         class: "relative flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none hover:bg-accent hover:text-accent-foreground",
-                        onclick: { let toggle = toggle.clone(); let v = o.value; move |_| toggle(v) },
+                        onclick: { let toggle = toggle.clone(); let v = o.value.clone(); move |_| toggle(v.clone()) },
                         div { class: tw_merge!(
                                 "flex size-4 items-center justify-center rounded-sm border border-primary",
-                                if selected.iter().any(|s| s == o.value) { "bg-primary text-primary-foreground" } else { "opacity-50 [&_svg]:invisible" }
+                                if selected.contains(&o.value) { "bg-primary text-primary-foreground" } else { "opacity-50 [&_svg]:invisible" }
                             ),
                             Icon { icon: IconType::Check, class: "h-4 w-4 text-background" }
                         }

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE backups SET created_by = NULL WHERE created_by = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d4709b3f7ab66eaf37462605944c46bb1dd118c831d135af783055718cb705c4"
+}

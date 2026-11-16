@@ -5,6 +5,7 @@ pub mod config;
 pub mod ctx;
 pub mod db;
 pub mod error;
+pub mod export;
 pub mod modules;
 pub mod rbac;
 pub mod request;
@@ -27,6 +28,7 @@ pub async fn router() -> anyhow::Result<Router> {
     // request-id → trace → headers/limits → CSRF → state → ctx (session) → page guard → app.
     let router = dioxus::server::router(crate::app::App)
         .route("/healthz", get(routes::healthz))
+        .route("/api/export/users.csv", get(services::users::export_route))
         .layer(axum::middleware::from_fn(auth::guard::pages))
         .layer(axum::middleware::from_fn(ctx::ctx_layer))
         .layer(Extension(state.clone()))

@@ -66,7 +66,6 @@ pub fn all_keys() -> HashSet<String> {
     PERMISSIONS.iter().map(|(k, _)| (*k).to_string()).collect()
 }
 
-#[allow(dead_code)] // used from M5 (users) / M6 (roles) / M7 (settings)
 pub fn is_known(key: &str) -> bool {
     PERMISSIONS.iter().any(|(k, _)| *k == key)
 }
@@ -105,7 +104,6 @@ pub async fn sync_permissions(pool: &PgPool) -> sqlx::Result<()> {
 }
 
 /// The signed-in user holding `key`, or `401` / `403`.
-#[allow(dead_code)] // used from M5 (users) / M6 (roles) / M7 (settings)
 pub fn require<'a>(ctx: &'a Ctx, key: &str) -> Result<&'a CurrentUser, AppError> {
     let user = ctx.user.as_ref().ok_or(AppError::Unauthenticated)?;
     debug_assert!(is_known(key), "unknown permission key {key}");
@@ -119,7 +117,6 @@ pub fn require<'a>(ctx: &'a Ctx, key: &str) -> Result<&'a CurrentUser, AppError>
 // ---------- guards (§8 rules) ----------
 
 /// A user can't delete or deactivate themself.
-#[allow(dead_code)] // used from M5 (users) / M6 (roles) / M7 (settings)
 pub fn not_self(actor: &CurrentUser, target: Uuid) -> Result<(), AppError> {
     if actor.id == target {
         Err(AppError::Conflict("users.self_action"))
@@ -129,7 +126,6 @@ pub fn not_self(actor: &CurrentUser, target: Uuid) -> Result<(), AppError> {
 }
 
 /// No privilege escalation: every granted key must be one the actor holds.
-#[allow(dead_code)] // used from M5 (users) / M6 (roles) / M7 (settings)
 pub fn can_grant<'a>(
     actor: &CurrentUser,
     keys: impl IntoIterator<Item = &'a String>,
@@ -147,7 +143,6 @@ pub fn can_grant<'a>(
 
 /// The actor may assign `role_id` only if they hold every permission that role has
 /// (Super Admin role: only a Super Admin).
-#[allow(dead_code)] // used from M5 (users) / M6 (roles) / M7 (settings)
 pub async fn can_assign_role(
     tx: &mut Transaction<'_, Postgres>,
     actor: &CurrentUser,
@@ -177,7 +172,6 @@ pub async fn can_assign_role(
 /// Refuse a change that would leave no active Super Admin. Call inside the transaction,
 /// before deactivating, deleting or changing the role of `user_id`. Locks the Super Admin rows
 /// so two admins demoting each other at once cannot both succeed.
-#[allow(dead_code)] // used from M5 (users) / M6 (roles) / M7 (settings)
 pub async fn keep_last_super_admin(
     tx: &mut Transaction<'_, Postgres>,
     user_id: Uuid,

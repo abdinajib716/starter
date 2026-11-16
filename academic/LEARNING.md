@@ -1697,3 +1697,48 @@ pub async fn keep_last_super_admin(
 **Concepts:** [transactions](CONCEPTS.md#transaction), [Result and ?](CONCEPTS.md#result), [SQLx macros](CONCEPTS.md#sqlx-macros), [enum](CONCEPTS.md#enum)
 
 **Try it:** run `cargo test --features server last_super_admin`. Expected: `last_super_admin_is_protected` and `one_of_two_super_admins_may_go` pass. Remove `&& ids[0] == user_id` and run again: the second test now fails, because demoting one of two admins is wrongly refused.
+
+## 39. Bulk actions that skip, not fail
+**Feature:** selecting many users and pressing Deactivate / Delete / Restore applies the action to each one separately, re-checking every rule per user; users that may not be changed are reported with a reason instead of cancelling the whole batch (§25.1, M5.6).
+
+**Code:**
+
+`src/server/services/users.rs` lines 569–590
+
+```rust
+pub async fn bulk(
+    pool: &PgPool,
+    ctx: &Ctx,
+    action: BulkUserAction,
+    ids: Vec<Uuid>,
+) -> Result<BulkResult, AppError> {
+    let actor = ctx.user.clone().ok_or(AppError::Unauthenticated)?;
+    let max = settings::value(pool, "bulk.max_items")
+        .await
+        .as_u64()
+        .unwrap_or(1000) as usize;
+    if ids.len() > max {
+        return Err(AppError::Validation("bulk.too_many"));
+    }
+    let mut res = BulkResult::default();
+    for id in ids.iter().copied() {
+        match apply(pool, ctx, action, id).await {
+            Ok(()) => res.done += 1,
+            Err(AppError::Internal(e)) => return Err(AppError::Internal(e)),
+            Err(e) => res.skipped.push((id, e.code().to_string())),
+        }
+    }
+```
+
+**Line notes:**
+
+1. L575 — the signed-in user is needed for the summary audit row; without a session the call ends with `Unauthenticated` (401).
+2. L576–579 — `bulk.max_items` comes from the settings cache (M2.9), so an admin can change the limit without a deploy.
+3. L580–582 — a too-large selection is refused as a whole, before any change.
+4. L584–585 — each id goes through `apply`, the same function the single row menu uses. It opens its own transaction and re-checks permission, "not yourself" and "not the last Super Admin" for that user.
+5. L587 — a database or programming error (`Internal`) stops the batch: something is wrong and continuing could hide it.
+6. L588 — any other error (a broken rule) is recorded as `(id, code)` and the loop goes on; the page shows "Skipped 1: You can't do that to your own account."
+
+**Concepts:** [match and patterns](CONCEPTS.md#match), [Result and ?](CONCEPTS.md#result), [transactions](CONCEPTS.md#transaction), [iterators](CONCEPTS.md#iterator)
+
+**Try it:** on `/users`, tick "Select all" (your own row is on the page) and press Deactivate. Expected: a success toast for the others and a warning toast "Skipped 1: You can't do that to your own account." Your own account stays active.

@@ -3,6 +3,7 @@
 pub mod auth;
 pub mod i18n;
 pub mod system;
+pub mod users;
 
 /// M2.12: every server function in `api/` must check access — `require(` (permission),
 /// `require_user(` (own account, session only) or `require_flag(` — or be on the explicit

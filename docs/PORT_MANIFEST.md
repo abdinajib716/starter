@@ -204,25 +204,25 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/features/tasks/data/schema.ts` | data | src/pages/tasks/data.rs | done | tasks.json from faker 10.4.0 seed 12345 (same rows as reference) |
 | `src/features/tasks/data/tasks.ts` | data | src/pages/tasks/data.rs | done | tasks.json from faker 10.4.0 seed 12345 (same rows as reference) |
 | `src/features/tasks/index.tsx` | feature | src/pages/tasks/mod.rs | done | demo page behind flag `demo.tasks` (M7) |
-| `src/features/users/components/data-table-bulk-actions.tsx` | feature | src/pages/users/actions.rs | done | UI done on demo data; real users API in M5 |
-| `src/features/users/components/data-table-row-actions.tsx` | feature | src/pages/users/actions.rs | done | UI done on demo data; real users API in M5 |
+| `src/features/users/components/data-table-bulk-actions.tsx` | feature | src/pages/users/actions.rs | done | real data (M5): server-side list, guards, audit |
+| `src/features/users/components/data-table-row-actions.tsx` | feature | src/pages/users/actions.rs | done | real data (M5): server-side list, guards, audit |
 | `src/features/users/components/users-action-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/users/components/users-action-dialog.tsx` | feature | src/pages/users/dialogs.rs | done | UI done on demo data; real users API in M5 |
-| `src/features/users/components/users-columns.tsx` | feature | src/pages/users/table.rs | done | UI done on demo data; real users API in M5 |
+| `src/features/users/components/users-action-dialog.tsx` | feature | src/pages/users/dialogs.rs | done | real data (M5): server-side list, guards, audit |
+| `src/features/users/components/users-columns.tsx` | feature | src/pages/users/table.rs | done | real data (M5): server-side list, guards, audit |
 | `src/features/users/components/users-delete-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/users/components/users-delete-dialog.tsx` | feature | src/pages/users/dialogs.rs | done | UI done on demo data; real users API in M5 |
-| `src/features/users/components/users-dialogs.tsx` | feature | src/pages/users/dialogs.rs | done | UI done on demo data; real users API in M5 |
+| `src/features/users/components/users-delete-dialog.tsx` | feature | src/pages/users/dialogs.rs | done | real data (M5): server-side list, guards, audit |
+| `src/features/users/components/users-dialogs.tsx` | feature | src/pages/users/dialogs.rs | done | real data (M5): server-side list, guards, audit |
 | `src/features/users/components/users-invite-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/users/components/users-invite-dialog.tsx` | feature | src/pages/users/dialogs.rs | done | UI done on demo data; real users API in M5 |
+| `src/features/users/components/users-invite-dialog.tsx` | feature | src/pages/users/dialogs.rs | in-progress | removed until the email module (M13): invites need email; admins set temporary passwords meanwhile |
 | `src/features/users/components/users-multi-delete-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/users/components/users-multi-delete-dialog.tsx` | feature | src/pages/users/actions.rs | done | UI done on demo data; real users API in M5 |
-| `src/features/users/components/users-primary-buttons.tsx` | feature | src/pages/users/mod.rs | done | UI done on demo data; real users API in M5 |
-| `src/features/users/components/users-provider.tsx` | feature | src/pages/users/mod.rs | done | UI done on demo data; real users API in M5 |
-| `src/features/users/components/users-table.tsx` | feature | src/pages/users/table.rs | done | UI done on demo data; real users API in M5 |
-| `src/features/users/data/data.ts` | data | src/pages/users/data.rs | done | users.json (faker seed 67890) until M5 replaces it with the DB |
-| `src/features/users/data/schema.ts` | data | src/pages/users/data.rs | done | users.json (faker seed 67890) until M5 replaces it with the DB |
-| `src/features/users/data/users.ts` | data | src/pages/users/data.rs | done | users.json (faker seed 67890) until M5 replaces it with the DB |
-| `src/features/users/index.tsx` | feature | src/pages/users/mod.rs | done | UI done on demo data; real users API in M5 |
+| `src/features/users/components/users-multi-delete-dialog.tsx` | feature | src/pages/users/actions.rs | done | real data (M5): server-side list, guards, audit |
+| `src/features/users/components/users-primary-buttons.tsx` | feature | src/pages/users/mod.rs | done | real data (M5): server-side list, guards, audit |
+| `src/features/users/components/users-provider.tsx` | feature | src/pages/users/mod.rs | done | real data (M5): server-side list, guards, audit |
+| `src/features/users/components/users-table.tsx` | feature | src/pages/users/table.rs | done | real data (M5): server-side list, guards, audit |
+| `src/features/users/data/data.ts` | data | src/domain/users.rs | done | replaced by the `users` table (M5); DTOs in src/domain/users.rs |
+| `src/features/users/data/schema.ts` | data | src/domain/users.rs | done | replaced by the `users` table (M5); DTOs in src/domain/users.rs |
+| `src/features/users/data/users.ts` | data | src/domain/users.rs | done | replaced by the `users` table (M5); DTOs in src/domain/users.rs |
+| `src/features/users/index.tsx` | feature | src/pages/users/mod.rs | done | real data (M5): server-side list, guards, audit |
 | `src/hooks/use-dialog-state.tsx` | hook | src/components/ui_extra/dialog.rs | done | use_dialog_flag |
 | `src/hooks/use-mobile.tsx` | hook | src/components/ui_extra/sidebar.rs (SidebarProvider) | done | matchMedia(<768px) via eval |
 | `src/hooks/use-table-url-state.test.ts` | test | src/components/data_table/mod.rs #[cfg(test)] | done | url_* tests |

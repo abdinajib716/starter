@@ -30,7 +30,7 @@ use crate::util::query::Query;
 /// One choice of a faceted filter (`statuses`, `priorities`, `roles`…).
 #[derive(Clone, PartialEq)]
 pub struct FilterOption {
-    pub value: &'static str,
+    pub value: String,
     pub label: String,
     pub icon: Option<IconType>,
 }
@@ -42,7 +42,7 @@ pub struct FilterDef {
     pub title: String,
     pub options: Vec<FilterOption>,
     /// (value, count) over the rows matching every *other* filter (TanStack "faceted" values).
-    pub counts: Vec<(&'static str, usize)>,
+    pub counts: Vec<(String, usize)>,
 }
 
 pub const PAGE_SIZES: [usize; 5] = [10, 20, 30, 40, 50];

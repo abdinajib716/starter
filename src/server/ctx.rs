@@ -49,7 +49,6 @@ impl Ctx {
     }
 
     /// The signed-in user holding permission `key` (§8), or 401 / 403.
-    #[allow(dead_code)] // first callers in M5
     pub fn require(&self, key: &str) -> Result<&CurrentUser, super::error::AppError> {
         super::rbac::require(self, key)
     }

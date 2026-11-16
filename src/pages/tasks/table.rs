@@ -46,10 +46,15 @@ fn filtered(state: &TableState, skip: Option<&str>) -> Vec<Task> {
         .collect()
 }
 
-fn counts(rows: &[Task], column: &str, values: &[&'static str]) -> Vec<(&'static str, usize)> {
+fn counts(rows: &[Task], column: &str, values: &[&'static str]) -> Vec<(String, usize)> {
     values
         .iter()
-        .map(|v| (*v, rows.iter().filter(|t| field(t, column) == *v).count()))
+        .map(|v| {
+            (
+                v.to_string(),
+                rows.iter().filter(|t| field(t, column) == *v).count(),
+            )
+        })
         .collect()
 }
 

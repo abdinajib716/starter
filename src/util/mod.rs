@@ -54,3 +54,24 @@ pub fn toast_promise(loading: impl Into<String>, success: impl Into<String>, ms:
     );
     let _ = dioxus::document::eval(&js);
 }
+
+/// Wait `ms` milliseconds in the browser (debounce); returns at once during SSR.
+pub async fn sleep_ms(ms: u32) {
+    #[cfg(target_arch = "wasm32")]
+    {
+        let mut e = dioxus::document::eval(&format!(
+            "await new Promise(r => setTimeout(r, {ms})); dioxus.send(true);"
+        ));
+        let _ = e.recv::<bool>().await;
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    let _ = ms;
+}
+
+/// Toast for a failed server call: the translated error code (§26 rule 2).
+pub fn toast_error(e: &dioxus::prelude::ServerFnError) {
+    toast(
+        crate::ui::toast::ToastType::Error,
+        crate::i18n::error_text(e),
+    );
+}

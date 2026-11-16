@@ -20,7 +20,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 3 | App shell + i18n layer | ⚪ | shell/routes/RTL replaced by the UI port (SPEC-02) |
 | 3b | **UI port (SPEC-02)** | 🟡 in progress | P0–P3, P5–P7, P9, P10 done; P4 branding (M7) and P8 real data (M5/M10) pending; manifest 212/212 |
 | 4 | Audit | ⚪ | M4.8 done early |
-| 5 | Users + DataTable (bulk, CSV, Deleted tab) | ⚪ | |
+| 5 | Users + DataTable (bulk, CSV, Deleted tab) | 🟡 in progress | branch `m5/users`; real Users page live; open: select-all-matching (M5.6/M5.7), purge job (M5.12) |
 | 6 | Roles + Permissions | ⚪ | |
 | 7 | System Setting (tabs, deps, feature flags) | ⚪ | |
 | 8 | Realtime (SSE) + notifications | ⚪ | |
@@ -177,19 +177,19 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 **Done when:** full CRUD with guards and audit; bulk actions, CSV export and Deleted tab work.
 
-- [ ] M5.1 Shared `DataTable` wrapper (Rust/UI `data_table`): server-side pagination, sort (whitelisted columns), search
-- [ ] M5.2 `list_users(page, q, role, status, sort)` (org-scoped)
-- [ ] M5.3 `create_user` / `update_user` (before/after audit) / `set_user_active` / `reset_user_password` / `delete_user` (soft)
-- [ ] M5.4 Sessions killed on deactivate / reset password / role change / delete
-- [ ] M5.5 UI: search `Input`, role/status `Select`, `Pagination`, `Dialog` create/edit, `AlertDialog` delete, `Toast` results
-- [ ] M5.6 Bulk actions: `Selection::{Ids, Filter}`, cap `bulk.max_items`, per-item guards re-applied, skipped-with-reason, per-item + summary audit
-- [ ] M5.7 Bulk UI: row checkboxes, select-all-matching banner, floating action bar, count confirmation
-- [ ] M5.8 CSV export helper `export::csv_response` — streamed, BOM, column whitelist, CSV-injection prefix, `export.max_rows` + `X-Export-Truncated`
-- [ ] M5.9 `GET /api/export/users.csv` (`users.export`)
-- [ ] M5.10 Deleted tab (`users.restore`): `restore_user` (email re-check, inactive + `must_change_pw`)
-- [ ] M5.11 `purge_user` (`users.purge`, type email to confirm) — **blocker found 2026-11-16:** deleting any user with audit rows fails, because `audit_logs.actor_id ON DELETE SET NULL` is an UPDATE and the append-only trigger rejects it. Fix in M5 (e.g. trigger allows only `actor_id → NULL`, or drop that FK and rely on `actor_email`)
+- [x] M5.1 Shared `DataTable` wrapper (Rust/UI `data_table`): server-side pagination, sort (whitelisted columns), search — the SPEC-02 `components/data_table` kit driven by a server query (`TableState` → `UserQuery`), facet counts from the server
+- [x] M5.2 `list_users(page, q, role, status, sort)` (org-scoped) — `QueryBuilder` with bound values, LIKE escaping, status derived in SQL (active/inactive/invited/suspended/deleted)
+- [x] M5.3 `create_user` / `update_user` (before/after audit) / `set_user_active` / `reset_user_password` / `delete_user` (soft) — `services/users.rs`, one transaction + audit row each
+- [x] M5.4 Sessions killed on deactivate / reset password / role change / delete
+- [x] M5.5 UI: search `Input`, role/status `Select`, `Pagination`, `Dialog` create/edit, `AlertDialog` delete, `Toast` results — the ported Users page on real data; browser-checked (create, search, filter, delete, restore, export)
+- [~] M5.6 Bulk actions: `Selection::{Ids, Filter}`, cap `bulk.max_items`, per-item guards re-applied, skipped-with-reason, per-item + summary audit — Ids done (activate/deactivate/delete/restore); `Filter` selection pending with M5.7's select-all banner
+- [~] M5.7 Bulk UI: row checkboxes, select-all-matching banner, floating action bar, count confirmation — checkboxes, floating bar, type-DELETE confirmation done; select-all-matching banner pending
+- [x] M5.8 CSV export helper `export::csv_response` — streamed, BOM, column whitelist, CSV-injection prefix, `export.max_rows` + `X-Export-Truncated` — `server/export.rs` (mpsc → `Body::from_stream`)
+- [x] M5.9 `GET /api/export/users.csv` (`users.export`) — same filters as the list + `ids=`; audited `export.users`
+- [x] M5.10 Deleted tab (`users.restore`): `restore_user` (email re-check, inactive + `must_change_pw`) — shows who/when deleted; bulk restore
+- [x] M5.11 `purge_user` (`users.purge`, type email to confirm) — blocker fixed by migration `…08_audit_actor_set_null`: the trigger allows exactly `actor_id → NULL` with every other column unchanged; test proves audit rows survive with `actor_email`
 - [ ] M5.12 Optional purge job for `users.deleted_retention_days`
-- [ ] M5.13 Tests: guards, restore email conflict, bulk skip reasons, CSV injection
+- [x] M5.13 Tests: guards, restore email conflict, bulk skip reasons, CSV injection — `services::users::tests` (5 DB tests), `export::tests`, `domain::users::tests`
 
 ---
 
@@ -459,6 +459,8 @@ Blockers first; each names the item that proves it.
 | 2026-11-15 | Password minimum length uses the blueprint's existing key `security.password_min_length`, not a new `security.min_password_length` | Avoid two keys for one setting |
 | 2026-11-16 | Data tables: own `components/data_table` kit (signals + `UrlState`) instead of a TanStack port or Rust/UI `data_table` | the reference's behaviour (URL sync, faceted counts, page window, bulk bar) is small; plain filter → sort → paginate over a `Vec` is enough for demo data and maps 1:1 to server-side paging in M5 |
 | 2026-11-16 | URL array filters are comma-separated (`?status=todo,done`), not JSON (`?status=["todo"]`) | readable links; values never contain commas |
+| 2026-11-16 | Users "status" is derived, not stored: deleted → suspended (locked) → inactive → invited (never signed in) → active | gives the reference's four badge states real meaning without new columns |
+| 2026-11-16 | Users page: no Username/Phone columns (not in our schema); Last sign-in instead; Invite button hidden until the email module (M13) | real data only; invites need email |
 | 2026-11-16 | `crate::ta!` = `t!` with Fluent's U+2068/U+2069 isolation marks stripped | `dioxus-i18n` has no `use_isolating` switch; the marks leaked into aria-labels ("Go to page ⁨3⁩") |
 
 ## Rust/UI components installed

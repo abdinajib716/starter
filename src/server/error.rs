@@ -19,6 +19,19 @@ pub enum AppError {
     Internal(anyhow::Error),
 }
 
+impl AppError {
+    /// The stable code the client sees (also used for bulk skip reasons).
+    pub fn code(&self) -> &'static str {
+        match self {
+            Self::Unauthenticated => "auth.unauthenticated",
+            Self::Forbidden => "auth.forbidden",
+            Self::NotFound => "not_found",
+            Self::Validation(c) | Self::Conflict(c) | Self::Disabled(c) => c,
+            Self::Internal(_) => "internal",
+        }
+    }
+}
+
 impl std::fmt::Display for AppError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

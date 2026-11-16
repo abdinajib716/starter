@@ -1,139 +1,226 @@
-//! `users-table.tsx` + `users-columns.tsx`.
+//! `users-table.tsx` + `users-columns.tsx` on server data: the table state (URL-synced) is
+//! turned into a `UserQuery`; the server filters, sorts, pages and counts facets.
 use dioxus::prelude::*;
 use dioxus_i18n::t;
 use tw_merge::tw_merge;
+use uuid::Uuid;
 
+use super::UsersCtx;
 use super::actions::{RowActions, UsersBulkActions};
-use super::data::{ROLES, STATUSES, USERS, User, status_class};
+use crate::api::users::list_users;
 use crate::app::Route;
 use crate::components::data_table::{
-    ColumnHeader, FilterDef, FilterOption, Pagination, TD, TH, TR, TableState, Toolbar, paginate,
+    ColumnHeader, FilterDef, FilterOption, Pagination, TD, TH, TR, TableState, Toolbar,
 };
 use crate::components::long_text::LongText;
-use crate::components::ui_extra::form::CheckBox;
-use crate::components::ui_extra::icon::Icon;
+use crate::components::skeletons::TableSkeleton;
+use crate::components::ui_extra::form::{CheckBox, format_date};
+use crate::components::ui_extra::icon::{Icon, IconType};
+use crate::domain::users::{UserPage, UserQuery, UserRow, UserSort, UserStatus};
 use crate::util::query::Query;
 
 const FILTER_COLUMNS: &[&str] = &["status", "role"];
-/// Cells take the row background so the sticky (mobile) columns cover what scrolls under them.
 const CELL_BG: &str =
     "bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted";
 const SELECT_META: &str = "start-0 z-10 rounded-tl-[inherit] max-md:sticky";
-const USERNAME_META: &str = "drop-shadow-[0_1px_2px_rgb(0_0_0_/_0.1)] dark:drop-shadow-[0_1px_2px_rgb(255_255_255_/_0.1)] start-6 ps-0.5 max-md:sticky @4xl/content:table-cell @4xl/content:drop-shadow-none";
+const NAME_META: &str = "drop-shadow-[0_1px_2px_rgb(0_0_0_/_0.1)] dark:drop-shadow-[0_1px_2px_rgb(255_255_255_/_0.1)] start-6 ps-0.5 max-md:sticky @4xl/content:table-cell @4xl/content:drop-shadow-none";
 const BADGE_OUTLINE: &str = "inline-flex w-fit shrink-0 items-center justify-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap text-foreground";
 
-fn full_name(u: &User) -> String {
-    format!("{} {}", u.first_name, u.last_name)
-}
-
-fn sort_key(u: &User, column: &str) -> String {
-    match column {
-        "username" => u.username.to_lowercase(),
-        "fullName" => full_name(u).to_lowercase(),
-        _ => u.email.to_lowercase(),
+/// `callTypes`: badge colours per status.
+pub fn status_class(s: UserStatus) -> &'static str {
+    match s {
+        UserStatus::Active => "bg-teal-100/30 text-teal-900 dark:text-teal-200 border-teal-200",
+        UserStatus::Inactive | UserStatus::Deleted => "bg-neutral-300/40 border-neutral-300",
+        UserStatus::Invited => "bg-sky-200/40 text-sky-900 dark:text-sky-100 border-sky-300",
+        UserStatus::Suspended => {
+            "bg-destructive/10 dark:bg-destructive/50 text-destructive dark:text-primary border-destructive/10"
+        }
     }
 }
 
-fn field<'a>(u: &'a User, column: &str) -> &'a str {
-    if column == "role" { &u.role } else { &u.status }
+pub fn status_key(s: UserStatus) -> &'static str {
+    match s {
+        UserStatus::Active => "user-status-active",
+        UserStatus::Inactive => "user-status-inactive",
+        UserStatus::Invited => "user-status-invited",
+        UserStatus::Suspended => "user-status-suspended",
+        UserStatus::Deleted => "user-status-deleted",
+    }
 }
 
-/// Username text filter + every column filter except `skip`.
-fn filtered(state: &TableState, skip: Option<&str>) -> Vec<User> {
-    let term = (state.filter)().trim().to_lowercase();
-    USERS
-        .iter()
-        .filter(|u| term.is_empty() || u.username.to_lowercase().contains(&term))
-        .filter(|u| {
-            FILTER_COLUMNS
-                .iter()
-                .filter(|c| Some(**c) != skip)
-                .all(|c| state.matches(c, field(u, c)))
-        })
-        .cloned()
-        .collect()
+fn role_icon(is_system: bool) -> IconType {
+    if is_system {
+        IconType::Shield
+    } else {
+        IconType::UserCheck
+    }
 }
 
-fn counts(rows: &[User], column: &str, values: &[&'static str]) -> Vec<(&'static str, usize)> {
-    values
-        .iter()
-        .map(|v| (*v, rows.iter().filter(|u| field(u, column) == *v).count()))
-        .collect()
+/// The server query for the current table state.
+fn to_user_query(state: &TableState, deleted: bool) -> UserQuery {
+    UserQuery {
+        q: (state.filter)().trim().to_string(),
+        statuses: state
+            .column_filter("status")
+            .iter()
+            .filter_map(|s| UserStatus::parse(s))
+            .collect(),
+        role_ids: state
+            .column_filter("role")
+            .iter()
+            .filter_map(|s| s.parse().ok())
+            .collect(),
+        sort: (state.sort)().and_then(|(c, d)| UserSort::parse(c).map(|s| (s, d))),
+        page: (state.page)() as u32,
+        page_size: (state.page_size)() as u32,
+        deleted,
+    }
+}
+
+/// Download `/api/export/users.csv` with the list's filters (and optionally only `ids`).
+pub fn download_csv(query: &Query, ids: Option<Vec<Uuid>>) {
+    let p = |k: &str| query.get(k).unwrap_or("").to_string();
+    let mut q = Query::default()
+        .with("q", Some(p("filter")))
+        .with("status", Some(p("status")))
+        .with("role", Some(p("role")))
+        .with(
+            "deleted",
+            (query.get("tab") == Some("deleted")).then(|| "1".to_string()),
+        );
+    if let Some(ids) = ids {
+        q = q.with(
+            "ids",
+            Some(
+                ids.iter()
+                    .map(Uuid::to_string)
+                    .collect::<Vec<_>>()
+                    .join(","),
+            ),
+        );
+    }
+    let url = serde_json::to_string(&format!("/api/export/users.csv?{q}")).unwrap_or_default();
+    let _ = document::eval(&format!(
+        "(() => {{ const a = document.createElement('a'); a.href = {url}; a.download = 'users.csv'; document.body.appendChild(a); a.click(); a.remove(); }})()"
+    ));
 }
 
 #[component]
-pub fn UsersTable(query: Query) -> Element {
-    let state = TableState::use_from_query(&query, "username", FILTER_COLUMNS);
+pub fn UsersTable(query: Query, deleted: bool) -> Element {
+    let ctx = use_context::<UsersCtx>();
+    let state = TableState::use_from_query(&query, "filter", FILTER_COLUMNS);
+    let tab = query.get("tab").map(str::to_owned);
 
+    // URL sync (replace, so typing does not fill the history).
     let mut last = use_signal(|| query.to_string());
     use_effect(move || {
-        let q = state.to_query(FILTER_COLUMNS);
+        let q = state.to_query(FILTER_COLUMNS).with("tab", tab.clone());
         if q.to_string() != *last.peek() {
             last.set(q.to_string());
             navigator().replace(Route::Users { query: q });
         }
     });
 
-    let rows = use_memo(move || {
-        let mut rows = filtered(&state, None);
-        if let Some((col, desc)) = (state.sort)() {
-            rows.sort_by(|a, b| {
-                let o = sort_key(a, col).cmp(&sort_key(b, col));
-                if desc { o.reverse() } else { o }
-            });
+    // Server data. Typing in the search box waits 250 ms; the previous page stays on screen
+    // while the next one loads.
+    let mut data = use_signal(|| None::<UserPage>);
+    let mut loaded_q = use_signal(|| None::<String>);
+    let refresh = ctx.refresh;
+    let _list = use_resource(move || async move {
+        let _ = refresh();
+        let q = to_user_query(&state, deleted);
+        if loaded_q.peek().as_ref().is_some_and(|l| *l != q.q) {
+            crate::util::sleep_ms(250).await;
         }
-        rows
+        match list_users(q.clone()).await {
+            Ok(page) => {
+                loaded_q.set(Some(q.q));
+                data.set(Some(page));
+            }
+            Err(e) => crate::util::toast_error(&e),
+        }
     });
-    let page_count = use_memo(move || paginate(&rows(), &state).1);
-    use_effect(move || state.clamp_page(page_count()));
 
-    let (page_rows, pages) = paginate(&rows(), &state);
-    let page_ids: Vec<String> = page_rows.iter().map(|u| u.id.clone()).collect();
+    let size = (state.page_size)().max(1);
+    let pages = data
+        .read()
+        .as_ref()
+        .map(|p| (p.total as usize).div_ceil(size).max(1))
+        .unwrap_or(1);
+    use_effect(use_reactive!(|pages| state.clamp_page(pages)));
+
+    let Some(page) = data() else {
+        return rsx! { TableSkeleton { cols: 5 } };
+    };
+
+    let page_ids: Vec<String> = page.rows.iter().map(|u| u.id.to_string()).collect();
     let mut selected = state.selected;
     let sel = selected();
     let all = !page_ids.is_empty() && page_ids.iter().all(|id| sel.contains(id));
     let some = page_ids.iter().any(|id| sel.contains(id));
-    let selected_rows: Vec<User> = rows().into_iter().filter(|u| sel.contains(&u.id)).collect();
+    let selected_ids: Vec<Uuid> = sel.iter().filter_map(|s| s.parse().ok()).collect();
 
-    let status_vals: Vec<_> = STATUSES.iter().map(|s| s.0).collect();
-    let role_vals: Vec<_> = ROLES.iter().map(|s| s.0).collect();
-    let filters = vec![
-        FilterDef {
+    let roles = (ctx.roles)();
+    let count = |v: Option<u64>| v.unwrap_or(0) as usize;
+    let mut filters = vec![];
+    if !deleted {
+        filters.push(FilterDef {
             column: "status",
             title: t!("users-col-status"),
-            options: STATUSES
+            options: UserStatus::FILTERABLE
                 .iter()
-                .map(|(v, k)| FilterOption {
-                    value: v,
-                    label: t!(*k),
+                .map(|s| FilterOption {
+                    value: s.as_str().to_string(),
+                    label: t!(status_key(*s)),
                     icon: None,
                 })
                 .collect(),
-            counts: counts(&filtered(&state, Some("status")), "status", &status_vals),
-        },
-        FilterDef {
-            column: "role",
-            title: t!("users-col-role"),
-            options: ROLES
+            counts: UserStatus::FILTERABLE
                 .iter()
-                .map(|(v, k, i)| FilterOption {
-                    value: v,
-                    label: t!(*k),
-                    icon: Some(*i),
+                .map(|s| {
+                    (
+                        s.as_str().to_string(),
+                        count(page.status_counts.iter().find(|(x, _)| x == s).map(|x| x.1)),
+                    )
                 })
                 .collect(),
-            counts: counts(&filtered(&state, Some("role")), "role", &role_vals),
-        },
-    ];
-    let hideable = vec![
-        ("fullName", "fullName".to_string()),
-        ("email", "email".to_string()),
-        ("phoneNumber", "phoneNumber".to_string()),
-    ];
-    let visible_count = 5 + ["fullName", "email", "phoneNumber"]
-        .iter()
-        .filter(|c| state.visible(c))
-        .count();
+        });
+    }
+    filters.push(FilterDef {
+        column: "role",
+        title: t!("users-col-role"),
+        options: roles
+            .iter()
+            .map(|r| FilterOption {
+                value: r.id.to_string(),
+                label: r.name.clone(),
+                icon: Some(role_icon(r.is_system)),
+            })
+            .collect(),
+        counts: roles
+            .iter()
+            .map(|r| {
+                (
+                    r.id.to_string(),
+                    count(
+                        page.role_counts
+                            .iter()
+                            .find(|(x, _)| *x == r.id)
+                            .map(|x| x.1),
+                    ),
+                )
+            })
+            .collect(),
+    });
+    let hideable = if deleted {
+        vec![("email", t!("users-col-email"))]
+    } else {
+        vec![
+            ("email", t!("users-col-email")),
+            ("lastLogin", t!("users-col-last-login")),
+        ]
+    };
+    let visible_count = 5 + hideable.iter().filter(|(c, _)| state.visible(c)).count();
     let th = |meta: &str| tw_merge!(TH, CELL_BG, meta);
 
     rsx! {
@@ -156,46 +243,66 @@ pub fn UsersTable(query: Query) -> Element {
                                         },
                                     }
                                 }
-                                th { class: th(USERNAME_META), ColumnHeader { state, column: "username", title: t!("users-col-username"), hideable: false } }
-                                if state.visible("fullName") {
-                                    th { class: th("w-36"), ColumnHeader { state, column: "fullName", title: t!("users-col-name"), sortable: false } }
-                                }
+                                th { class: th(NAME_META), ColumnHeader { state, column: "name", title: t!("users-col-name"), hideable: false } }
                                 if state.visible("email") {
                                     th { class: th(""), ColumnHeader { state, column: "email", title: t!("users-col-email") } }
                                 }
-                                if state.visible("phoneNumber") {
-                                    th { class: th(""), ColumnHeader { state, column: "phoneNumber", title: t!("users-col-phone"), sortable: false } }
+                                if !deleted && state.visible("lastLogin") {
+                                    th { class: th(""), ColumnHeader { state, column: "lastLogin", title: t!("users-col-last-login") } }
                                 }
-                                th { class: th(""), ColumnHeader { state, column: "status", title: t!("users-col-status"), sortable: false } }
+                                if deleted {
+                                    th { class: th(""), ColumnHeader { state, column: "deleted", title: t!("users-col-deleted"), sortable: false } }
+                                } else {
+                                    th { class: th(""), ColumnHeader { state, column: "status", title: t!("users-col-status"), sortable: false } }
+                                }
                                 th { class: th(""), ColumnHeader { state, column: "role", title: t!("users-col-role"), sortable: false } }
                                 th { class: th("") }
                             }
                         }
                         tbody { class: "[&_tr:last-child]:border-0",
-                            if page_rows.is_empty() {
+                            if page.rows.is_empty() {
                                 tr { class: TR,
                                     td { class: tw_merge!(TD, "h-24 text-center"), colspan: "{visible_count}", {t!("dt-no-results")} }
                                 }
                             }
-                            for user in page_rows {
-                                UserRow { key: "{user.id}", state, user: user.clone(), selected: sel.contains(&user.id) }
+                            for user in page.rows.iter().cloned() {
+                                UserRowView {
+                                    key: "{user.id}",
+                                    state,
+                                    selected: sel.contains(&user.id.to_string()),
+                                    is_system: roles.iter().any(|r| r.id == user.role_id && r.is_system),
+                                    user,
+                                    deleted,
+                                }
                             }
                         }
                     }
                 }
             }
             Pagination { state, page_count: pages, class: "mt-auto" }
-            UsersBulkActions { state, rows: selected_rows }
+            UsersBulkActions { state, ids: selected_ids, deleted }
         }
     }
 }
 
 #[component]
-fn UserRow(state: TableState, user: User, selected: bool) -> Element {
+fn UserRowView(
+    state: TableState,
+    user: UserRow,
+    selected: bool,
+    is_system: bool,
+    deleted: bool,
+) -> Element {
     let mut sel = state.selected;
-    let id = user.id.clone();
-    let role = ROLES.iter().find(|r| r.0 == user.role);
+    let id = user.id.to_string();
     let td = |meta: &str| tw_merge!(TD, CELL_BG, meta);
+    let deleted_info = match (&user.deleted_by_email, user.deleted_at) {
+        (Some(by), Some(at)) => {
+            crate::ta!("users-deleted-by", date: format_date(at.date()), by: by.clone())
+        }
+        (None, Some(at)) => format_date(at.date()),
+        _ => String::new(),
+    };
     rsx! {
         tr { class: "{TR} group/row", "data-state": if selected { "selected" } else { "" },
             td { class: td(SELECT_META),
@@ -206,30 +313,34 @@ fn UserRow(state: TableState, user: User, selected: bool) -> Element {
                     onchange: move |on: bool| { if on { sel.write().insert(id.clone()); } else { sel.write().remove(&id); } },
                 }
             }
-            td { class: td(USERNAME_META), LongText { text: user.username.clone(), class: "max-w-36 ps-3" } }
-            if state.visible("fullName") {
-                td { class: td("w-36"), LongText { text: full_name(&user), class: "max-w-36" } }
-            }
+            td { class: td(NAME_META), LongText { text: user.full_name.clone(), class: "max-w-36 ps-3" } }
             if state.visible("email") {
                 td { class: td(""), div { class: "w-fit ps-2 text-nowrap", "{user.email}" } }
             }
-            if state.visible("phoneNumber") {
-                td { class: td(""), div { "{user.phone_number}" } }
-            }
-            td { class: td(""),
-                div { class: "flex space-x-2",
-                    span { class: tw_merge!(BADGE_OUTLINE, "capitalize", status_class(&user.status)), "{user.status}" }
-                }
-            }
-            td { class: td(""),
-                if let Some((_, _, icon)) = role {
-                    div { class: "flex items-center gap-x-2",
-                        Icon { icon: *icon, class: "size-4 text-muted-foreground" }
-                        span { class: "text-sm capitalize", "{user.role}" }
+            if !deleted && state.visible("lastLogin") {
+                td { class: td(""),
+                    match user.last_login_at {
+                        Some(at) => rsx! { div { "{format_date(at.date())}" } },
+                        None => rsx! { div { class: "text-muted-foreground", {t!("users-never")} } },
                     }
                 }
             }
-            td { class: td(""), RowActions { user: user.clone() } }
+            if deleted {
+                td { class: td(""), div { class: "text-nowrap text-muted-foreground", "{deleted_info}" } }
+            } else {
+                td { class: td(""),
+                    div { class: "flex space-x-2",
+                        span { class: tw_merge!(BADGE_OUTLINE, status_class(user.status)), {t!(status_key(user.status))} }
+                    }
+                }
+            }
+            td { class: td(""),
+                div { class: "flex items-center gap-x-2",
+                    Icon { icon: role_icon(is_system), class: "size-4 text-muted-foreground" }
+                    span { class: "text-sm", "{user.role_name}" }
+                }
+            }
+            td { class: td(""), RowActions { user: user.clone(), deleted } }
         }
     }
 }

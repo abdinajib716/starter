@@ -80,20 +80,7 @@ pub fn TermsNote(lead: String) -> Element {
     }
 }
 
-/// Email shape check used by the reference's `z.email()` fields.
-pub fn valid_email(s: &str) -> bool {
-    let s = s.trim();
-    match s.split_once('@') {
-        Some((user, host)) => {
-            !user.is_empty()
-                && host.contains('.')
-                && !host.starts_with('.')
-                && !host.ends_with('.')
-                && !s.contains(' ')
-        }
-        None => false,
-    }
-}
+pub use crate::domain::valid_email;
 
 #[cfg(test)]
 mod tests {
