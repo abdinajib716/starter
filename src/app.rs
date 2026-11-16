@@ -114,7 +114,7 @@ pub fn App() -> Element {
         // Without a boundary, a page waiting on a server future (e.g. the shell's
         // `current_user()`) suspends the whole app root, which tears down the toaster too.
         LocaleRoot {
-            SuspenseBoundary { fallback: |_| rsx! {}, Router::<Route> {} }
+            SuspenseBoundary { fallback: |_| rsx! { crate::components::skeletons::ShellSkeleton {} }, Router::<Route> {} }
         }
     }
 }

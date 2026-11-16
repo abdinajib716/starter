@@ -67,7 +67,7 @@ pub fn AppShell() -> Element {
                 // Container queries for <Main>; fixed layouts take the viewport height.
                 class: "@container/content has-data-[layout=fixed]:h-svh peer-data-[variant=inset]:has-data-[layout=fixed]:h-[calc(100svh-(var(--spacing)*4))]",
                 // Pages that wait for data suspend only the content area; the sidebar stays.
-                SuspenseBoundary { fallback: |_| rsx! {}, Outlet::<Route> {} }
+                SuspenseBoundary { fallback: |_| rsx! { crate::components::skeletons::PageSkeleton {} }, Outlet::<Route> {} }
             }
         }
         CommandMenu {}

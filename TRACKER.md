@@ -151,6 +151,7 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 - [x] P7 Auth screens wired to our auth (M1) — `/sign-in` is the real login (old `/login` redirects); sign-in-2, sign-up (self sign-up off), forgot password (email in M13), OTP (2FA in M9)
 - [~] P8 Dashboard and Users pages on real data (M10, M5) — Dashboard **UI** done and matched with the demo at 1440 px (Overview + Analytics tabs, SVG charts with Recharts ticks); real data in M10. Users **UI** done (`/users?:..query`: username/status/role filters in URL, sort, pagination, view options, sticky mobile columns, row + bulk actions, add/edit/invite/delete dialogs) on faker demo data identical to the demo; real users API in M5
 - [x] P9 Settings pages — layout + 5 reference demo forms with validation; font preference; real profile settings in M9
+- [x] P10b Loading skeletons: `Skeleton` (reference classes), `SidebarMenuSkeleton`, and `components/skeletons.rs` (Shell, Page, Title, Table, Cards, Form) as Suspense fallbacks — shell fallback while the signed-in user loads, page fallback (real header + title + table) while a page loads data
 - [x] P10 Demo pages behind feature flags (apps, chats, tasks, help-center) — Apps, Chats, Help Center, Tasks done (flags in M7). Shared data-table kit in `components/data_table` (URL state, toolbar, faceted filter, view options, column header, pagination, bulk actions)
 - [ ] P11 Final pass: manifest check, side-by-side comparison, a11y, light/dark, RTL
 

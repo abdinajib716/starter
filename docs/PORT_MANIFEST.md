@@ -128,7 +128,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/ui/separator.tsx` | ui-primitive | src/ui/separator.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/sheet.tsx` | ui-primitive | src/components/ui_extra/sheet.rs | done | `ui_extra::sheet::SideSheet` (signal-controlled) |
 | `src/components/ui/sidebar.tsx` | ui-primitive | src/components/ui_extra/sidebar.rs | done | faithful port (Rust/UI sidenav lacks icon mode, mobile sheet, cookie, Ctrl+B) |
-| `src/components/ui/skeleton.tsx` | ui-primitive | src/ui/skeleton.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/skeleton.tsx` | ui-primitive | src/ui/skeleton.rs | done | bg-accent + style like the reference; page-shaped fallbacks in src/components/skeletons.rs; SidebarMenuSkeleton in ui_extra/sidebar.rs |
 | `src/components/ui/sonner.tsx` | ui-primitive | src/ui/toast.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/switch.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::Switch (Rust/UI one has no change handler) |
 | `src/components/ui/table.tsx` | ui-primitive | src/ui/table.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |

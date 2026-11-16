@@ -1613,3 +1613,46 @@ pub fn use_dialog_flag<D: PartialEq + Copy + 'static>(
 **Concepts:** [match and patterns](CONCEPTS.md#match), [context](CONCEPTS.md#context), [signals](CONCEPTS.md#signals)
 
 **Try it:** open Settings → Appearance drawer → Direction → Right to Left, go to `/tasks` and open a row's "…" menu. Expected: the menu stays on screen and opens towards the table; hover Labels and the submenu opens to the right. Change `Align::End, true` to `Align::End, false` in the first pattern and the menu opens off the left edge.
+
+## 37. Skeletons that render the same on the server and the browser
+**Feature:** while the app or a page is waiting for data, grey pulsing blocks shaped like the real page are shown instead of a blank area (shadcn `Skeleton` and `SidebarMenuSkeleton`; `SuspenseBoundary` fallbacks).
+
+**Code:**
+
+`src/components/ui_extra/sidebar.rs` lines 403–423
+
+```rust
+pub fn SidebarMenuSkeleton(
+    #[props(default)] show_icon: bool,
+    #[props(default)] seed: usize,
+    #[props(into, optional)] class: Option<String>,
+) -> Element {
+    let width = 50 + (seed * 37 + 13) % 40;
+    rsx! {
+        div {
+            "data-slot": "sidebar-menu-skeleton",
+            "data-sidebar": "menu-skeleton",
+            class: tw_merge!("flex h-8 items-center gap-2 rounded-md px-2", class.as_deref().unwrap_or("")),
+            if show_icon {
+                crate::ui::skeleton::Skeleton { class: "size-4 rounded-md" }
+            }
+            crate::ui::skeleton::Skeleton {
+                class: "h-4 max-w-(--skeleton-width) flex-1",
+                style: "--skeleton-width: {width}%",
+            }
+        }
+    }
+}
+```
+
+**Line notes:**
+
+1. L404–406 — props with `#[props(default)]` can be left out by the caller; `seed` defaults to 0.
+2. L408 — the reference picks a random width between 50% and 90% on each render. Random values would differ between the server's HTML and the browser's first render (a hydration mismatch), so the width is calculated from `seed`: `(seed * 37 + 13) % 40` is always 0–39, so the result is 50–89%.
+3. L413 — `tw_merge!` joins the base classes with the caller's `class`, letting the caller override, e.g., the height.
+4. L414–416 — the small square stands in for the menu icon only when `show_icon` is true.
+5. L418–419 — the text bar is `flex-1` (it takes the free space) but capped by `max-w-(--skeleton-width)`; the CSS variable is set in the inline `style`, so every row can have a different cap without generating new Tailwind classes.
+
+**Concepts:** [component props](CONCEPTS.md#component), [rsx](CONCEPTS.md#rsx), [SSR and hydration](CONCEPTS.md#hydration)
+
+**Try it:** in the browser's developer tools, set Network → throttling to "Slow 3G", sign out and sign in again. Expected: the shell skeleton (sidebar rows, header bar, cards) appears until `/api/auth/me` answers, then the real dashboard replaces it with no jump in layout.

@@ -396,3 +396,28 @@ fn WithTooltip(text: Option<String>, children: Element) -> Element {
         }
     }
 }
+
+/// `SidebarMenuSkeleton`: a placeholder menu row (optional icon + text bar). The reference picks
+/// a random 50–90% text width; here `seed` picks it, so server and client render the same.
+#[component]
+pub fn SidebarMenuSkeleton(
+    #[props(default)] show_icon: bool,
+    #[props(default)] seed: usize,
+    #[props(into, optional)] class: Option<String>,
+) -> Element {
+    let width = 50 + (seed * 37 + 13) % 40;
+    rsx! {
+        div {
+            "data-slot": "sidebar-menu-skeleton",
+            "data-sidebar": "menu-skeleton",
+            class: tw_merge!("flex h-8 items-center gap-2 rounded-md px-2", class.as_deref().unwrap_or("")),
+            if show_icon {
+                crate::ui::skeleton::Skeleton { class: "size-4 rounded-md" }
+            }
+            crate::ui::skeleton::Skeleton {
+                class: "h-4 max-w-(--skeleton-width) flex-1",
+                style: "--skeleton-width: {width}%",
+            }
+        }
+    }
+}
