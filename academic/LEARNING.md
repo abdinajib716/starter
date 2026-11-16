@@ -1145,3 +1145,44 @@ fn allowed(
 **Concepts:** [match and patterns](CONCEPTS.md#match), [Option combinators](CONCEPTS.md#option), [cookies](CONCEPTS.md#cookie), [unit tests and cfg(test)](CONCEPTS.md#tests), [CSRF](CONCEPTS.md#csrf)
 
 **Try it:** run `curl -s -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:8080/api/auth/login -H 'content-type: application/json' -H 'Sec-Fetch-Site: cross-site' -d '{"email":"a@b.c","password":"x"}'`, then repeat with `same-origin`. Expected: `403`, then `401` (the request reached the login logic and the credentials were rejected).
+
+---
+
+# UI port — P1 (commit `2ced4fb`, branch `ui/shadcn-port`)
+
+## 26. One list of static paths, shared by two middlewares
+**Feature:** files under `/fonts/`, `/images/`, `/assets/` and the wasm bundle are served without a session lookup and are never redirected to `/login` (SPEC-02 P1).
+
+**Code:**
+
+`src/server/ctx.rs` lines 69–75
+
+```rust
+pub const STATIC_PREFIXES: &[&str] = &[
+    "/assets/", "/wasm/", "/_dioxus", "/favicon", "/fonts/", "/images/",
+];
+
+pub fn is_asset(path: &str) -> bool {
+    STATIC_PREFIXES.iter().any(|p| path.starts_with(p))
+}
+```
+
+`src/server/auth/guard.rs` lines 120–122
+
+```rust
+fn is_passthrough(path: &str) -> bool {
+    path.starts_with("/api/") || path == "/healthz" || crate::server::ctx::is_asset(path)
+}
+```
+
+**Line notes:**
+
+1. L69 (ctx.rs) — `pub const STATIC_PREFIXES: &[&str]` is a constant slice of string slices; the `&[...]` literal is stored in the binary, so the constant has the `'static` lifetime.
+2. L74 — `.iter()` yields `&&str` items, and `.any(...)` stops at the first element for which the closure returns `true`.
+3. L74 — `path.starts_with(p)` accepts the `&&str` because `starts_with` takes any pattern type, and `&&str` dereferences to `&str`.
+4. L121 (guard.rs) — `||` short-circuits: `is_asset` runs only when the cheaper comparisons are false.
+5. L121 — `crate::server::ctx::is_asset(path)` calls the function through its full path, so both middlewares use one definition and cannot drift apart.
+
+**Concepts:** [static and lifetimes](CONCEPTS.md#static), [arrays and slices](CONCEPTS.md#array), [iterators](CONCEPTS.md#iterator), [module](CONCEPTS.md#module), [middleware and layers](CONCEPTS.md#middleware)
+
+**Try it:** run `curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/fonts/inter-latin-wght-normal.woff2`; it prints `200`. Remove `"/fonts/"` from the list, wait for the rebuild and run it again. Expected: `303`, because the page guard now treats the font as a protected page and redirects to `/login`. Restore the entry.
