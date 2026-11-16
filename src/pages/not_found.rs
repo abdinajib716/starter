@@ -12,7 +12,7 @@ pub fn NotFound(segments: Vec<String>) -> Element {
         div { class: "flex min-h-full flex-col items-center justify-center gap-3 bg-background p-8 text-foreground",
             h1 { class: "text-2xl font-semibold", {t!("notfound-title")} }
             p { class: "text-muted-foreground font-mono text-sm", "{path}" }
-            Link { to: Route::Home {}, class: "underline", {t!("notfound-back")} }
+            Link { to: Route::Dashboard {}, class: "underline", {t!("notfound-back")} }
         }
     }
 }

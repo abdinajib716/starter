@@ -4,7 +4,9 @@ use dioxus::prelude::*;
 use dioxus_i18n::t;
 
 use crate::api::auth::change_password;
-use crate::components::layout::UserResource;
+use crate::components::layout::{
+    ConfigDrawer, Header, Main, ProfileDropdown, Search, ThemeSwitch, UserResource,
+};
 use crate::i18n::error_text;
 use crate::ui::alert::Alert;
 use crate::ui::button::Button;
@@ -72,6 +74,15 @@ pub fn Profile() -> Element {
     };
 
     rsx! {
+        Header {
+            Search {}
+            div { class: "ms-auto flex items-center space-x-4",
+                ThemeSwitch {}
+                ConfigDrawer {}
+                ProfileDropdown {}
+            }
+        }
+        Main {
         div { class: "mx-auto flex max-w-md flex-col gap-4",
             if must_change {
                 Alert { span { id: "must-change", {t!("profile-must-change")} } }
@@ -93,5 +104,6 @@ pub fn Profile() -> Element {
                 }
             }
         }
+    }
     }
 }

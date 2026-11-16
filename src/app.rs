@@ -5,21 +5,22 @@
 use dioxus::prelude::*;
 use dioxus_i18n::prelude::use_init_i18n;
 
-use crate::components::layout::AppLayout;
+use crate::components::layout::AppShell;
 use crate::i18n;
-use crate::pages::{home::Home, login::Login, not_found::NotFound, profile::Profile};
+use crate::pages::{dashboard::Dashboard, login::Login, not_found::NotFound, profile::Profile};
+use crate::state::{Ui, UiPrefs};
 use crate::ui::toast::ToastToaster;
 
-/// Route table (§12). Pages under `AppLayout` need a session: the server redirects page
-/// loads (`server::auth::guard::pages`), `AppLayout` covers client-side navigation.
+/// Route table (§12, SPEC-02). Pages under `AppShell` need a session: the server redirects
+/// page loads (`server::auth::guard::pages`), `AppShell` covers client-side navigation.
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
 pub enum Route {
     #[route("/login?:next")]
     Login { next: String },
-    #[layout(AppLayout)]
+    #[layout(AppShell)]
         #[route("/")]
-        Home {},
+        Dashboard {},
         #[route("/profile")]
         Profile {},
     #[end_layout]
@@ -29,24 +30,24 @@ pub enum Route {
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
-// Rust/UI runtimes (copied from rust-ui/ui @ 4f5a516)
+// Rust/UI toast runtime (copied from rust-ui/ui @ 4f5a516). The ApexCharts runtime is no
+// longer loaded: dashboard charts are SVG components (`ui_extra::chart`).
 const TOAST_RUNTIME_JS: Asset = asset!("/public/app_components/toast.js");
 const TOAST_RUNTIME_CSS: Asset = asset!("/public/app_components/toast.css");
-const APEXCHARTS_JS: Asset = asset!("/public/cdn/apexcharts.5.3.6.min.js");
-const CHART_INIT_JS: Asset = asset!("/public/app_components/chart_init.js");
 
 #[component]
 pub fn App() -> Element {
     // Resolved on the server during SSR; the client reuses that value when hydrating.
     let initial = use_server_cached(i18n::request_locale);
     use_init_i18n(|| i18n::config(&initial));
+    // Theme, sidebar, layout and direction from cookies (SSR), shared app-wide.
+    let prefs = use_server_cached(UiPrefs::from_request);
+    use_hook(|| Ui::provide(prefs));
 
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
         document::Stylesheet { href: TAILWIND_CSS }
         document::Stylesheet { href: TOAST_RUNTIME_CSS }
-        document::Script { src: APEXCHARTS_JS }
-        document::Script { src: CHART_INIT_JS }
         // `defer`: runs once after parsing (needs `document.body`). A plain `script {}` in the
         // body ran twice: once from the SSR HTML and again when hydration re-created it.
         document::Script { src: TOAST_RUNTIME_JS, defer: true }
@@ -55,15 +56,18 @@ pub fn App() -> Element {
     }
 }
 
-/// Sets `lang`/`dir` for the current locale. A separate component so that a language
-/// switch re-renders only this subtree, not `App`'s `<head>` elements.
+/// Sets `lang` and `dir`. A separate component so that switching language or direction
+/// re-renders only this subtree, not `App`'s `<head>` elements. Direction is the user's
+/// choice (appearance drawer), or RTL for an RTL locale.
 #[component]
 fn LocaleRoot(children: Element) -> Element {
     let lang = dioxus_i18n::prelude::i18n().language().to_string();
-    let dir = if i18n::is_rtl(&lang) { "rtl" } else { "ltr" };
+    let ui = Ui::get();
+    let rtl = (ui.dir)() == crate::state::Dir::Rtl || i18n::is_rtl(&lang);
+    let dir = if rtl { "rtl" } else { "ltr" };
     // Tailwind `rtl:` variants and logical utilities key off the nearest `dir`.
     rsx! {
-        div { class: "h-full", lang: "{lang}", dir: "{dir}", {children} }
+        div { lang: "{lang}", dir: "{dir}", {children} }
     }
 }
 

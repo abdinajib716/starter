@@ -69,11 +69,11 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/assets/custom/icon-theme-system.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
 | `src/assets/logo.tsx` | asset | src/components/icons/logo.rs | todo | our logo (branding) |
 | `src/components/coming-soon.tsx` | component | src/components/coming_soon.rs | todo |  |
-| `src/components/command-menu.tsx` | component | src/components/command_menu.rs | todo |  |
+| `src/components/command-menu.tsx` | component | src/components/layout/search.rs | done | Ctrl/Cmd+K, filter, ↑↓/Enter, pages + theme |
 | `src/components/config-drawer.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/components/config-drawer.tsx` | component | src/components/config_drawer.rs | todo |  |
+| `src/components/config-drawer.tsx` | component | src/components/config_drawer.rs | in-progress | options + behaviour done; illustrated option cards (assets/custom/*) in P5 |
 | `src/components/confirm-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/components/confirm-dialog.tsx` | component | src/components/confirm_dialog.rs | todo |  |
+| `src/components/confirm-dialog.tsx` | component | src/components/ui_extra/dialog.rs | done | ConfirmDialog |
 | `src/components/data-table/bulk-actions.tsx` | component | src/components/data_table/bulk_actions.rs | todo |  |
 | `src/components/data-table/column-header.tsx` | component | src/components/data_table/column_header.rs | todo |  |
 | `src/components/data-table/faceted-filter.tsx` | component | src/components/data_table/faceted_filter.rs | todo |  |
@@ -82,30 +82,30 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/data-table/toolbar.tsx` | component | src/components/data_table/toolbar.rs | todo |  |
 | `src/components/data-table/view-options.tsx` | component | src/components/data_table/view_options.rs | todo |  |
 | `src/components/date-picker.tsx` | component | src/components/date_picker.rs | todo |  |
-| `src/components/layout/app-sidebar.tsx` | layout | src/components/layout/sidebar.rs | todo |  |
+| `src/components/layout/app-sidebar.tsx` | layout | src/components/layout/sidebar.rs | done | variant/collapsible from layout state; mobile copy via `mobile` slot |
 | `src/components/layout/app-title.tsx` | layout | src/components/layout/sidebar_top.rs | todo |  |
-| `src/components/layout/authenticated-layout.tsx` | layout | src/components/layout/app_shell.rs | todo |  |
-| `src/components/layout/data/sidebar-data.ts` | data | src/components/layout/nav_config.rs | todo | our menu tree, permission-filtered |
-| `src/components/layout/header.tsx` | layout | src/components/layout/header.rs | todo |  |
-| `src/components/layout/main.tsx` | layout | src/components/layout/main_area.rs | todo |  |
-| `src/components/layout/nav-group.tsx` | layout | src/components/layout/nav_group.rs | todo |  |
-| `src/components/layout/nav-user.tsx` | layout | src/components/layout/nav_user.rs | todo |  |
-| `src/components/layout/team-switcher.tsx` | layout | src/components/layout/team_switcher.rs | todo |  |
-| `src/components/layout/top-nav.tsx` | layout | src/components/layout/top_nav.rs | todo |  |
-| `src/components/layout/types.ts` | data | src/components/layout/nav_config.rs | todo | our menu tree, permission-filtered |
+| `src/components/layout/authenticated-layout.tsx` | layout | src/components/layout/app_shell.rs | done | guard + search state + SidebarProvider/Inset |
+| `src/components/layout/data/sidebar-data.ts` | data | src/components/layout/nav_config.rs | done | reference tree minus Clerk; permission filter; demo items marked for flags (M7) |
+| `src/components/layout/header.tsx` | layout | src/components/layout/header.rs | done | sticky + blur when `fixed` |
+| `src/components/layout/main.tsx` | layout | src/components/layout/main_area.rs | done | container queries, fixed/fluid |
+| `src/components/layout/nav-group.tsx` | layout | src/components/layout/nav_group.rs | done | collapsible sections; dropdown when icons-only |
+| `src/components/layout/nav-user.tsx` | layout | src/components/layout/nav_user.rs | done | real user (current_user) |
+| `src/components/layout/team-switcher.tsx` | layout | src/components/layout/team_switcher.rs | done | single tenant: app name + org; multi-tenant list in M16 |
+| `src/components/layout/top-nav.tsx` | layout | src/components/layout/top_nav.rs | done | menu below lg |
+| `src/components/layout/types.ts` | data | src/components/layout/nav_config.rs | done | typed NavGroup/NavItem/NavLink |
 | `src/components/learn-more.tsx` | component | src/components/learn_more.rs | todo |  |
 | `src/components/long-text.tsx` | component | src/components/long_text.rs | todo |  |
 | `src/components/navigation-progress.tsx` | component | src/components/navigation_progress.rs | todo |  |
 | `src/components/password-input.test.tsx` | test | src/components/password_input.rs #[cfg(test)] | todo | logic test → Rust #[test] |
 | `src/components/password-input.tsx` | component | src/components/password_input.rs | todo |  |
-| `src/components/profile-dropdown.tsx` | component | src/components/profile_dropdown.rs | todo |  |
-| `src/components/search.tsx` | component | src/components/search.rs | todo |  |
+| `src/components/profile-dropdown.tsx` | component | src/components/profile_dropdown.rs | done | real user |
+| `src/components/search.tsx` | component | src/components/layout/search.rs | done |  |
 | `src/components/select-dropdown.tsx` | component | src/components/select_dropdown.rs | todo |  |
 | `src/components/sign-out-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/components/sign-out-dialog.tsx` | component | src/components/sign_out_dialog.rs | todo |  |
-| `src/components/skip-to-main.tsx` | component | src/components/skip_to_main.rs | todo |  |
-| `src/components/theme-switch.tsx` | component | src/components/theme_switch.rs | todo |  |
-| `src/components/ui/alert-dialog.tsx` | ui-primitive | src/ui/alert_dialog.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/sign-out-dialog.tsx` | component | src/components/layout/sign_out_dialog.rs | done | calls logout, keeps `next` |
+| `src/components/skip-to-main.tsx` | component | src/components/layout/skip_to_main.rs | done |  |
+| `src/components/theme-switch.tsx` | component | src/components/layout/theme_switch.rs | done | light/dark/system, cookie `theme`, no-flash script in index.html |
+| `src/components/ui/alert-dialog.tsx` | ui-primitive | src/components/ui_extra/dialog.rs | done | `ui_extra::dialog` |
 | `src/components/ui/alert.tsx` | ui-primitive | src/ui/alert.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/avatar.tsx` | ui-primitive | src/ui/avatar.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/badge.tsx` | ui-primitive | src/ui/badge.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
@@ -116,7 +116,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/ui/collapsible.tsx` | ui-primitive | src/ui/collapsible.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/command.tsx` | ui-primitive | src/ui/command.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
 | `src/components/ui/dialog.tsx` | ui-primitive | src/ui/dialog.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
-| `src/components/ui/dropdown-menu.tsx` | ui-primitive | src/ui/dropdown_menu.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/dropdown-menu.tsx` | ui-primitive | src/components/ui_extra/menu.rs | done | `ui_extra::menu` (fixed-position, no inline script); Rust/UI version kept vendored |
 | `src/components/ui/form.tsx` | ui-primitive | src/ui/form.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/input-otp.tsx` | ui-primitive | src/ui/input_otp.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
 | `src/components/ui/input.tsx` | ui-primitive | src/ui/input.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
@@ -126,22 +126,22 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/ui/scroll-area.tsx` | ui-primitive | src/ui/scroll_area.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
 | `src/components/ui/select.tsx` | ui-primitive | src/ui/select.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/separator.tsx` | ui-primitive | src/ui/separator.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
-| `src/components/ui/sheet.tsx` | ui-primitive | src/ui/sheet.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
-| `src/components/ui/sidebar.tsx` | ui-primitive | src/ui/sidenav.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/sheet.tsx` | ui-primitive | src/components/ui_extra/sheet.rs | done | `ui_extra::sheet::SideSheet` (signal-controlled) |
+| `src/components/ui/sidebar.tsx` | ui-primitive | src/components/ui_extra/sidebar.rs | done | faithful port (Rust/UI sidenav lacks icon mode, mobile sheet, cookie, Ctrl+B) |
 | `src/components/ui/skeleton.tsx` | ui-primitive | src/ui/skeleton.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/sonner.tsx` | ui-primitive | src/ui/toast.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/switch.tsx` | ui-primitive | src/ui/switch.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/table.tsx` | ui-primitive | src/ui/table.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/tabs.tsx` | ui-primitive | src/ui/tabs.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/textarea.tsx` | ui-primitive | src/ui/textarea.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
-| `src/components/ui/tooltip.tsx` | ui-primitive | src/ui/tooltip.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/tooltip.tsx` | ui-primitive | src/ui/tooltip.rs | done | sidebar tooltip in `ui_extra::sidebar` (fixed, collapsed only); general tooltip = Rust/UI |
 | `src/config/fonts.ts` | config | src/state/font.rs + self-hosted fonts in assets/fonts/ | in-progress | Inter + Manrope self-hosted in public/fonts, `font-inter`/`font-manrope`/`font-system` utilities; switcher in P5 |
-| `src/context/direction-provider.tsx` | context | src/state/direction.rs | todo |  |
+| `src/context/direction-provider.tsx` | context | src/state/direction.rs | in-progress | cookie `dir` + html dir; full RTL review in P11 |
 | `src/context/font-provider.tsx` | context | src/state/font.rs | todo |  |
-| `src/context/layout-provider.tsx` | context | src/state/layout.rs | todo |  |
+| `src/context/layout-provider.tsx` | context | src/state/prefs.rs | done | Ui.variant / Ui.collapsible (cookies) |
 | `src/context/search-provider.test.tsx` | test | src/state/search.rs #[cfg(test)] | todo | logic test → Rust #[test] |
-| `src/context/search-provider.tsx` | context | src/state/search.rs | todo |  |
-| `src/context/theme-provider.tsx` | context | src/state/theme.rs | todo |  |
+| `src/context/search-provider.tsx` | context | src/state/search.rs + app_shell.rs | done | SearchOpen + Ctrl/Cmd+K |
+| `src/context/theme-provider.tsx` | context | src/state/prefs.rs | done | Ui.theme + apply_theme |
 | `src/features/apps/data/apps.tsx` | data | src/pages/apps/data/apps.rs | todo | demo seed data, flag `demo.apps` (§5) |
 | `src/features/apps/index.tsx` | feature | src/pages/apps/mod.rs | todo | demo page behind flag `demo.apps`, default off (§5) |
 | `src/features/auth/auth-layout.tsx` | feature | src/pages/auth/auth_layout.rs | todo |  |
@@ -164,11 +164,11 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/features/chats/data/chat-types.ts` | data | src/pages/chats/data/chat_types.rs | todo | demo seed data, flag `demo.chats` (§5) |
 | `src/features/chats/data/convo.json` | data | src/pages/chats/data/convo.rs | todo | demo seed data, flag `demo.chats` (§5) |
 | `src/features/chats/index.tsx` | feature | src/pages/chats/mod.rs | todo | demo page behind flag `demo.chats`, default off (§5) |
-| `src/features/dashboard/components/analytics-chart.tsx` | feature | src/pages/dashboard/components/analytics_chart.rs | todo |  |
-| `src/features/dashboard/components/analytics.tsx` | feature | src/pages/dashboard/components/analytics.rs | todo |  |
-| `src/features/dashboard/components/overview.tsx` | feature | src/pages/dashboard/components/overview.rs | todo |  |
-| `src/features/dashboard/components/recent-sales.tsx` | feature | src/pages/dashboard/components/recent_sales.rs | todo |  |
-| `src/features/dashboard/index.tsx` | feature | src/pages/dashboard/mod.rs | todo |  |
+| `src/features/dashboard/components/analytics-chart.tsx` | feature | src/components/ui_extra/chart.rs | done | SVG monotone area chart |
+| `src/features/dashboard/components/analytics.tsx` | feature | src/pages/dashboard/analytics.rs | done |  |
+| `src/features/dashboard/components/overview.tsx` | feature | src/pages/dashboard/overview.rs | done | SVG bar chart, Recharts ticks |
+| `src/features/dashboard/components/recent-sales.tsx` | feature | src/pages/dashboard/recent_sales.rs | done |  |
+| `src/features/dashboard/index.tsx` | feature | src/pages/dashboard/mod.rs | done | UI only; sample figures until M10 |
 | `src/features/errors/forbidden.tsx` | feature | src/pages/errors/forbidden.rs | todo |  |
 | `src/features/errors/general-error.tsx` | feature | src/pages/errors/general_error.rs | todo |  |
 | `src/features/errors/maintenance-error.tsx` | feature | src/pages/errors/maintenance_error.rs | todo |  |
@@ -224,17 +224,17 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/features/users/data/users.ts` | data | src/pages/users/data/users.rs | todo | real DB (M5/M10), no mock data (§5) |
 | `src/features/users/index.tsx` | feature | src/pages/users/mod.rs | todo |  |
 | `src/hooks/use-dialog-state.tsx` | hook | src/app_hooks/dialog_state.rs | todo |  |
-| `src/hooks/use-mobile.tsx` | hook | src/app_hooks/mobile.rs | todo |  |
+| `src/hooks/use-mobile.tsx` | hook | src/components/ui_extra/sidebar.rs (SidebarProvider) | done | matchMedia(<768px) via eval |
 | `src/hooks/use-table-url-state.test.ts` | test | src/app_hooks/table_url_state.rs #[cfg(test)] | todo | logic test → Rust #[test] |
 | `src/hooks/use-table-url-state.ts` | hook | src/app_hooks/table_url_state.rs | todo |  |
 | `src/lib/cookies.test.ts` | test | src/util/cookies.rs #[cfg(test)] | todo | logic test → Rust #[test] |
-| `src/lib/cookies.ts` | lib/util | src/util/cookies.rs | todo |  |
+| `src/lib/cookies.ts` | lib/util | src/util/cookies.rs | done | request (SSR) + set/remove (browser) |
 | `src/lib/handle-server-error.test.ts` | test | src/i18n.rs (error_text) #[cfg(test)] | todo | logic test → Rust #[test] |
 | `src/lib/handle-server-error.ts` | lib/util | src/i18n.rs (error_text) + domain::errors | todo |  |
 | `src/lib/show-submitted-data.tsx` | lib/util | src/util/mod.rs (toast helper) | todo |  |
 | `src/lib/utils.test.ts` | test | src/util/mod.rs #[cfg(test)] | todo | logic test → Rust #[test] |
 | `src/lib/utils.ts` | lib/util | src/util/mod.rs | todo |  |
-| `src/main.tsx` | config | src/main.rs + src/app.rs | todo | providers (theme, font, direction, layout, search), toaster, router |
+| `src/main.tsx` | config | src/main.rs + src/app.rs | in-progress | providers: i18n, Ui prefs, toaster, router; font provider in P5 |
 | `src/routeTree.gen.ts` | route | src/app.rs (Route enum) | n/a | generated by TanStack Router; the Routable enum replaces it |
 | `src/routes/(auth)/forgot-password.tsx` | route | src/app.rs (Route::…) | todo | (auth)/forgot-password |
 | `src/routes/(auth)/otp.tsx` | route | src/app.rs (Route::…) | todo | (auth)/otp |
@@ -246,13 +246,13 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/routes/(errors)/404.tsx` | route | src/app.rs (Route::…) | todo | (errors)/404 |
 | `src/routes/(errors)/500.tsx` | route | src/app.rs (Route::…) | todo | (errors)/500 |
 | `src/routes/(errors)/503.tsx` | route | src/app.rs (Route::…) | todo | (errors)/503 |
-| `src/routes/__root.tsx` | route | src/app.rs (Route::…) | todo | __root |
+| `src/routes/__root.tsx` | route | src/app.rs (Route::…) | in-progress | root = App; navigation progress bar in P3 |
 | `src/routes/_authenticated/apps/index.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/apps/index |
 | `src/routes/_authenticated/chats/index.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/chats/index |
 | `src/routes/_authenticated/errors/$error.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/errors/$error |
 | `src/routes/_authenticated/help-center/index.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/help-center/index |
-| `src/routes/_authenticated/index.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/index |
-| `src/routes/_authenticated/route.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/route |
+| `src/routes/_authenticated/index.tsx` | route | src/app.rs (Route::Dashboard) | done |  |
+| `src/routes/_authenticated/route.tsx` | route | src/app.rs (#[layout(AppShell)]) | done |  |
 | `src/routes/_authenticated/settings/account.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/settings/account |
 | `src/routes/_authenticated/settings/appearance.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/settings/appearance |
 | `src/routes/_authenticated/settings/display.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/settings/display |

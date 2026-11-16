@@ -64,6 +64,38 @@ fn same_origin(origin: &str, app_url: &str) -> bool {
         .eq_ignore_ascii_case(app_url.trim_end_matches('/'))
 }
 
+/// Paths that are never page navigations or never need a session.
+fn is_passthrough(path: &str) -> bool {
+    path.starts_with("/api/") || path == "/healthz" || crate::server::ctx::is_asset(path)
+}
+
+/// Public pages (§12, §30.4). Everything else needs a session.
+fn is_public_page(path: &str) -> bool {
+    path == "/login" || path.starts_with("/auth/") || path == "/403"
+}
+
+pub async fn pages(req: Request, next: Next) -> Response {
+    let path = req.uri().path().to_owned();
+    if req.method() != Method::GET || is_passthrough(&path) {
+        return next.run(req).await;
+    }
+    // Decide first (borrowing the request), then act (moving it).
+    let redirect = match req.extensions().get::<Ctx>().and_then(|c| c.user.as_ref()) {
+        None if !is_public_page(&path) => Some(if path == "/" {
+            "/login".to_string()
+        } else {
+            format!("/login?next={path}")
+        }),
+        Some(u) if u.must_change_pw && path != "/profile" => Some("/profile".to_string()),
+        Some(_) if path == "/login" => Some("/".to_string()),
+        _ => None,
+    };
+    match redirect {
+        Some(to) => Redirect::to(&to).into_response(),
+        None => next.run(req).await,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::allowed;
@@ -113,37 +145,5 @@ mod tests {
         ));
         // Non-browser client (curl, mobile app): neither header.
         assert!(allowed(None, None, APP, None));
-    }
-}
-
-/// Paths that are never page navigations or never need a session.
-fn is_passthrough(path: &str) -> bool {
-    path.starts_with("/api/") || path == "/healthz" || crate::server::ctx::is_asset(path)
-}
-
-/// Public pages (§12, §30.4). Everything else needs a session.
-fn is_public_page(path: &str) -> bool {
-    path == "/login" || path.starts_with("/auth/") || path == "/403"
-}
-
-pub async fn pages(req: Request, next: Next) -> Response {
-    let path = req.uri().path().to_owned();
-    if req.method() != Method::GET || is_passthrough(&path) {
-        return next.run(req).await;
-    }
-    // Decide first (borrowing the request), then act (moving it).
-    let redirect = match req.extensions().get::<Ctx>().and_then(|c| c.user.as_ref()) {
-        None if !is_public_page(&path) => Some(if path == "/" {
-            "/login".to_string()
-        } else {
-            format!("/login?next={path}")
-        }),
-        Some(u) if u.must_change_pw && path != "/profile" => Some("/profile".to_string()),
-        Some(_) if path == "/login" => Some("/".to_string()),
-        _ => None,
-    };
-    match redirect {
-        Some(to) => Redirect::to(&to).into_response(),
-        None => next.run(req).await,
     }
 }

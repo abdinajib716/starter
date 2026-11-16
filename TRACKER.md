@@ -18,7 +18,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 1 | Auth core | 🟡 in progress | 17/19 done; open: M1.1 timing check (release build), M1.19 notification (needs M8) |
 | 2 | RBAC core + `ModuleFlags` + settings cache | ⚪ | |
 | 3 | App shell + i18n layer | ⚪ | shell/routes/RTL replaced by the UI port (SPEC-02) |
-| 3b | **UI port (SPEC-02)** | 🟡 in progress | P0–P1 done; manifest 32/215 |
+| 3b | **UI port (SPEC-02)** | 🟡 in progress | P0–P2 done, P3–P5/P8 partly; dashboard UI done; manifest 61/215 |
 | 4 | Audit | ⚪ | M4.8 done early |
 | 5 | Users + DataTable (bulk, CSV, Deleted tab) | ⚪ | |
 | 6 | Roles + Permissions | ⚪ | |
@@ -143,13 +143,13 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 - [x] P0 `reference/` in place (git/Docker-ignored), NOTICE attribution, `docs/PORT_MANIFEST.md` (272 rows: 215 todo, 57 n/a), `just manifest-check [final]`
 - [x] P1 Missing Rust/UI primitives added or built; theme tokens verified against the reference CSS — added `command`, `date_picker`(+`_state`), `input_otp`, `radio_button`(+`_group`), `scroll_area`; all 30 reference primitives map to Rust/UI (none needed in `ui_extra`). Slate tokens, sidebar tokens, base layer and utilities from the reference; 47 colours verified in the browser; Inter + Manrope self-hosted
-- [ ] P2 Layout shell: `app_shell`, `sidebar`, `nav_group`, `nav_config`, `layout_state` (cookie), mobile sheet
-- [ ] P3 Header, profile dropdown, sign-out dialog, theme, skip link, progress bar
-- [ ] P4 Command palette + search (`Ctrl/Cmd+K`), branding (logo + app name from settings)
-- [ ] P5 Appearance drawer (theme, variant, collapsible, layout, direction, font) and RTL
+- [x] P2 Layout shell: `app_shell`, `sidebar`, `nav_group`, `nav_config`, `layout_state` (cookie), mobile sheet — `ui_extra::sidebar` is a faithful port of shadcn Sidebar (icon/offcanvas, inset/floating/sidebar, rail, Ctrl+B, cookie `sidebar_state`, mobile sheet, collapsed tooltips); menu tree permission-filtered; browser-checked at 1440 and 390 px
+- [~] P3 Header, profile dropdown, sign-out dialog, theme, skip link, progress bar — all done except the navigation progress bar
+- [~] P4 Command palette + search (`Ctrl/Cmd+K`), branding (logo + app name from settings) — palette + search button done (pages + theme, keyboard); branding from settings (M7) pending
+- [~] P5 Appearance drawer (theme, variant, collapsible, layout, direction, font) and RTL — working drawer (theme, sidebar, layout, direction, reset); illustrated cards, font option and RTL review pending
 - [ ] P6 Error pages (401, 403, 404, 500, 503)
 - [ ] P7 Auth screens wired to our auth (M1)
-- [ ] P8 Dashboard and Users pages on real data (M10, M5)
+- [~] P8 Dashboard and Users pages on real data (M10, M5) — Dashboard **UI** done and matched with the demo at 1440 px (Overview + Analytics tabs, SVG charts with Recharts ticks); real data in M10; Users page pending
 - [ ] P9 Settings pages
 - [ ] P10 Demo pages behind feature flags (apps, chats, tasks, help-center)
 - [ ] P11 Final pass: manifest check, side-by-side comparison, a11y, light/dark, RTL
@@ -186,7 +186,7 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 - [ ] M5.8 CSV export helper `export::csv_response` — streamed, BOM, column whitelist, CSV-injection prefix, `export.max_rows` + `X-Export-Truncated`
 - [ ] M5.9 `GET /api/export/users.csv` (`users.export`)
 - [ ] M5.10 Deleted tab (`users.restore`): `restore_user` (email re-check, inactive + `must_change_pw`)
-- [ ] M5.11 `purge_user` (`users.purge`, type email to confirm)
+- [ ] M5.11 `purge_user` (`users.purge`, type email to confirm) — **blocker found 2026-11-16:** deleting any user with audit rows fails, because `audit_logs.actor_id ON DELETE SET NULL` is an UPDATE and the append-only trigger rejects it. Fix in M5 (e.g. trigger allows only `actor_id → NULL`, or drop that FK and rely on `actor_email`)
 - [ ] M5.12 Optional purge job for `users.deleted_retention_days`
 - [ ] M5.13 Tests: guards, restore email conflict, bulk skip reasons, CSV injection
 
@@ -443,6 +443,13 @@ Blockers first; each names the item that proves it.
 | 2026-11-16 | Base layer follows the reference: the body scrolls (`min-h-svh`), no fixed-height `html`/`#main` | Reference layout; removed the `#main { height: 100% }` workaround |
 | 2026-11-16 | Fonts Inter + Manrope self-hosted (`public/fonts`, OFL) instead of Google Fonts | CSP stays `'self'`, no third-party requests; `/fonts/` and `/images/` bypass session + page guard |
 | 2026-11-16 | Reference classes `inset-s-*` / `inset-e-*` are written `start-*` / `end-*` | dx bundles Tailwind 4.1.5; those utilities need 4.2. An unknown class fails the whole CSS build silently (old CSS stays) |
+| 2026-11-16 | Shell overlays (menu, sheet, dialog, sidebar tooltip, command palette) are own signal-driven components in `ui_extra`, positioned `fixed` from measured rects | Rust/UI dropdown/sheet rely on inline `<script>` (unreliable after client navigation) and absolute positioning (clipped by the sidebar's scroll area). Not portaled, so z-order is explicit: header 50, sheet 60, menu 70, dialog 80, tooltip 90; the sidebar container lifts itself while it holds an open menu |
+| 2026-11-16 | Dashboard charts are SVG components (`ui_extra::chart`), not ApexCharts; ApexCharts runtime no longer loaded | Matches Recharts' look (ticks via its `getNiceTickValues` rule), SSR-safe, no 300 KB script. Width from a `ResizeObserver` (scope-id element id, same on server and client) |
+| 2026-11-16 | UI preferences (theme, sidebar state, variant, collapsible, direction) read from cookies during SSR (`UiPrefs`), plus an inline pre-paint theme script in `index.html` | No light flash in dark mode, no layout jump on hydration |
+| 2026-11-16 | Demo nav items (Tasks, Apps, Chats, Help Center) shown until feature flags exist (M7), then default off (SPEC-02 §5) | Lets the shell be compared with the demo now |
+| 2026-11-16 | Dashboard figures are the reference's sample values, fixed instead of `Math.random()` | Random values would differ between server render and hydration; real KPIs come in M10 |
+| 2026-11-16 | Browser test user `ui-test@example.com` (deactivated after use); hashes via the ignored test `print_hash` | Never touch the real admin's password; user can't be deleted yet (M5.11 blocker) |
+| 2026-11-16 | `dx serve` sometimes stops rebuilding / its Tailwind watcher dies: restart it, or run `tailwindcss --watch` by hand | Seen twice; symptom = old build or stale `assets/tailwind.css` |
 | 2026-11-15 | Password minimum length uses the blueprint's existing key `security.password_min_length`, not a new `security.min_password_length` | Avoid two keys for one setting |
 
 ## Rust/UI components installed

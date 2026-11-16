@@ -120,3 +120,15 @@ mod tests {
         assert_eq!(check_policy("ääääääääää", 10), Ok(()));
     }
 }
+
+#[cfg(test)]
+mod tool {
+    /// Prints an Argon2id hash for a password (dev tool, e.g. creating test users):
+    /// `PW=secret cargo test --no-default-features --features server print_hash -- --ignored --nocapture`
+    #[tokio::test]
+    #[ignore]
+    async fn print_hash() {
+        let pw = std::env::var("PW").expect("set PW");
+        println!("HASH={}", super::hash(pw).await.unwrap());
+    }
+}

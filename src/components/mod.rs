@@ -2,3 +2,4 @@
 //! `ui/` and `hooks/` stay at the crate root so the copied Rust/UI files keep
 //! their upstream `crate::ui::…` / `crate::hooks::…` paths unchanged.
 pub mod layout;
+pub mod ui_extra;

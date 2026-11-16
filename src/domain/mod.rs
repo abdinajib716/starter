@@ -2,6 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 /// `TENANCY_MODE` (§18). Install-time, read-only in the UI.
+#[cfg_attr(not(feature = "server"), allow(dead_code))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum TenancyMode {
@@ -19,7 +20,8 @@ impl std::fmt::Display for TenancyMode {
     }
 }
 
-/// Public, non-sensitive server status (used by the home page and `/healthz`).
+/// Public, non-sensitive server status (`/api/system/info`).
+#[cfg_attr(not(feature = "server"), allow(dead_code))]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ServerInfo {
     pub version: String,

@@ -5,6 +5,17 @@
         <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta charset="UTF-8">
+        <script>
+            /* Theme before first paint (cookie `theme`: light | dark | system), avoids a light flash. */
+            (function () {
+                var m = document.cookie.match(/(?:^|; )theme=([^;]+)/);
+                var t = m ? m[1] : 'system';
+                var dark = t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+                document.documentElement.classList.add(dark ? 'dark' : 'light');
+                var d = document.cookie.match(/(?:^|; )dir=(rtl|ltr)/);
+                if (d) document.documentElement.dir = d[1];
+            })();
+        </script>
     </head>
     <body>
         <div id="main"></div>

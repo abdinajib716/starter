@@ -1,7 +1,27 @@
-//! App shell. M1: a minimal signed-in layout (top bar + guard). M3 replaces it with the
-//! full sidenav shell (§12).
-mod app_layout;
+//! App shell, ported from shadcn-admin `src/components/layout/*` (SPEC-02 P2–P3).
+mod app_shell;
+mod config_drawer;
+mod header;
 mod locale_switch;
+mod main_area;
+mod nav_config;
+mod nav_group;
+mod nav_user;
+mod profile_dropdown;
+mod search;
+mod sidebar;
+mod sign_out_dialog;
+mod skip_to_main;
+mod team_switcher;
+mod theme_switch;
+mod top_nav;
 
-pub use app_layout::{AppLayout, UserResource};
+pub use app_shell::{AppShell, UserResource, use_current_user};
+pub use config_drawer::ConfigDrawer;
+pub use header::Header;
 pub use locale_switch::LocaleSwitch;
+pub use main_area::Main;
+pub use profile_dropdown::ProfileDropdown;
+pub use search::Search;
+pub use theme_switch::ThemeSwitch;
+pub use top_nav::{TopNav, TopNavLink};

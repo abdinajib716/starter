@@ -5,13 +5,13 @@ use dioxus_i18n::t;
 use crate::api::auth::login;
 use crate::app::Route;
 use crate::components::layout::LocaleSwitch;
+use crate::components::layout::ThemeSwitch;
 use crate::domain::AfterLogin;
 use crate::i18n::error_text;
 use crate::ui::button::Button;
 use crate::ui::card::{Card, CardContent, CardDescription, CardHeader, CardTitle};
 use crate::ui::input::{Input, InputType};
 use crate::ui::label::Label;
-use crate::ui::theme_toggle::ThemeToggle;
 use crate::ui::toast::{ToastType, show_toast};
 
 #[component]
@@ -34,7 +34,7 @@ pub fn Login(next: String) -> Element {
                 }
                 Ok(AfterLogin::Home) => {
                     // Only follow internal paths; anything unparsable goes home.
-                    let target = next.parse::<Route>().unwrap_or(Route::Home {});
+                    let target = next.parse::<Route>().unwrap_or(Route::Dashboard {});
                     navigator().replace(target);
                 }
                 Err(e) => {
@@ -48,7 +48,7 @@ pub fn Login(next: String) -> Element {
 
     rsx! {
         div { class: "flex min-h-full flex-col items-center justify-center gap-4 bg-background p-4 text-foreground",
-            div { class: "flex w-full max-w-sm justify-end gap-1", LocaleSwitch {} ThemeToggle {} }
+            div { class: "flex w-full max-w-sm justify-end gap-1", LocaleSwitch {} ThemeSwitch {} }
             Card { class: "w-full max-w-sm",
                 CardHeader {
                     CardTitle { {t!("login-title")} }
