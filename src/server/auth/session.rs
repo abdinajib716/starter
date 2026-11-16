@@ -54,9 +54,13 @@ pub async fn load(pool: &PgPool, raw: &str, hours: i64) -> sqlx::Result<Option<C
     .await?;
 
     let Some(r) = row else { return Ok(None) };
-    // Super Admin holds every permission, computed rather than stored (§8). M2.3
-    // expands this to the full registry; until then `is_super_admin` short-circuits.
+    // Super Admin holds every permission, computed from the registry rather than stored (§8).
     let is_super_admin = r.is_system && r.role_name == crate::server::seed::SUPER_ADMIN;
+    let permissions = if is_super_admin {
+        crate::server::rbac::all_keys()
+    } else {
+        r.permissions.into_iter().collect::<HashSet<_>>()
+    };
     if r.stale {
         // Sliding expiry, written at most once a minute per session.
         sqlx::query!(
@@ -77,7 +81,7 @@ pub async fn load(pool: &PgPool, raw: &str, hours: i64) -> sqlx::Result<Option<C
         role_id: r.role_id,
         role_name: r.role_name,
         is_super_admin,
-        permissions: r.permissions.into_iter().collect::<HashSet<_>>(),
+        permissions,
         must_change_pw: r.must_change_pw,
         locale: r.locale,
     }))

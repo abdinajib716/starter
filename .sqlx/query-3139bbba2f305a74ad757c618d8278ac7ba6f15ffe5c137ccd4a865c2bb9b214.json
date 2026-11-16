@@ -1,0 +1,47 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT r.is_system, r.name,\n                  COALESCE(array_agg(rp.permission_key) FILTER (WHERE rp.permission_key IS NOT NULL),\n                           '{}') AS \"keys!\"\n           FROM roles r LEFT JOIN role_permissions rp ON rp.role_id = r.id\n           WHERE r.id = $1 GROUP BY r.id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "is_system",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "roles",
+            "name": "is_system"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "roles",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "keys!",
+        "type_info": "TextArray",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "3139bbba2f305a74ad757c618d8278ac7ba6f15ffe5c137ccd4a865c2bb9b214"
+}

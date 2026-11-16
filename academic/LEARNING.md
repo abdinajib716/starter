@@ -1656,3 +1656,44 @@ pub fn SidebarMenuSkeleton(
 **Concepts:** [component props](CONCEPTS.md#component), [rsx](CONCEPTS.md#rsx), [SSR and hydration](CONCEPTS.md#hydration)
 
 **Try it:** in the browser's developer tools, set Network → throttling to "Slow 3G", sign out and sign in again. Expected: the shell skeleton (sidebar rows, header bar, cards) appears until `/api/auth/me` answers, then the real dashboard replaces it with no jump in layout.
+
+## 38. Never lock out the last Super Admin
+**Feature:** a change that would leave the system with no active Super Admin (deactivate, delete or demote the last one) is refused, even when two admins try it at the same moment (§8, M2.4).
+
+**Code:**
+
+`src/server/rbac.rs` lines 181–198
+
+```rust
+pub async fn keep_last_super_admin(
+    tx: &mut Transaction<'_, Postgres>,
+    user_id: Uuid,
+) -> Result<(), AppError> {
+    let ids = sqlx::query_scalar!(
+        r#"SELECT u.id FROM users u JOIN roles r ON r.id = u.role_id
+           WHERE r.is_system AND r.name = $1 AND u.is_active AND u.deleted_at IS NULL
+           FOR UPDATE OF u"#,
+        super::seed::SUPER_ADMIN
+    )
+    .fetch_all(&mut **tx)
+    .await?;
+    if ids.len() == 1 && ids[0] == user_id {
+        Err(AppError::Conflict("users.last_super_admin"))
+    } else {
+        Ok(())
+    }
+}
+```
+
+**Line notes:**
+
+1. L182 — the guard takes the caller's open transaction, so the check and the change it protects commit or roll back together.
+2. L185–188 — the query lists every active, non-deleted user whose role is the system "Super Admin" role.
+3. L188 — `FOR UPDATE OF u` locks those user rows until the transaction ends. If two admins demote each other at once, the second transaction waits here, then sees the first one's result — without the lock both could pass the check and leave zero Super Admins.
+4. L189 — the role name is a bind parameter (`$1`), never pasted into the SQL text.
+5. L193 — the change is refused only if exactly one Super Admin is left and it is the user being changed.
+6. L194 — `AppError::Conflict("users.last_super_admin")` becomes HTTP 409 with that code; the browser shows the translated message `err-users-last-super-admin`.
+
+**Concepts:** [transactions](CONCEPTS.md#transaction), [Result and ?](CONCEPTS.md#result), [SQLx macros](CONCEPTS.md#sqlx-macros), [enum](CONCEPTS.md#enum)
+
+**Try it:** run `cargo test --features server last_super_admin`. Expected: `last_super_admin_is_protected` and `one_of_two_super_admins_may_go` pass. Remove `&& ids[0] == user_id` and run again: the second test now fails, because demoting one of two admins is wrongly refused.

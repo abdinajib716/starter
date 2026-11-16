@@ -37,6 +37,42 @@ pub enum AfterLogin {
     ChangePassword,
 }
 
+/// `security.2fa_mode` (§21).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TwoFaMode {
+    Off,
+    #[default]
+    Optional,
+    RequiredRoles,
+    RequiredAll,
+}
+
+impl TwoFaMode {
+    #[cfg_attr(not(feature = "server"), allow(dead_code))]
+    pub fn parse(s: &str) -> Self {
+        match s {
+            "off" => Self::Off,
+            "required_roles" => Self::RequiredRoles,
+            "required_all" => Self::RequiredAll,
+            _ => Self::Optional,
+        }
+    }
+}
+
+/// Module switches the UI needs (§17), delivered with `current_user()`.
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+pub struct ModuleFlags {
+    pub app_name: String,
+    pub email: bool,
+    pub password_reset: bool,
+    pub invites: bool,
+    pub twofa_mode: TwoFaMode,
+    pub public_api: bool,
+    pub notifications: bool,
+    pub i18n: bool,
+}
+
 /// The signed-in user as the UI sees it (`current_user()`, §8). No secrets.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserInfo {
@@ -47,6 +83,7 @@ pub struct UserInfo {
     pub is_super_admin: bool,
     pub permissions: Vec<String>,
     pub must_change_pw: bool,
+    pub modules: ModuleFlags,
 }
 
 impl UserInfo {

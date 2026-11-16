@@ -16,7 +16,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 |---|---|---|---|
 | 0 | Toolchain, skeleton, Postgres, migrations, org + `Ctx` | 🟡 in progress | 24/25 done; open: M0.24 (runs after M1) |
 | 1 | Auth core | 🟡 in progress | 17/19 done; open: M1.1 timing check (release build), M1.19 notification (needs M8) |
-| 2 | RBAC core + `ModuleFlags` + settings cache | ⚪ | |
+| 2 | RBAC core + `ModuleFlags` + settings cache | 🟢 done | branch `m2/rbac`; first permission-checked endpoints arrive with M5 |
 | 3 | App shell + i18n layer | ⚪ | shell/routes/RTL replaced by the UI port (SPEC-02) |
 | 3b | **UI port (SPEC-02)** | 🟡 in progress | P0–P3, P5–P7, P9, P10 done; P4 branding (M7) and P8 real data (M5/M10) pending; manifest 212/212 |
 | 4 | Audit | ⚪ | M4.8 done early |
@@ -100,18 +100,18 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 
 **Done when:** sidebar filters by permission; server fns refuse without permission; changing a setting on one instance reaches the others.
 
-- [ ] M2.1 `PERMISSIONS` registry in code (all keys from §8, incl. revision 2 additions)
-- [ ] M2.2 Startup sync into `permissions` table (insert missing, remove obsolete)
-- [ ] M2.3 `require(&ctx, key)` helper; Super Admin computed as all permissions
-- [ ] M2.4 Guards: last active Super Admin, no self-delete/deactivate, no granting what you don't hold
-- [ ] M2.5 Role-permission change deletes sessions of every user in that role
-- [ ] M2.6 `PermissionGate { perm, children }` component
-- [ ] M2.7 `AppError` enum → `ServerFnError` with stable codes (§13)
-- [ ] M2.8 Settings seeds (§9.6 + §17 master switches + §30.2)
-- [ ] M2.9 `settings_cache` (`Arc<RwLock<HashMap>>`) + `pg_notify('settings_changed')` invalidation + 60 s TTL
-- [ ] M2.10 `Modules` struct (`email_enabled`, `twofa_mode`, `public_api`, …) + `ModuleFlags` sent to UI via `current_user()`
-- [ ] M2.11 Tests: permission checks, last-super-admin guard, escalation guard
-- [ ] M2.12 Convention test / CI check: every `#[server]` / `#[post]` / `#[get]` function under `api/` either calls `require()` / `require_flag()` or is on an explicit allow-list of public endpoints (login, health, etc.). A forgotten check fails CI.
+- [x] M2.1 `PERMISSIONS` registry in code (all keys from §8, incl. revision 2 additions) — `server/rbac.rs` (37 keys), test: unique + well-formed
+- [x] M2.2 Startup sync into `permissions` table (insert missing, remove obsolete) — `sync_permissions` in `state::init`; test `sync_inserts_and_removes`
+- [x] M2.3 `require(&ctx, key)` helper; Super Admin computed as all permissions — `rbac::require` / `Ctx::require`; `session::load` gives Super Admin the full registry
+- [x] M2.4 Guards: last active Super Admin, no self-delete/deactivate, no granting what you don't hold — `keep_last_super_admin` (row lock), `not_self`, `can_grant`, `can_assign_role`
+- [x] M2.5 Role-permission change deletes sessions of every user in that role — `revoke_role_sessions` (called by M6 `update_role`)
+- [x] M2.6 `PermissionGate { perm, children }` component — `components/permission_gate.rs` (+ optional fallback)
+- [x] M2.7 `AppError` enum → `ServerFnError` with stable codes (§13) — `server/error.rs` (Unauthenticated, Forbidden, NotFound, Validation, Conflict, Disabled, Internal); internal details only logged
+- [x] M2.8 Settings seeds (§9.6 + §17 master switches + §30.2) — `settings::REGISTRY` (38 keys, type + range/enum), seed keeps existing values; `validate()`
+- [x] M2.9 `settings_cache` (`Arc<RwLock<HashMap>>`) + `pg_notify('settings_changed')` invalidation + 60 s TTL — process cache + `PgListener` task (reconnects, TTL reload); trigger migration `…07_settings_notify`; test `changes_are_announced`
+- [x] M2.10 `Modules` struct (`email_enabled`, `twofa_mode`, `public_api`, …) + `ModuleFlags` sent to UI via `current_user()` — `server/modules.rs`; email-dependent switches forced off without email
+- [x] M2.11 Tests: permission checks, last-super-admin guard, escalation guard — unit + `#[sqlx::test]` in `rbac.rs`, `settings.rs`, `modules.rs`, `error.rs`
+- [x] M2.12 Convention test / CI check: every `#[server]` / `#[post]` / `#[get]` function under `api/` either calls `require()` / `require_flag()` or is on an explicit allow-list of public endpoints (login, health, etc.). A forgotten check fails CI. — `api::convention::every_server_fn_checks_access` (also accepts `require_user(` for own-account fns)
 
 ---
 

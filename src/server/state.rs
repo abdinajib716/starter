@@ -26,6 +26,9 @@ pub async fn init() -> anyhow::Result<&'static AppState> {
             let pool = db::connect(&config).await?;
             db::migrate(&pool).await?;
             let default_org_id = seed::ensure_default_org(&pool).await?;
+            super::rbac::sync_permissions(&pool).await?;
+            super::settings::seed(&pool).await?;
+            super::settings::start(&pool).await?;
             seed::ensure_super_admin_role(&pool).await?;
             seed::ensure_first_admin(&pool, &config, default_org_id).await?;
             tracing::info!(tenancy = %config.tenancy_mode, "app state ready");

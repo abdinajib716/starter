@@ -20,7 +20,7 @@ pub struct CurrentUser {
     pub org_id: Uuid,
     pub email: String,
     pub full_name: String,
-    #[allow(dead_code)] // M2.4 escalation guard
+    #[allow(dead_code)] // M5 (role changes)
     pub role_id: Uuid,
     pub role_name: String,
     pub is_super_admin: bool,
@@ -46,6 +46,12 @@ impl Ctx {
             .await
             .map_err(|_| ServerFnError::new("request context missing"))?;
         Ok(ctx)
+    }
+
+    /// The signed-in user holding permission `key` (§8), or 401 / 403.
+    #[allow(dead_code)] // first callers in M5
+    pub fn require(&self, key: &str) -> Result<&CurrentUser, super::error::AppError> {
+        super::rbac::require(self, key)
     }
 
     /// The signed-in user, or `401 auth.unauthenticated`.

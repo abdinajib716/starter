@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO permissions (key, module, action, description) VALUES ($1, $2, $3, $4)\n               ON CONFLICT (key) DO UPDATE\n               SET module = EXCLUDED.module, action = EXCLUDED.action,\n                   description = EXCLUDED.description",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c1fbdd16133bb626f0cdcdc119cbae354c952b058f7626caaa7816a437ea6a2e"
+}

@@ -41,6 +41,7 @@ pub async fn current_user() -> Result<Option<UserInfo>, ServerFnError> {
             is_super_admin: u.is_super_admin,
             permissions,
             must_change_pw: u.must_change_pw,
+            modules: crate::server::modules::Modules::get().flags(),
         }
     }))
 }
