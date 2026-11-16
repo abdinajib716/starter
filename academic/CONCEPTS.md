@@ -150,10 +150,12 @@ every possibility (exhaustiveness). Patterns can nest (`Some(Ok(i))`), bind vari
 First seen: entry 4. Book ch. 6.2, ch. 19.
 
 <a id="iflet"></a>
-### `if let`
+### `if let`, let chains and `let ... else`
 `if let PATTERN = expr { ... }` runs the block only when the pattern matches, binding its
-variables; it is a `match` with one interesting arm. Used for `Option`/`Result` when only one case
-needs handling. First seen: entry 6. Book ch. 6.3.
+variables; it is a `match` with one interesting arm. Let chains (Rust 2024) combine conditions and
+patterns: `if a && let Some(x) = f() { ... }`. `let PATTERN = expr else { ... };` binds the
+pattern's variables for the rest of the function, and its `else` block must diverge (`return`,
+`break`, `panic!`). First seen: entry 6; let chains entry 20; let-else entry 24. Book ch. 6.3, 19.
 
 <a id="rawstr"></a>
 ### Raw string literals
@@ -234,6 +236,26 @@ collection's items, `into_iter()` consumes the collection and yields owned items
 `Vec<T>` is a growable, heap-allocated array that owns its elements. A tuple `(A, B)` groups a fixed
 number of values of possibly different types, accessed by position (`t.0`, `t.1`) or destructured
 in patterns (`|(_, tag)|`). First seen: entry 14. Book ch. 8.1, ch. 3.2.
+
+<a id="array"></a>
+### Arrays and slices
+`[T; N]` is a fixed-length array stored inline (`[0u8; 32]`: 32 zero bytes). A slice `&[T]` /
+`&mut [T]` is a borrowed view of a contiguous sequence of any length; arrays and `Vec`s coerce to
+slices, which is why functions usually take `&[u8]`. First seen: entry 18. Book ch. 3.2, ch. 4.3.
+
+<a id="alias"></a>
+### Type aliases
+`type Name = SomeLongType<...>;` introduces another name for an existing type. It improves
+readability and creates no new type: values of the alias and the original are interchangeable.
+First seen: entry 24. Book ch. 20.3.
+
+<a id="blocking"></a>
+### Blocking work in async code (`spawn_blocking`)
+An async runtime runs many tasks on a few threads; a task that computes for a long time without
+reaching an `.await` stalls every other task on that thread. `tokio::task::spawn_blocking` moves
+such work (password hashing, compression) to a separate pool of threads and returns a handle that
+can be awaited. Values sent there must be owned (`move` closures), because the thread may outlive
+the current scope. First seen: entry 17. docs.rs/tokio `task::spawn_blocking`.
 
 ---
 
@@ -346,4 +368,21 @@ in the `Cookie` request header to matching paths. Attributes: `Path`, `Max-Age` 
 seconds), `SameSite=Lax` (not sent on cross-site sub-requests, a CSRF defence), `HttpOnly`
 (invisible to JavaScript; used for the session cookie in M1), `Secure` (HTTPS only). The `locale`
 cookie is not secret, so it is not `HttpOnly`. First seen: entry 16. MDN, "Using HTTP cookies".
+
+<a id="hashing"></a>
+### Password hashing vs. token hashing
+Passwords are low-entropy secrets chosen by people, so they are stored with a deliberately slow,
+memory-hard function (Argon2id, with a random salt per password) to make guessing expensive even
+after a database leak. Session tokens are 256-bit random values, impossible to guess, so a single
+fast hash (SHA-256) is enough: it only prevents a leaked database from being used directly as
+cookies. In both cases the server stores the hash, never the secret. First seen: entry 17.
+OWASP Password Storage Cheat Sheet.
+
+<a id="transaction"></a>
+### Database transactions
+A transaction groups statements so they all take effect or none do (`BEGIN` … `COMMIT`; an error
+or a dropped transaction rolls back). sqlx's `pool.begin()` returns a `Transaction`; statements run
+in it via `&mut *tx`, and `tx.commit().await` makes them permanent. This project writes the audit
+row in the same transaction as the change it records (§9.5). First seen: entry 19.
+docs.rs/sqlx `Transaction`.
 

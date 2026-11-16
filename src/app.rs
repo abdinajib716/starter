@@ -69,3 +69,21 @@ fn LocaleRoot(children: Element) -> Element {
         div { class: "h-full", lang: "{lang}", dir: "{dir}", {children} }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Route;
+
+    /// `/login?next=` must never lead off-site: anything the router parses is an in-app route.
+    #[test]
+    fn next_param_stays_in_app() {
+        // External URLs do not parse: login falls back to `/`.
+        assert!("https://evil.example".parse::<Route>().is_err());
+        // A protocol-relative path is just an unknown in-app path (404 page), not a redirect.
+        assert!(matches!(
+            "//evil.example/x".parse::<Route>(),
+            Ok(Route::NotFound { .. })
+        ));
+        assert_eq!("/profile".parse::<Route>().ok(), Some(Route::Profile {}));
+    }
+}

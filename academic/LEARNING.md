@@ -746,3 +746,356 @@ fn LocaleRoot(children: Element) -> Element {
 **Concepts:** [rsx!](CONCEPTS.md#rsx), [async/await and Future](CONCEPTS.md#async), [server function](CONCEPTS.md#serverfn), [cookies](CONCEPTS.md#cookie), [signals and hooks](CONCEPTS.md#signals)
 
 **Try it:** run `curl -si -X POST http://127.0.0.1:8080/api/i18n/locale -H 'content-type: application/json' -d '{"locale":"so"}' | grep -i set-cookie`, then the same with `"fr"`. Expected: the first prints `set-cookie: locale=so; Path=/; Max-Age=31536000; SameSite=Lax`; the second returns an error body containing "unsupported locale" and no cookie.
+
+---
+
+# Milestone 1 — Authentication (commit `76ac93d`, branch `m1/auth`)
+
+## 17. Password verification in constant time
+**Feature:** checks a password with Argon2id and spends the same time whether the account exists or not, so response times do not reveal which emails are registered (M1.1).
+
+**Code:**
+
+`src/server/auth/password.rs` lines 36–53
+
+```rust
+pub async fn verify(password: String, stored: Option<String>) -> bool {
+    let known = stored.is_some();
+    let hash = stored.unwrap_or_else(|| DUMMY_HASH.clone());
+    let ok = tokio::task::spawn_blocking(move || match PasswordHash::new(&hash) {
+        Ok(parsed) => hasher()
+            .verify_password(password.as_bytes(), &parsed)
+            .is_ok(),
+        Err(_) => {
+            // A corrupt stored hash must not become a fast path: burn the same time.
+            let _ = PasswordHash::new(&DUMMY_HASH)
+                .map(|d| hasher().verify_password(password.as_bytes(), &d));
+            false
+        }
+    })
+    .await
+    .unwrap_or(false);
+    known && ok
+}
+```
+
+**Line notes:**
+
+1. L36 — the parameters are owned (`String`, `Option<String>`) because they are moved into another thread below.
+2. L38 — `unwrap_or_else(|| DUMMY_HASH.clone())` substitutes a real hash of a random secret when the user was not found, so the expensive computation still runs.
+3. L39 — `tokio::task::spawn_blocking` runs CPU-heavy work on a separate thread pool, keeping the async worker threads free to serve other requests.
+4. L39 — `move ||` transfers ownership of `hash` and `password` into the closure, which is required because the closure runs on another thread.
+5. L45 — `let _ =` discards a value on purpose; the call is kept only for its timing effect.
+6. L50 — awaiting a `JoinHandle` yields `Result<T, JoinError>`; `unwrap_or(false)` treats a panicked task as a failed verification.
+7. L52 — `known && ok` makes the dummy path always fail even if a guess matched the random secret.
+
+**Concepts:** [threads and spawn_blocking](CONCEPTS.md#blocking), [closure](CONCEPTS.md#closure), [Option combinators](CONCEPTS.md#option), [password hashing](CONCEPTS.md#hashing)
+
+**Try it:** in the test `unknown_user_never_verifies_but_runs_argon2`, add `let t = std::time::Instant::now();` before the `verify` call and `println!("{:?}", t.elapsed());` after it, then run `just test -- --nocapture unknown_user`. Expected: a duration of the same order as `hash_then_verify` (tens to hundreds of milliseconds in a debug build), not microseconds.
+
+## 18. Session tokens: random, and stored only as a hash
+**Feature:** the browser receives a random token; the database keeps only its SHA-256, so a leaked database cannot be used to sign in (M1.3).
+
+**Code:**
+
+`src/server/auth/token.rs` lines 1–14
+
+```rust
+//! Opaque random tokens; only their SHA-256 is stored (§7 step 6).
+use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
+use sha2::{Digest, Sha256};
+
+/// 32 random bytes, base64url without padding (43 chars).
+pub fn generate() -> String {
+    let mut bytes = [0u8; 32];
+    getrandom::fill(&mut bytes).expect("OS RNG available");
+    URL_SAFE_NO_PAD.encode(bytes)
+}
+
+pub fn hash(token: &str) -> Vec<u8> {
+    Sha256::digest(token.as_bytes()).to_vec()
+}
+```
+
+**Line notes:**
+
+1. L2 — `Engine` is a trait; importing it brings its `encode` method into scope for `URL_SAFE_NO_PAD`.
+2. L7 — `[0u8; 32]` is an array of 32 bytes, each initialised to zero; arrays have a fixed length known at compile time.
+3. L8 — `getrandom::fill(&mut bytes)` fills the array from the operating system's cryptographic random source; `&mut` lends it for writing.
+4. L8 — `.expect("...")` panics with that message on error; it is used where failure means the system cannot run safely at all.
+5. L9 — base64url without padding produces 43 characters that are safe in cookies and URLs.
+6. L13 — `Sha256::digest(...)` returns a fixed-size array, and `.to_vec()` copies it into a `Vec<u8>` to match the `bytea` column.
+
+**Concepts:** [arrays and slices](CONCEPTS.md#array), [traits](CONCEPTS.md#trait), [password hashing](CONCEPTS.md#hashing), [Result and ?](CONCEPTS.md#result)
+
+**Try it:** sign in, then run `psql "$DATABASE_URL" -c "select encode(token_hash,'hex') from sessions"` and compare with the `sid` cookie in the browser's developer tools. Expected: they differ completely; running `printf '%s' '<cookie value>' | sha256sum` reproduces the stored hex.
+
+## 19. Counting failures and locking the account
+**Feature:** after `security.max_failed_attempts` wrong passwords the account is locked for `security.lockout_minutes`, and every failure is audited in the same transaction (M1.2, M1.14).
+
+**Code:**
+
+`src/server/services/auth.rs` lines 108–131
+
+```rust
+    if !password_ok {
+        // 4. Count the failure; lock at the threshold and start a fresh count after it.
+        let attempts = u.failed_attempts + 1;
+        let lock = attempts >= s.max_failed_attempts;
+        sqlx::query!(
+            r#"UPDATE users SET
+                 failed_attempts = CASE WHEN $2 THEN 0 ELSE $3 END,
+                 locked_until = CASE WHEN $2 THEN now() + make_interval(mins => $4) ELSE locked_until END
+               WHERE id = $1"#,
+            u.id,
+            lock,
+            attempts,
+            i32::try_from(s.lockout_minutes).unwrap_or(15),
+        )
+        .execute(&mut *tx)
+        .await?;
+        audit::record(&mut tx, fail("bad_password")).await?;
+        if lock {
+            // M1.19: the in-app notification is added with the notifications table (M8.7).
+            audit::record(
+                &mut tx,
+                Entry {
+                    action: "auth.account_locked",
+                    entity_type: Some("user"),
+```
+
+**Line notes:**
+
+1. L110 — `u.failed_attempts + 1` reads a field of the row returned by `query!`; its type (`i32`) was inferred from the `int` column at compile time.
+2. L113 — `CASE WHEN $2 THEN ... ELSE ... END` lets one `UPDATE` both count and lock, so the decision is applied atomically.
+3. L120 — `i32::try_from(...)` converts a wider integer and fails instead of silently truncating; `unwrap_or(15)` supplies the default.
+4. L122 — `&mut *tx` reborrows the transaction as a connection, so the statement runs inside the open transaction.
+5. L124 — `fail("bad_password")` calls a closure defined earlier that builds an audit `Entry` with the shared fields filled in.
+6. L129 — `Entry { action: ..., ..fail("threshold") }` is struct update syntax: listed fields are set, the rest are copied from the given value.
+
+**Concepts:** [transactions](CONCEPTS.md#transaction), [struct](CONCEPTS.md#struct), [closure](CONCEPTS.md#closure), [sqlx query macros](CONCEPTS.md#sqlx-macros), [conversions](CONCEPTS.md#conversion)
+
+**Try it:** run `just test lockout` and confirm it passes. Then change `attempts >= s.max_failed_attempts` to `attempts > s.max_failed_attempts` on line 111 and run it again. Expected: the test fails because five failures no longer lock the account. Revert.
+
+## 20. Loading the user on every request
+**Feature:** the middleware turns the session cookie into a `CurrentUser` placed in the request context, so every server function knows who is calling (M1.5).
+
+**Code:**
+
+`src/server/ctx.rs` lines 89–101
+
+```rust
+    let mut user = None;
+    if !is_asset(req.uri().path())
+        && let Some(raw) = cookie::read(headers, state.config.session_cookie_name())
+    {
+        let hours = SecuritySettings::load(&state.pool)
+            .await
+            .unwrap_or_default()
+            .session_hours;
+        match session::load(&state.pool, raw, hours).await {
+            Ok(u) => user = u,
+            Err(e) => tracing::error!(error = %e, "session lookup failed"),
+        }
+    }
+```
+
+**Line notes:**
+
+1. L89 — `let mut user = None;` starts with "anonymous"; the type `Option<CurrentUser>` is inferred from the later assignment.
+2. L90 — `if cond && let Some(raw) = ...` is a let chain: the pattern is tried only when the condition is true, and both must succeed (Rust 2024 edition).
+3. L95 — `unwrap_or_default()` uses `SecuritySettings::default()` if the settings query fails, so a settings problem does not sign everyone out.
+4. L97 — `match` on the `Result` separates "no valid session" (`Ok(None)`) from a database failure (`Err`).
+5. L99 — `%e` logs the error with its `Display` text while the request continues as anonymous.
+
+**Concepts:** [let chains and if let](CONCEPTS.md#iflet), [middleware and layers](CONCEPTS.md#middleware), [match and patterns](CONCEPTS.md#match), [Default](CONCEPTS.md#derive)
+
+**Try it:** sign in, then in `psql` run `UPDATE users SET is_active = false;` and reload the page. Expected: you are redirected to `/login`, because the session query only accepts active users. Run `UPDATE users SET is_active = true;` afterwards.
+
+## 21. Server-side page guard
+**Feature:** before any page renders, anonymous visitors are redirected to `/login?next=…`, users who must change their password to `/profile`, and signed-in users away from `/login` (M1.10, M1.13).
+
+**Code:**
+
+`src/server/auth/guard.rs` lines 87–107
+
+```rust
+pub async fn pages(req: Request, next: Next) -> Response {
+    let path = req.uri().path().to_owned();
+    if req.method() != Method::GET || is_passthrough(&path) {
+        return next.run(req).await;
+    }
+    // Decide first (borrowing the request), then act (moving it).
+    let redirect = match req.extensions().get::<Ctx>().and_then(|c| c.user.as_ref()) {
+        None if !is_public_page(&path) => Some(if path == "/" {
+            "/login".to_string()
+        } else {
+            format!("/login?next={path}")
+        }),
+        Some(u) if u.must_change_pw && path != "/profile" => Some("/profile".to_string()),
+        Some(_) if path == "/login" => Some("/".to_string()),
+        _ => None,
+    };
+    match redirect {
+        Some(to) => Redirect::to(&to).into_response(),
+        None => next.run(req).await,
+    }
+}
+```
+
+**Line notes:**
+
+1. L88 — `.to_owned()` copies the path into a `String`, so it no longer borrows `req`.
+2. L93 — the `match` borrows `req` only while it computes `redirect`; the borrow ends at the semicolon on line 102.
+3. L94 — `None if !is_public_page(&path)` combines a pattern with a guard; unmatched cases fall through to later arms.
+4. L94 — `if path == "/" { ... } else { ... }` is an expression whose value becomes the content of `Some(...)`.
+5. L105 — `next.run(req)` moves `req`, which compiles only because no borrow of it is still alive (see note 2).
+
+**Concepts:** [references and borrowing](CONCEPTS.md#borrow), [match and patterns](CONCEPTS.md#match), [expressions vs statements](CONCEPTS.md#expr), [middleware and layers](CONCEPTS.md#middleware)
+
+**Try it:** run `curl -si http://127.0.0.1:8080/profile | head -3` without a cookie. Expected: `HTTP/1.1 303 See Other` and `location: /login?next=/profile`.
+
+## 22. Login server function and coded errors
+**Feature:** the browser calls `login`; on success the server sets the session cookie, on failure it returns a stable error code that the client translates (M1.2, §26 rule 2).
+
+**Code:**
+
+`src/api/auth.rs` lines 7–15
+
+```rust
+#[post("/api/auth/login")]
+pub async fn login(email: String, password: String) -> Result<AfterLogin, ServerFnError> {
+    use crate::server::{auth::cookie, ctx, services::auth, state};
+    let ctx = ctx::Ctx::current().await?;
+    let st = state::get()?;
+    let ok = auth::login(&st.pool, &ctx, &email, password).await?;
+    ctx::set_cookie(&cookie::set(&st.config, &ok.token, ok.max_age_secs))?;
+    Ok(ok.next)
+}
+```
+
+`src/server/services/auth.rs` lines 253–266
+
+```rust
+impl From<AuthError> for dioxus::prelude::ServerFnError {
+    fn from(e: AuthError) -> Self {
+        use crate::domain::errors::coded;
+        match e {
+            AuthError::InvalidCredentials => coded(401, "auth.invalid_credentials"),
+            AuthError::RateLimited => coded(429, "auth.rate_limited"),
+            AuthError::WrongPassword => coded(400, "auth.wrong_password"),
+            AuthError::Policy(p) => coded(400, p.code()),
+            AuthError::Internal(err) => {
+                tracing::error!(error = ?err, "auth internal error");
+                coded(500, "internal")
+            }
+        }
+    }
+```
+
+**Line notes:**
+
+1. L9 (api/auth.rs) — `use` inside a function body limits the imports to that function, which matters here because these modules exist only in the server build.
+2. L12 — `?` converts the service's `AuthError` into `ServerFnError` through the `From` implementation shown below.
+3. L13 — the cookie is attached to this response with a `Set-Cookie` header; the client code never sees the token.
+4. L253 (services/auth.rs) — `impl From<AuthError> for ServerFnError` is allowed because `AuthError` is defined in this crate (the orphan rule).
+5. L256 — the `match` maps each internal error to an HTTP status and a code; adding a variant without a mapping is a compile error.
+6. L262 — `?err` logs the internal error with `Debug` formatting on the server only; the client receives just `internal`.
+
+**Concepts:** [server function](CONCEPTS.md#serverfn), [conversions](CONCEPTS.md#conversion), [cookies](CONCEPTS.md#cookie), [enum](CONCEPTS.md#enum), [traits](CONCEPTS.md#trait)
+
+**Try it:** `curl -s -X POST http://127.0.0.1:8080/api/auth/login -H 'content-type: application/json' -d '{"email":"x@y.z","password":"a"}'`. Expected: status 401 and a body containing `"message":"auth.invalid_credentials"`; the login page shows the same code as "Incorrect email or password.".
+
+## 23. Login form: signals, submit handler, navigation
+**Feature:** the form keeps its inputs in signals, submits without reloading the page, and navigates according to the server's answer (M1.11).
+
+**Code:**
+
+`src/pages/login.rs` lines 19–43
+
+```rust
+    let mut email = use_signal(String::new);
+    let mut password = use_signal(String::new);
+    let mut error = use_signal(|| None::<String>);
+    let mut busy = use_signal(|| false);
+
+    let submit = move |evt: FormEvent| {
+        evt.prevent_default();
+        let next = next.clone();
+        async move {
+            if busy() {
+                return;
+            }
+            busy.set(true);
+            error.set(None);
+            match login(email(), password()).await {
+                Ok(AfterLogin::ChangePassword) => {
+                    navigator().replace(Route::Profile {});
+                }
+                Ok(AfterLogin::Home) => {
+                    // Only follow internal paths; anything unparsable goes home.
+                    let target = next.parse::<Route>().unwrap_or(Route::Home {});
+                    navigator().replace(target);
+                }
+                Err(e) => {
+                    password.set(String::new());
+```
+
+**Line notes:**
+
+1. L21 — `None::<String>` names the type of an empty `Option` explicitly, because nothing else tells the compiler what the signal holds.
+2. L24 — the handler is a `move` closure that copies the signals (signals are `Copy`) and returns a future for Dioxus to run.
+3. L25 — `prevent_default()` runs synchronously, before the browser would submit the form and reload the page.
+4. L26 — `next.clone()` gives the async block its own `String`, since the closure may be called more than once.
+5. L33 — `email()` calls the signal to clone its current value.
+6. L34 — matching on `Ok(AfterLogin::ChangePassword)` uses the enum returned by the server function, shared through `domain`.
+7. L39 — `next.parse::<Route>()` reuses the router's own URL parser; any external or malformed value fails and falls back to `Route::Home {}`.
+
+**Concepts:** [signals and hooks](CONCEPTS.md#signals), [closure](CONCEPTS.md#closure), [async/await and Future](CONCEPTS.md#async), [conversions](CONCEPTS.md#conversion), [enum](CONCEPTS.md#enum)
+
+**Try it:** open `http://127.0.0.1:8080/login?next=https://evil.example` and sign in. Expected: you land on `/`, not on the external site, because `"https://evil.example".parse::<Route>()` fails (this prevents an open redirect).
+
+## 24. Sharing the signed-in user through context
+**Feature:** the layout loads the current user once (during SSR) and shares it with every page below it; pages can refresh it (M1.8, M1.13).
+
+**Code:**
+
+`src/components/layout/app_layout.rs` lines 13–34
+
+```rust
+/// The signed-in user, shared with every page under the layout. Pages call `.restart()`
+/// after changing something `current_user()` reports (e.g. `must_change_pw`).
+pub type UserResource = Resource<Result<Option<UserInfo>, ServerFnError>>;
+
+/// Layout for every page that needs a session (§12).
+#[component]
+pub fn AppLayout() -> Element {
+    // Fetched during SSR and reused on hydration; the server guard already redirected
+    // anonymous page loads, so `None` here means the session ended in this tab.
+    let user: UserResource = use_server_future(current_user)?;
+    use_context_provider(|| user);
+
+    let current = user
+        .read()
+        .as_ref()
+        .and_then(|r| r.as_ref().ok())
+        .cloned()
+        .flatten();
+    let Some(me) = current else {
+        return rsx! { GoToLogin {} };
+    };
+    let initials = me.initials();
+```
+
+**Line notes:**
+
+1. L15 — `pub type` declares a type alias, a shorter name for a long generic type; it creates no new type.
+2. L22 — `use_server_future(current_user)?` runs the server function during SSR and suspends the component until its result is ready.
+3. L23 — `use_context_provider(|| user)` makes the resource available to descendants; `Resource` is `Copy`, so the closure can return it by value.
+4. L25 — `.read()` borrows the resource state, `.as_ref()` converts `&Option<Result<..>>` into `Option<&Result<..>>`, and the chain ends with an owned `Option<UserInfo>`.
+5. L30 — `.flatten()` turns `Option<Option<UserInfo>>` into `Option<UserInfo>`.
+6. L31 — `let Some(me) = current else { return ...; };` is let-else: it binds `me` or runs the `else` block, which must leave the function.
+
+**Concepts:** [context](CONCEPTS.md#context), [type aliases](CONCEPTS.md#alias), [Option combinators](CONCEPTS.md#option), [let-else](CONCEPTS.md#iflet), [SSR and hydration](CONCEPTS.md#hydration)
+
+**Try it:** sign in as the seeded admin (password `ChangeMe!234`), change the password on `/profile`, and watch the yellow "must set a new password" banner. Expected: it disappears without a page reload, because `Profile` calls `user.restart()` and the layout re-reads `current_user()`.
