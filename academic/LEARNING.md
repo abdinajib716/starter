@@ -1099,3 +1099,49 @@ pub fn AppLayout() -> Element {
 **Concepts:** [context](CONCEPTS.md#context), [type aliases](CONCEPTS.md#alias), [Option combinators](CONCEPTS.md#option), [let-else](CONCEPTS.md#iflet), [SSR and hydration](CONCEPTS.md#hydration)
 
 **Try it:** sign in as the seeded admin (password `ChangeMe!234`), change the password on `/profile`, and watch the yellow "must set a new password" banner. Expected: it disappears without a page reload, because `Profile` calls `user.restart()` and the layout re-reads `current_user()`.
+
+---
+
+# Milestone 1 — fix (commit `acb0566`)
+
+## 25. CSRF decision with Fetch Metadata
+**Feature:** state-changing requests are accepted only when the browser itself reports them as same-origin, which also works behind tunnels and forwarded ports (M1.9).
+
+**Code:**
+
+`src/server/auth/guard.rs` lines 42–60
+
+```rust
+fn allowed(
+    fetch_site: Option<&str>,
+    origin: Option<&str>,
+    app_url: Option<&str>,
+    host: Option<&str>,
+) -> bool {
+    if let Some(site) = fetch_site {
+        return matches!(site, "same-origin" | "none");
+    }
+    match (origin, app_url) {
+        (None, _) => true,
+        (Some(o), Some(app_url)) => same_origin(o, app_url),
+        (Some(o), None) => {
+            host.is_some_and(|h| o.split_once("://").is_some_and(|(_, rest)| rest == h))
+        }
+    }
+}
+
+/// Scheme + host + port equality; trailing slash on `APP_URL` ignored.
+```
+
+**Line notes:**
+
+1. L42 — the decision is a plain function of four optional strings, with no request or state, so it can be unit-tested directly.
+2. L43 — `Option<&str>` borrows header text from the request instead of copying it; `None` means the header is absent.
+3. L48 — `if let Some(site) = fetch_site { return ...; }` gives the browser-provided header priority and exits early.
+4. L49 — `matches!(site, "same-origin" | "none")` tests a value against patterns, here two string literals joined by `|`.
+5. L51 — `match (origin, app_url)` matches on a tuple, so the arms can combine the two optional values.
+6. L55 — `is_some_and` returns `false` for `None` and otherwise applies the predicate; nesting two of them reads "the host exists and the origin's host part equals it".
+
+**Concepts:** [match and patterns](CONCEPTS.md#match), [Option combinators](CONCEPTS.md#option), [cookies](CONCEPTS.md#cookie), [unit tests and cfg(test)](CONCEPTS.md#tests), [CSRF](CONCEPTS.md#csrf)
+
+**Try it:** run `curl -s -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:8080/api/auth/login -H 'content-type: application/json' -H 'Sec-Fetch-Site: cross-site' -d '{"email":"a@b.c","password":"x"}'`, then repeat with `same-origin`. Expected: `403`, then `401` (the request reached the login logic and the credentials were rejected).

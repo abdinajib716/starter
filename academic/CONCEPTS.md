@@ -386,3 +386,13 @@ in it via `&mut *tx`, and `tx.commit().await` makes them permanent. This project
 row in the same transaction as the change it records (§9.5). First seen: entry 19.
 docs.rs/sqlx `Transaction`.
 
+<a id="csrf"></a>
+### CSRF and Fetch Metadata
+Cross-Site Request Forgery: another site makes the victim's browser send a request to this app,
+and the browser attaches this app's cookies automatically. Defences here: `SameSite=Lax` cookies
+(not sent on cross-site POSTs), and a server check on every state-changing request. Browsers add
+`Sec-Fetch-Site` (`same-origin`, `same-site`, `cross-site`, `none`) to each request; page scripts
+cannot set it, so it identifies the request's real initiator even behind proxies that rewrite
+`Host`. `Origin` is the fallback for browsers without it. First seen: entry 25. OWASP CSRF
+Prevention Cheat Sheet; MDN "Sec-Fetch-Site".
+
