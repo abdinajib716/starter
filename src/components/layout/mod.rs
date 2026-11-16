@@ -26,6 +26,7 @@ pub use header::Header;
 #[allow(unused_imports)]
 pub use locale_switch::LocaleSwitch;
 pub use main_area::Main;
+pub use navigation_progress::NavigationProgress;
 pub use profile_dropdown::ProfileDropdown;
 pub use search::Search;
 pub use theme_switch::ThemeSwitch;

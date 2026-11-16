@@ -95,7 +95,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/layout/types.ts` | data | src/components/layout/nav_config.rs | done | typed NavGroup/NavItem/NavLink |
 | `src/components/learn-more.tsx` | component | src/components/learn_more.rs | done | popover help; reference uses it only on Clerk pages |
 | `src/components/long-text.tsx` | component | src/components/long_text.rs | done | tooltip ≥ sm, popover < sm, only when overflowing |
-| `src/components/navigation-progress.tsx` | component | src/components/layout/navigation_progress.rs | done | 2px bar per page change (path, not query) |
+| `src/components/navigation-progress.tsx` | component | src/components/layout/navigation_progress.rs | done | react-top-loading-bar markup + timing measured on the demo; app shell + auth layout |
 | `src/components/password-input.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
 | `src/components/password-input.tsx` | component | src/components/password_input.rs | done |  |
 | `src/components/profile-dropdown.tsx` | component | src/components/profile_dropdown.rs | done | real user |

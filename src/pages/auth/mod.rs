@@ -27,6 +27,7 @@ pub fn Logo(#[props(into, optional)] class: Option<String>) -> Element {
 #[component]
 pub fn AuthLayout(children: Element) -> Element {
     rsx! {
+        crate::components::layout::NavigationProgress {}
         div { class: "container grid h-svh max-w-none items-center justify-center",
             div { class: "mx-auto flex w-full flex-col justify-center space-y-2 py-8 sm:p-8",
                 div { class: "mb-4 flex items-center justify-center",
