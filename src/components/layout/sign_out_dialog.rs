@@ -23,7 +23,7 @@ pub fn SignOutDialog(open: Signal<bool>) -> Element {
                 let next = path.clone();
                 async move {
                     let _ = logout().await;
-                    navigator().replace(Route::Login { next });
+                    navigator().replace(Route::SignIn { redirect: next });
                 }
             },
         }

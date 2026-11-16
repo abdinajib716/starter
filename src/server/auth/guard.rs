@@ -1,6 +1,6 @@
 //! Request guards that run before the Dioxus app (§7):
 //! - CSRF: unsafe methods must come from our own origin.
-//! - Page guard: SSR redirects for unauthenticated users, `must_change_pw`, and `/login`.
+//! - Page guard: SSR redirects for unauthenticated users and `must_change_pw`.
 //!
 //! The server-function checks stay the real security; these only shape navigation.
 use dioxus::server::axum::{
@@ -71,8 +71,10 @@ fn is_passthrough(path: &str) -> bool {
 
 /// Public pages (§12, §30.4). Everything else needs a session.
 fn is_public_page(path: &str) -> bool {
-    path == "/login"
-        || path.starts_with("/auth/")
+    matches!(
+        path,
+        "/sign-in" | "/sign-in-2" | "/sign-up" | "/forgot-password" | "/otp" | "/login"
+    ) || path.starts_with("/auth/")
         || matches!(path, "/401" | "/403" | "/404" | "/500" | "/503")
 }
 
@@ -84,11 +86,13 @@ pub async fn pages(req: Request, next: Next) -> Response {
     // Decide first (borrowing the request), then act (moving it).
     let redirect = match req.extensions().get::<Ctx>().and_then(|c| c.user.as_ref()) {
         None if !is_public_page(&path) => Some(if path == "/" {
-            "/login".to_string()
+            "/sign-in".to_string()
         } else {
-            format!("/login?next={path}")
+            format!("/sign-in?redirect={path}")
         }),
         Some(u) if u.must_change_pw && path != "/profile" => Some("/profile".to_string()),
+        // Signed-in users may still open the auth screens (they are listed under Pages › Auth,
+        // as in the reference); the old `/login` URL sends them home.
         Some(_) if path == "/login" => Some("/".to_string()),
         _ => None,
     };

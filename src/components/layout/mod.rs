@@ -2,6 +2,7 @@
 mod app_shell;
 mod config_drawer;
 mod header;
+#[allow(dead_code)]
 mod locale_switch;
 mod main_area;
 mod nav_config;
@@ -19,6 +20,8 @@ mod top_nav;
 pub use app_shell::{AppShell, UserResource, use_current_user};
 pub use config_drawer::ConfigDrawer;
 pub use header::Header;
+// Shown again when the `i18n.enabled` setting exists (M7); the reference has no switcher.
+#[allow(unused_imports)]
 pub use locale_switch::LocaleSwitch;
 pub use main_area::Main;
 pub use profile_dropdown::ProfileDropdown;

@@ -64,7 +64,8 @@ pub fn AppShell() -> Element {
             SidebarInset {
                 // Container queries for <Main>; fixed layouts take the viewport height.
                 class: "@container/content has-data-[layout=fixed]:h-svh peer-data-[variant=inset]:has-data-[layout=fixed]:h-[calc(100svh-(var(--spacing)*4))]",
-                Outlet::<Route> {}
+                // Pages that wait for data suspend only the content area; the sidebar stays.
+                SuspenseBoundary { fallback: |_| rsx! {}, Outlet::<Route> {} }
             }
         }
         CommandMenu {}
@@ -75,8 +76,8 @@ pub fn AppShell() -> Element {
 #[component]
 fn GoToLogin() -> Element {
     use_effect(|| {
-        navigator().replace(Route::Login {
-            next: String::new(),
+        navigator().replace(Route::SignIn {
+            redirect: String::new(),
         });
     });
     rsx! {}

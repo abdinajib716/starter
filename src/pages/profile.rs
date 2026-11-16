@@ -13,7 +13,8 @@ use crate::ui::button::Button;
 use crate::ui::card::{Card, CardContent, CardDescription, CardHeader, CardTitle};
 use crate::ui::input::{Input, InputType};
 use crate::ui::label::Label;
-use crate::ui::toast::{ToastType, show_toast};
+use crate::ui::toast::ToastType;
+use crate::util::toast as show_toast;
 
 #[component]
 pub fn Profile() -> Element {

@@ -40,9 +40,9 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `public/images/shadcn-admin.png` | asset | — | n/a | README screenshot |
 | `src/assets/brand-icons/icon-discord.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
 | `src/assets/brand-icons/icon-docker.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-facebook.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
+| `src/assets/brand-icons/icon-facebook.tsx` | asset | src/pages/auth/mod.rs (SocialButtons) | done | inline path in SocialButtons |
 | `src/assets/brand-icons/icon-figma.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-github.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
+| `src/assets/brand-icons/icon-github.tsx` | asset | src/pages/auth/mod.rs (SocialButtons) | done | inline path in SocialButtons |
 | `src/assets/brand-icons/icon-gitlab.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
 | `src/assets/brand-icons/icon-gmail.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
 | `src/assets/brand-icons/icon-medium.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
@@ -67,7 +67,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/assets/custom/icon-theme-dark.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
 | `src/assets/custom/icon-theme-light.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
 | `src/assets/custom/icon-theme-system.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
-| `src/assets/logo.tsx` | asset | src/components/icons/logo.rs | todo | our logo (branding) |
+| `src/assets/logo.tsx` | asset | src/pages/auth/mod.rs (Logo) | done | our branding: command glyph + app name |
 | `src/components/coming-soon.tsx` | component | src/pages/errors/mod.rs (ComingSoon) | done |  |
 | `src/components/command-menu.tsx` | component | src/components/layout/search.rs | done | Ctrl/Cmd+K, filter, ↑↓/Enter, pages + theme |
 | `src/components/config-drawer.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
@@ -97,7 +97,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/long-text.tsx` | component | src/components/long_text.rs | todo |  |
 | `src/components/navigation-progress.tsx` | component | src/components/navigation_progress.rs | todo |  |
 | `src/components/password-input.test.tsx` | test | src/components/password_input.rs #[cfg(test)] | todo | logic test → Rust #[test] |
-| `src/components/password-input.tsx` | component | src/components/password_input.rs | todo |  |
+| `src/components/password-input.tsx` | component | src/components/password_input.rs | done |  |
 | `src/components/profile-dropdown.tsx` | component | src/components/profile_dropdown.rs | done | real user |
 | `src/components/search.tsx` | component | src/components/layout/search.rs | done |  |
 | `src/components/select-dropdown.tsx` | component | src/components/select_dropdown.rs | todo |  |
@@ -118,7 +118,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/ui/dialog.tsx` | ui-primitive | src/ui/dialog.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/dropdown-menu.tsx` | ui-primitive | src/components/ui_extra/menu.rs | done | `ui_extra::menu` (fixed-position, no inline script); Rust/UI version kept vendored |
 | `src/components/ui/form.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form (FormItem/Label/Description/Message) |
-| `src/components/ui/input-otp.tsx` | ui-primitive | src/ui/input_otp.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
+| `src/components/ui/input-otp.tsx` | ui-primitive | src/pages/auth/otp.rs (OtpInput) | done | single transparent input over 6 slots |
 | `src/components/ui/input.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::TextInput (controlled) |
 | `src/components/ui/label.tsx` | ui-primitive | src/ui/label.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/popover.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::menu (popover content) |
@@ -144,22 +144,22 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/context/theme-provider.tsx` | context | src/state/prefs.rs | done | Ui.theme + apply_theme |
 | `src/features/apps/data/apps.tsx` | data | src/pages/apps/data/apps.rs | todo | demo seed data, flag `demo.apps` (§5) |
 | `src/features/apps/index.tsx` | feature | src/pages/apps/mod.rs | todo | demo page behind flag `demo.apps`, default off (§5) |
-| `src/features/auth/auth-layout.tsx` | feature | src/pages/auth/auth_layout.rs | todo |  |
+| `src/features/auth/auth-layout.tsx` | feature | src/pages/auth/mod.rs (AuthLayout) | done |  |
 | `src/features/auth/forgot-password/components/forgot-password-form.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/auth/forgot-password/components/forgot-password-form.tsx` | feature | src/pages/auth/forgot_password/components/forgot_password_form.rs | todo |  |
-| `src/features/auth/forgot-password/index.tsx` | feature | src/pages/auth/forgot_password/mod.rs | todo |  |
+| `src/features/auth/forgot-password/components/forgot-password-form.tsx` | feature | src/pages/auth/forgot_password.rs | done |  |
+| `src/features/auth/forgot-password/index.tsx` | feature | src/pages/auth/forgot_password.rs | done | reset email in M13; honest toast |
 | `src/features/auth/otp/components/otp-form.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/auth/otp/components/otp-form.tsx` | feature | src/pages/auth/otp/components/otp_form.rs | todo |  |
-| `src/features/auth/otp/index.tsx` | feature | src/pages/auth/otp/mod.rs | todo |  |
-| `src/features/auth/sign-in/assets/dashboard-dark.png` | asset | assets/auth/dashboard-dark.png | todo | sign-in-2 preview image (MIT) |
-| `src/features/auth/sign-in/assets/dashboard-light.png` | asset | assets/auth/dashboard-light.png | todo | sign-in-2 preview image (MIT) |
+| `src/features/auth/otp/components/otp-form.tsx` | feature | src/pages/auth/otp.rs (OtpInput) | done |  |
+| `src/features/auth/otp/index.tsx` | feature | src/pages/auth/otp.rs | done | verification in M9 (2FA) |
+| `src/features/auth/sign-in/assets/dashboard-dark.png` | asset | assets/auth/dashboard-dark.png | done |  |
+| `src/features/auth/sign-in/assets/dashboard-light.png` | asset | assets/auth/dashboard-light.png | done |  |
 | `src/features/auth/sign-in/components/user-auth-form.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/auth/sign-in/components/user-auth-form.tsx` | feature | src/pages/auth/sign_in/components/user_auth_form.rs | todo |  |
-| `src/features/auth/sign-in/index.tsx` | feature | src/pages/auth/sign_in/mod.rs | todo |  |
-| `src/features/auth/sign-in/sign-in-2.tsx` | feature | src/pages/auth/sign_in/sign_in_2.rs | todo |  |
+| `src/features/auth/sign-in/components/user-auth-form.tsx` | feature | src/pages/auth/sign_in.rs (UserAuthForm) | done | reference checks + server login, toasts |
+| `src/features/auth/sign-in/index.tsx` | feature | src/pages/auth/sign_in.rs | done | wired to our login (M1), redirect param |
+| `src/features/auth/sign-in/sign-in-2.tsx` | feature | src/pages/auth/sign_in.rs (SignIn2) | done |  |
 | `src/features/auth/sign-up/components/sign-up-form.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/auth/sign-up/components/sign-up-form.tsx` | feature | src/pages/auth/sign_up/components/sign_up_form.rs | todo |  |
-| `src/features/auth/sign-up/index.tsx` | feature | src/pages/auth/sign_up/mod.rs | todo |  |
+| `src/features/auth/sign-up/components/sign-up-form.tsx` | feature | src/pages/auth/sign_up.rs | done |  |
+| `src/features/auth/sign-up/index.tsx` | feature | src/pages/auth/sign_up.rs | done | self sign-up off: submit explains (setting `auth.self_signup`, M7) |
 | `src/features/chats/components/new-chat.tsx` | feature | src/pages/chats/components/new_chat.rs | todo | demo page behind flag `demo.chats`, default off (§5) |
 | `src/features/chats/data/chat-types.ts` | data | src/pages/chats/data/chat_types.rs | todo | demo seed data, flag `demo.chats` (§5) |
 | `src/features/chats/data/convo.json` | data | src/pages/chats/data/convo.rs | todo | demo seed data, flag `demo.chats` (§5) |
@@ -236,11 +236,11 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/lib/utils.ts` | lib/util | src/util/mod.rs | todo |  |
 | `src/main.tsx` | config | src/main.rs + src/app.rs | in-progress | providers: i18n, Ui prefs, toaster, router; font provider in P5 |
 | `src/routeTree.gen.ts` | route | src/app.rs (Route enum) | n/a | generated by TanStack Router; the Routable enum replaces it |
-| `src/routes/(auth)/forgot-password.tsx` | route | src/app.rs (Route::…) | todo | (auth)/forgot-password |
-| `src/routes/(auth)/otp.tsx` | route | src/app.rs (Route::…) | todo | (auth)/otp |
-| `src/routes/(auth)/sign-in-2.tsx` | route | src/app.rs (Route::…) | todo | (auth)/sign-in-2 |
-| `src/routes/(auth)/sign-in.tsx` | route | src/app.rs (Route::…) | todo | (auth)/sign-in |
-| `src/routes/(auth)/sign-up.tsx` | route | src/app.rs (Route::…) | todo | (auth)/sign-up |
+| `src/routes/(auth)/forgot-password.tsx` | route | src/app.rs | done | public route |
+| `src/routes/(auth)/otp.tsx` | route | src/app.rs | done | public route |
+| `src/routes/(auth)/sign-in-2.tsx` | route | src/app.rs | done | public route |
+| `src/routes/(auth)/sign-in.tsx` | route | src/app.rs | done | public route |
+| `src/routes/(auth)/sign-up.tsx` | route | src/app.rs | done | public route |
 | `src/routes/(errors)/401.tsx` | route | src/app.rs (Route::Error401) | done | public route |
 | `src/routes/(errors)/403.tsx` | route | src/app.rs (Route::Error403) | done | public route |
 | `src/routes/(errors)/404.tsx` | route | src/app.rs (Route::Error404) | done | public route |

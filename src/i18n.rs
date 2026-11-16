@@ -8,6 +8,7 @@ use dioxus_i18n::unic_langid::{LanguageIdentifier, langid};
 
 pub const DEFAULT_LOCALE: &str = "en";
 /// Enabled locales. `i18n.enabled_locales` (settings, M7) will narrow this at runtime.
+#[cfg_attr(not(feature = "server"), allow(dead_code))]
 pub const SUPPORTED: &[&str] = &["en", "so"];
 #[cfg_attr(not(feature = "server"), allow(dead_code))]
 pub const LOCALE_COOKIE: &str = "locale";

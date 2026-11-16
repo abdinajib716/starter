@@ -147,10 +147,10 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 - [~] P3 Header, profile dropdown, sign-out dialog, theme, skip link, progress bar — all done except the navigation progress bar
 - [~] P4 Command palette + search (`Ctrl/Cmd+K`), branding (logo + app name from settings) — palette + search button done (pages + theme, keyboard); branding from settings (M7) pending
 - [~] P5 Appearance drawer (theme, variant, collapsible, layout, direction, font) and RTL — working drawer (theme, sidebar, layout, direction, reset); illustrated cards, font option and RTL review pending
-- [ ] P6 Error pages (401, 403, 404, 500, 503)
-- [ ] P7 Auth screens wired to our auth (M1)
+- [x] P6 Error pages (401, 403, 404, 500, 503) — public `/401`…`/503`, `/errors/:error` in the shell, catch-all = 404 view
+- [x] P7 Auth screens wired to our auth (M1) — `/sign-in` is the real login (old `/login` redirects); sign-in-2, sign-up (self sign-up off), forgot password (email in M13), OTP (2FA in M9)
 - [~] P8 Dashboard and Users pages on real data (M10, M5) — Dashboard **UI** done and matched with the demo at 1440 px (Overview + Analytics tabs, SVG charts with Recharts ticks); real data in M10; Users page pending
-- [ ] P9 Settings pages
+- [x] P9 Settings pages — layout + 5 reference demo forms with validation; font preference; real profile settings in M9
 - [ ] P10 Demo pages behind feature flags (apps, chats, tasks, help-center)
 - [ ] P11 Final pass: manifest check, side-by-side comparison, a11y, light/dark, RTL
 
@@ -450,6 +450,11 @@ Blockers first; each names the item that proves it.
 | 2026-11-16 | Dashboard figures are the reference's sample values, fixed instead of `Math.random()` | Random values would differ between server render and hydration; real KPIs come in M10 |
 | 2026-11-16 | Browser test user `ui-test@example.com` (deactivated after use); hashes via the ignored test `print_hash` | Never touch the real admin's password; user can't be deleted yet (M5.11 blocker) |
 | 2026-11-16 | `dx serve` sometimes stops rebuilding / its Tailwind watcher dies: restart it, or run `tailwindcss --watch` by hand | Seen twice; symptom = old build or stale `assets/tailwind.css` |
+| 2026-11-16 | Suspense boundaries around the router and around the shell's page outlet | Without them, a page waiting on a server future suspended the whole app root: the toaster (and its toasts) was torn down on login, and the sidebar would re-mount |
+| 2026-11-16 | Own `util::toast` instead of Rust/UI `show_toast` in pages that navigate | `show_toast` runs its script in a task owned by the caller; unmounting the caller (navigation) dropped it before it ran |
+| 2026-11-16 | Login moved to `/sign-in?redirect=` (reference URL); `/login?next=` redirects | SPEC-02 pure port; auth screens stay viewable while signed in, as Pages › Auth in the reference |
+| 2026-11-16 | Sign-up / forgot-password show honest messages instead of the reference's fake "account created" / "email sent" | No self sign-up (invites, §9.2) and no email until M13 |
+| 2026-11-16 | `[profile.wasm-dev] opt-level = 1` | Dev wasm at opt-level 0 made interactions (e.g. collapsing the sidebar) feel laggy |
 | 2026-11-15 | Password minimum length uses the blueprint's existing key `security.password_min_length`, not a new `security.min_password_length` | Avoid two keys for one setting |
 
 ## Rust/UI components installed

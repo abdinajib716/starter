@@ -8,6 +8,7 @@ use dioxus_i18n::prelude::use_init_i18n;
 
 use crate::components::layout::AppShell;
 use crate::i18n;
+use crate::pages::auth::{ForgotPassword, Login, Otp, SignIn, SignIn2, SignUp};
 use crate::pages::errors::{
     ComingSoon, Error401, Error403, Error404, Error500, Error503, ShellError,
 };
@@ -15,16 +16,27 @@ use crate::pages::settings::{
     SettingsAccount, SettingsAppearance, SettingsDisplay, SettingsLayout, SettingsNotifications,
     SettingsProfile,
 };
-use crate::pages::{dashboard::Dashboard, login::Login, not_found::NotFound, profile::Profile};
+use crate::pages::{dashboard::Dashboard, not_found::NotFound, profile::Profile};
 use crate::state::{Ui, UiPrefs};
 use crate::ui::toast::ToastToaster;
 
 /// Route table (§12, SPEC-02). Pages under `AppShell` need a session: the server redirects
 /// page loads (`server::auth::guard::pages`), `AppShell` covers client-side navigation.
-/// Public: `/login` and the standalone error pages (`/401` … `/503`).
+/// Public: the auth screens (`/sign-in` …) and the standalone error pages (`/401` … `/503`).
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
 pub enum Route {
+    #[route("/sign-in?:redirect")]
+    SignIn { redirect: String },
+    #[route("/sign-in-2")]
+    SignIn2 {},
+    #[route("/sign-up")]
+    SignUp {},
+    #[route("/forgot-password")]
+    ForgotPassword {},
+    #[route("/otp")]
+    Otp {},
+    /// Old login URL, kept as a redirect to `/sign-in`.
     #[route("/login?:next")]
     Login { next: String },
     #[route("/401")]
@@ -89,7 +101,11 @@ pub fn App() -> Element {
         // body ran twice: once from the SSR HTML and again when hydration re-created it.
         document::Script { src: TOAST_RUNTIME_JS, defer: true }
         ToastToaster {}
-        LocaleRoot { Router::<Route> {} }
+        // Without a boundary, a page waiting on a server future (e.g. the shell's
+        // `current_user()`) suspends the whole app root, which tears down the toaster too.
+        LocaleRoot {
+            SuspenseBoundary { fallback: |_| rsx! {}, Router::<Route> {} }
+        }
     }
 }
 
@@ -112,7 +128,7 @@ fn LocaleRoot(children: Element) -> Element {
 mod tests {
     use super::Route;
 
-    /// `/login?next=` must never lead off-site: anything the router parses is an in-app route.
+    /// `/sign-in?redirect=` must never lead off-site: anything the router parses is an in-app route.
     #[test]
     fn next_param_stays_in_app() {
         // External URLs do not parse: login falls back to `/`.

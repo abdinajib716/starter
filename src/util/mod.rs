@@ -1,6 +1,21 @@
 //! Small helpers shared by server and client (port of shadcn-admin `src/lib/*`).
 pub mod cookies;
 
+/// Toast that also works right before navigation. Rust/UI's `show_toast` runs its script in a
+/// task owned by the calling component; when the component unmounts (e.g. login navigates
+/// away) the task is dropped and the toast never appears. `eval` here runs immediately.
+pub fn toast(variant: crate::ui::toast::ToastType, title: impl Into<String>) {
+    let title = serde_json::to_string(&title.into()).unwrap_or_default();
+    let js = format!(
+        r#"(() => {{ const t = document.createElement('button'); t.type = 'button';
+            t.dataset.name = 'ToastTrigger'; t.dataset.variant = {variant:?};
+            t.dataset.toastTitle = {title}; t.dataset.toastDescription = '';
+            document.body.appendChild(t); t.click(); t.remove(); }})()"#,
+        variant = variant.to_string()
+    );
+    let _ = dioxus::document::eval(&js);
+}
+
 /// `lib/show-submitted-data.tsx`: a toast with the submitted values as JSON (used by the
 /// reference's demo forms).
 pub fn show_submitted_data(data: &serde_json::Value, title: &str) {
