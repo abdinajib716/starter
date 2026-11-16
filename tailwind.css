@@ -478,3 +478,11 @@
 @utility faded-bottom {
   @apply after:pointer-events-none after:absolute after:start-0 after:bottom-0 after:hidden after:h-32 after:w-full after:rounded-b-2xl after:bg-[linear-gradient(180deg,transparent_10%,var(--background)_70%)] md:after:block;
 }
+
+/* navigation-progress.tsx (react-top-loading-bar look): 2px bar that runs across and fades. */
+@keyframes nav-progress {
+  0% { width: 0; opacity: 1; }
+  70% { width: 85%; opacity: 1; }
+  90% { width: 100%; opacity: 1; }
+  100% { width: 100%; opacity: 0; }
+}

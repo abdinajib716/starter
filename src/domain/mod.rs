@@ -85,13 +85,44 @@ pub mod errors {
     pub fn i18n_key(err: &ServerFnError) -> String {
         match err {
             ServerFnError::ServerError { message, .. }
-                if message
-                    .chars()
-                    .all(|c| c.is_ascii_lowercase() || c == '.' || c == '_') =>
+                if !message.is_empty()
+                    && message
+                        .chars()
+                        .all(|c| c.is_ascii_lowercase() || c == '.' || c == '_') =>
             {
                 format!("err-{}", message.replace(['.', '_'], "-"))
             }
             _ => "err-generic".to_string(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::errors::{coded, i18n_key};
+    use dioxus::prelude::ServerFnError;
+
+    // lib/handle-server-error.test.ts: unknown errors fall back to the generic message; a
+    // recognised server error is shown with its own text (here: its Fluent key).
+    #[test]
+    fn unknown_errors_map_to_generic() {
+        assert_eq!(
+            i18n_key(&ServerFnError::new("Some English sentence")),
+            "err-generic"
+        );
+        let raw = ServerFnError::ServerError {
+            message: String::new(),
+            code: 500,
+            details: None,
+        };
+        assert_eq!(i18n_key(&raw), "err-generic");
+    }
+
+    #[test]
+    fn coded_errors_map_to_their_key() {
+        assert_eq!(
+            i18n_key(&coded(401, "auth.invalid_credentials")),
+            "err-auth-invalid-credentials"
+        );
     }
 }

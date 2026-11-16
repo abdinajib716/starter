@@ -49,6 +49,8 @@ pub fn Menu(
     let mut anchor = use_signal(|| None::<Rc<MountedData>>);
     let mut style = use_signal(String::new);
 
+    let rtl = try_use_context::<crate::state::Ui>()
+        .is_some_and(|ui| (ui.dir)() == crate::state::Dir::Rtl);
     let toggle = move |_| async move {
         if open() {
             open.set(false);
@@ -72,10 +74,16 @@ pub fn Menu(
                 Align::End => format!("top:{bottom}px;transform:translateY(-100%);"),
             },
         };
-        let x = match (side, align) {
-            (Side::Right, _) => format!("left:{}px;", right + side_offset),
-            (Side::Bottom, Align::Start) => format!("left:{left}px;"),
-            (Side::Bottom, Align::End) => format!("left:{right}px;translate:-100% 0;"),
+        // Start / end and "right" are logical: in RTL they mirror (Radix uses `dir`).
+        let x = match (side, align, rtl) {
+            (Side::Right, _, false) => format!("left:{}px;", right + side_offset),
+            (Side::Right, _, true) => format!("left:{}px;translate:-100% 0;", left - side_offset),
+            (Side::Bottom, Align::Start, false) | (Side::Bottom, Align::End, true) => {
+                format!("left:{left}px;")
+            }
+            (Side::Bottom, Align::Start, true) | (Side::Bottom, Align::End, false) => {
+                format!("left:{right}px;translate:-100% 0;")
+            }
         };
         css.push_str(&x);
         if match_trigger_width {

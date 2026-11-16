@@ -4,6 +4,7 @@
 pub mod data_table;
 pub mod icons;
 pub mod layout;
+pub mod learn_more;
 pub mod long_text;
 pub mod password_input;
 pub mod ui_extra;

@@ -163,6 +163,7 @@ pub fn Sidebar(
             SideSheet {
                 open: open_mobile,
                 side: SheetSide::Start,
+                close_button: false,
                 class: "w-(--sidebar-width) gap-0 bg-sidebar p-0 text-sidebar-foreground",
                 style: "--sidebar-width: 18rem;",
                 div { class: "sr-only", h2 { "Sidebar" } }
@@ -189,10 +190,10 @@ pub fn SidebarTrigger(
             variant,
             size: ButtonSize::Icon,
             class,
-            aria_label: "Toggle Sidebar",
+            aria_label: dioxus_i18n::t!("sidebar-toggle"),
             onclick: move |_| ctx.toggle(),
             Icon { icon: IconType::PanelLeft }
-            span { class: "sr-only", "Toggle Sidebar" }
+            span { class: "sr-only", {dioxus_i18n::t!("sidebar-toggle")} }
         }
     }
 }
@@ -203,7 +204,7 @@ pub fn SidebarRail() -> Element {
     rsx! {
         button {
             "data-sidebar": "rail",
-            "aria-label": "Toggle Sidebar",
+            "aria-label": dioxus_i18n::t!("sidebar-toggle"),
             tabindex: "-1",
             title: "Toggle Sidebar",
             onclick: move |_| ctx.toggle(),

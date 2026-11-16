@@ -1,6 +1,7 @@
 //! `authenticated-layout.tsx`: session guard, search state, sidebar, inset content.
 use dioxus::prelude::*;
 
+use super::navigation_progress::NavigationProgress;
 use super::search::CommandMenu;
 use super::sidebar::AppSidebar;
 use super::skip_to_main::SkipToMain;
@@ -59,6 +60,7 @@ pub fn AppShell() -> Element {
 
     rsx! {
         SidebarProvider {
+            NavigationProgress {}
             SkipToMain {}
             AppSidebar {}
             SidebarInset {

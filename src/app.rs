@@ -89,7 +89,6 @@ pub enum Route {
     NotFound { segments: Vec<String> },
 }
 
-const FAVICON: Asset = asset!("/assets/favicon.ico");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 // Rust/UI toast runtime (copied from rust-ui/ui @ 4f5a516). The ApexCharts runtime is no
 // longer loaded: dashboard charts are SVG components (`ui_extra::chart`).
@@ -106,7 +105,6 @@ pub fn App() -> Element {
     use_hook(|| Ui::provide(prefs));
 
     rsx! {
-        document::Link { rel: "icon", href: FAVICON }
         document::Stylesheet { href: TAILWIND_CSS }
         document::Stylesheet { href: TOAST_RUNTIME_CSS }
         // `defer`: runs once after parsing (needs `document.body`). A plain `script {}` in the

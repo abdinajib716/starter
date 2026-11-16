@@ -16,6 +16,9 @@ pub fn SideSheet(
     #[props(default)] side: SheetSide,
     #[props(into, optional)] class: Option<String>,
     #[props(into, optional)] style: Option<String>,
+    /// shadcn `SheetContent` close button (×); the mobile sidebar hides it.
+    #[props(default = true)]
+    close_button: bool,
     children: Element,
 ) -> Element {
     let mut open = open;
@@ -44,6 +47,15 @@ pub fn SideSheet(
             onmounted: move |e| async move { let _ = e.data().set_focus(true).await; },
             onkeydown: move |e| if e.key() == Key::Escape { open.set(false) },
             {children}
+            if close_button {
+                button {
+                    r#type: "button",
+                    class: "absolute end-4 top-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden [&_svg]:size-4",
+                    onclick: move |_| open.set(false),
+                    super::icon::Icon { icon: super::icon::IconType::X }
+                    span { class: "sr-only", {dioxus_i18n::t!("action-close")} }
+                }
+            }
         }
     }
 }

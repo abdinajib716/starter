@@ -489,3 +489,17 @@ v-password-min = Password must be at least 8 characters long.
 v-password-lower = Password must contain at least one lowercase letter.
 v-password-number = Password must contain at least one number.
 v-password-match = Passwords don't match.
+
+## appearance drawer cards
+config-reset-theme = Reset theme preference to default
+config-reset-sidebar = Reset sidebar style to default
+config-reset-layout = Reset layout options to default
+config-reset-dir = Reset text direction to default
+config-reset-all = Reset all settings to default values
+config-select-theme = Select theme preference
+config-select-sidebar = Select sidebar style
+config-select-layout = Select layout style
+config-select-dir = Select site direction
+config-select-option = Select { $option }
+sidebar-toggle = Toggle Sidebar
+learn-more = Learn more

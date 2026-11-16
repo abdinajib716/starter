@@ -9,7 +9,6 @@ use crate::components::ui_extra::dialog::{ConfirmDialog, Modal, use_dialog_flag}
 use crate::components::ui_extra::form::{
     FormItem, FormLabel, FormMessage, Radio, SelectBox, TextInput,
 };
-use crate::components::ui_extra::icon::{Icon, IconType};
 use crate::components::ui_extra::sheet::SideSheet;
 use crate::ui::button::{Button, ButtonVariant};
 use crate::util::show_submitted_data;
@@ -55,8 +54,6 @@ pub fn TasksDialogs() -> Element {
         }
     }
 }
-
-const SHEET_CLOSE: &str = "absolute end-4 top-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden [&_svg]:size-4";
 
 #[component]
 fn MutateSheet(open: Signal<bool>, #[props(optional)] current: Option<Task>) -> Element {
@@ -154,10 +151,6 @@ fn MutateSheet(open: Signal<bool>, #[props(optional)] current: Option<Task>) -> 
                     Button { variant: ButtonVariant::Outline, class: "w-full", button_type: "button", onclick: move |_| open.set(false), {t!("action-close")} }
                     Button { class: "w-full", button_type: "submit", {t!("action-save-changes")} }
                 }
-            }
-            button { r#type: "button", class: SHEET_CLOSE, onclick: move |_| open.set(false),
-                Icon { icon: IconType::X }
-                span { class: "sr-only", {t!("action-close")} }
             }
         }
     }

@@ -38,7 +38,7 @@ pub fn RowActions(task: Task) -> Element {
             div { class: "group/sub relative",
                 button { r#type: "button", onclick: move |e| e.stop_propagation(), class: "flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none hover:bg-accent focus:bg-accent group-focus-within/sub:bg-accent",
                     {t!("tasks-labels")}
-                    Icon { icon: IconType::ChevronRight, class: "ms-auto size-4" }
+                    Icon { icon: IconType::ChevronRight, class: "ms-auto size-4 rtl:rotate-180" }
                 }
                 div { role: "menu", class: "invisible absolute end-full top-0 z-50 min-w-[8rem] rounded-md border bg-popover p-1 text-popover-foreground shadow-lg group-focus-within/sub:visible group-hover/sub:visible",
                     for (value, key) in LABELS {

@@ -31,9 +31,16 @@ pub fn request(name: &str) -> Option<String> {
 
 /// Set a cookie from the browser. Names and values are internal constants, never user input.
 pub fn set(name: &str, value: &str, max_age_secs: u32) {
-    let js =
-        format!("document.cookie = '{name}={value}; path=/; max-age={max_age_secs}; samesite=lax'");
+    let js = format!(
+        "document.cookie = '{}'",
+        cookie_string(name, value, max_age_secs)
+    );
     let _ = dioxus::document::eval(&js);
+}
+
+/// The `document.cookie` assignment; `max-age=0` with an empty value deletes the cookie.
+fn cookie_string(name: &str, value: &str, max_age_secs: u32) -> String {
+    format!("{name}={value}; path=/; max-age={max_age_secs}; samesite=lax")
 }
 
 pub fn remove(name: &str) {
@@ -42,7 +49,29 @@ pub fn remove(name: &str) {
 
 #[cfg(test)]
 mod tests {
-    use super::find;
+    use super::{cookie_string, find};
+
+    /// What the browser sends back for a cookie set with `cookie_string` (name=value only).
+    fn sent(cookie: &str) -> String {
+        cookie.split(';').next().unwrap_or_default().to_string()
+    }
+
+    // lib/cookies.test.ts
+    #[test]
+    fn stores_a_value_that_can_be_read_back() {
+        let c = cookie_string("test_cookie_a", "hello-world", 60);
+        assert_eq!(
+            find(&sent(&c), "test_cookie_a").as_deref(),
+            Some("hello-world")
+        );
+    }
+
+    #[test]
+    fn clears_a_value_so_it_is_no_longer_readable() {
+        let c = cookie_string("test_cookie_b", "", 0);
+        assert!(c.contains("max-age=0"));
+        assert_eq!(find(&sent(&c), "test_cookie_b"), None);
+    }
 
     #[test]
     fn finds_named_cookie() {

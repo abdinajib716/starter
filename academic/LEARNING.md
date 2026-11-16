@@ -1578,3 +1578,38 @@ pub fn use_dialog_flag<D: PartialEq + Copy + 'static>(
 **Concepts:** [generics](CONCEPTS.md#generics), [use_effect and peek](CONCEPTS.md#effect), [signals](CONCEPTS.md#signals), [context](CONCEPTS.md#context)
 
 **Try it:** on `/tasks`, click Create, press Escape, then click Create again. Expected: the sheet opens both times. Comment out the second `use_effect` and repeat: the second click does nothing, because the shared state was never cleared and setting it to the same value is not a change.
+
+## 36. Logical start / end for popovers in right-to-left mode
+**Feature:** dropdown menus (row actions, profile, team switcher) open on the correct side when the direction is Right to Left, like Radix does with `dir="rtl"` (SPEC-02 P5).
+
+**Code:**
+
+`src/components/ui_extra/menu.rs` lines 77–88
+
+```rust
+        // Start / end and "right" are logical: in RTL they mirror (Radix uses `dir`).
+        let x = match (side, align, rtl) {
+            (Side::Right, _, false) => format!("left:{}px;", right + side_offset),
+            (Side::Right, _, true) => format!("left:{}px;translate:-100% 0;", left - side_offset),
+            (Side::Bottom, Align::Start, false) | (Side::Bottom, Align::End, true) => {
+                format!("left:{left}px;")
+            }
+            (Side::Bottom, Align::Start, true) | (Side::Bottom, Align::End, false) => {
+                format!("left:{right}px;translate:-100% 0;")
+            }
+        };
+        css.push_str(&x);
+```
+
+**Line notes:**
+
+1. L77 — "start" and "end" mean left and right in LTR, but right and left in RTL; the code works out the physical side once, here.
+2. L78 — matching on a tuple `(side, align, rtl)` lists every combination in one place; the compiler checks that none is missing.
+3. L80 — a `Right`-side submenu in RTL opens to the left: it is placed at the trigger's left edge and moved back by its own width with `translate:-100% 0`.
+4. L81 — an `|` pattern joins two cases with the same result: Start in LTR and End in RTL both line up with the trigger's left edge.
+5. L84–85 — the other two cases line up with the trigger's right edge, again using `translate` because the menu's width is not known yet.
+6. L88 — the computed `left`/`translate` is appended to the inline style of the fixed-position menu.
+
+**Concepts:** [match and patterns](CONCEPTS.md#match), [context](CONCEPTS.md#context), [signals](CONCEPTS.md#signals)
+
+**Try it:** open Settings → Appearance drawer → Direction → Right to Left, go to `/tasks` and open a row's "…" menu. Expected: the menu stays on screen and opens towards the table; hover Labels and the submenu opens to the right. Change `Align::End, true` to `Align::End, false` in the first pattern and the menu opens off the left edge.

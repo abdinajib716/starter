@@ -28,15 +28,15 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `components.json` | config | — | n/a | shadcn CLI config (we vendor Rust/UI by hand) |
 | `cz.yaml` | config | — | n/a | commitizen config |
 | `eslint.config.js` | config | — | n/a | ESLint config |
-| `index.html` | config | index.html | todo | meta, title, favicon links; fonts are self-hosted |
+| `index.html` | config | index.html | done | favicon links (light/dark), title from Dioxus.toml, meta/OG tags; fonts self-hosted; pre-paint theme/dir/font script |
 | `knip.config.ts` | config | — | n/a | knip config |
 | `netlify.toml` | config | — | n/a | Netlify deploy config |
 | `package.json` | config | — | n/a | npm manifest; its UI dependencies are mapped by the rows that use them |
 | `pnpm-lock.yaml` | config | — | n/a | lockfile |
-| `public/images/favicon.png` | asset | assets/brand/favicon.png | todo | replaced by our branding (§1.3) |
-| `public/images/favicon.svg` | asset | assets/brand/favicon.svg | todo | replaced by our branding (§1.3) |
-| `public/images/favicon_light.png` | asset | assets/brand/favicon_light.png | todo | replaced by our branding (§1.3) |
-| `public/images/favicon_light.svg` | asset | assets/brand/favicon_light.svg | todo | replaced by our branding (§1.3) |
+| `public/images/favicon.png` | asset | public/images/favicon.png | done | our logo (Command glyph, same as the sidebar logo) |
+| `public/images/favicon.svg` | asset | public/images/favicon.svg | done | our logo |
+| `public/images/favicon_light.png` | asset | public/images/favicon_light.png | done | our logo, dark-scheme variant |
+| `public/images/favicon_light.svg` | asset | public/images/favicon_light.svg | done | our logo, dark-scheme variant |
 | `public/images/shadcn-admin.png` | asset | — | n/a | README screenshot |
 | `src/assets/brand-icons/icon-discord.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
 | `src/assets/brand-icons/icon-docker.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
@@ -57,21 +57,21 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/assets/brand-icons/index.ts` | asset | src/components/icons/brand.rs | done | `Brand` enum |
 | `src/assets/clerk-full-logo.tsx` | asset | — | n/a | Clerk branding (§5: Clerk removed) |
 | `src/assets/clerk-logo.tsx` | asset | — | n/a | Clerk branding (§5: Clerk removed) |
-| `src/assets/custom/icon-dir.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
-| `src/assets/custom/icon-layout-compact.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
-| `src/assets/custom/icon-layout-default.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
-| `src/assets/custom/icon-layout-full.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
-| `src/assets/custom/icon-sidebar-floating.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
-| `src/assets/custom/icon-sidebar-inset.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
-| `src/assets/custom/icon-sidebar-sidebar.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
-| `src/assets/custom/icon-theme-dark.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
-| `src/assets/custom/icon-theme-light.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
-| `src/assets/custom/icon-theme-system.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
+| `src/assets/custom/icon-dir.tsx` | asset | src/components/icons/custom.rs | done | Custom::Dir (generated from the reference SVG) |
+| `src/assets/custom/icon-layout-compact.tsx` | asset | src/components/icons/custom.rs | done | Custom::LayoutCompact (generated from the reference SVG) |
+| `src/assets/custom/icon-layout-default.tsx` | asset | src/components/icons/custom.rs | done | Custom::LayoutDefault (generated from the reference SVG) |
+| `src/assets/custom/icon-layout-full.tsx` | asset | src/components/icons/custom.rs | done | Custom::LayoutFull (generated from the reference SVG) |
+| `src/assets/custom/icon-sidebar-floating.tsx` | asset | src/components/icons/custom.rs | done | Custom::SidebarFloating (generated from the reference SVG) |
+| `src/assets/custom/icon-sidebar-inset.tsx` | asset | src/components/icons/custom.rs | done | Custom::SidebarInset (generated from the reference SVG) |
+| `src/assets/custom/icon-sidebar-sidebar.tsx` | asset | src/components/icons/custom.rs | done | Custom::SidebarSidebar (generated from the reference SVG) |
+| `src/assets/custom/icon-theme-dark.tsx` | asset | src/components/icons/custom.rs | done | Custom::ThemeDark (generated from the reference SVG) |
+| `src/assets/custom/icon-theme-light.tsx` | asset | src/components/icons/custom.rs | done | Custom::ThemeLight (generated from the reference SVG) |
+| `src/assets/custom/icon-theme-system.tsx` | asset | src/components/icons/custom.rs | done | Custom::ThemeSystem (generated from the reference SVG) |
 | `src/assets/logo.tsx` | asset | src/pages/auth/mod.rs (Logo) | done | our branding: command glyph + app name |
 | `src/components/coming-soon.tsx` | component | src/pages/errors/mod.rs (ComingSoon) | done |  |
 | `src/components/command-menu.tsx` | component | src/components/layout/search.rs | done | Ctrl/Cmd+K, filter, ↑↓/Enter, pages + theme |
 | `src/components/config-drawer.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/components/config-drawer.tsx` | component | src/components/config_drawer.rs | in-progress | options + behaviour done; illustrated option cards (assets/custom/*) in P5 |
+| `src/components/config-drawer.tsx` | component | src/components/layout/config_drawer.rs | done | illustrated radio cards, per-section reset, close × |
 | `src/components/confirm-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
 | `src/components/confirm-dialog.tsx` | component | src/components/ui_extra/dialog.rs | done | ConfirmDialog |
 | `src/components/data-table/bulk-actions.tsx` | component | src/components/data_table/bulk_actions.rs | done | floating toolbar; Escape clears selection |
@@ -83,7 +83,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/data-table/view-options.tsx` | component | src/components/data_table/view_options.rs | done |  |
 | `src/components/date-picker.tsx` | component | src/components/ui_extra/form.rs | done | `ui_extra::form::DatePicker` (month/year dropdowns, future disabled) |
 | `src/components/layout/app-sidebar.tsx` | layout | src/components/layout/sidebar.rs | done | variant/collapsible from layout state; mobile copy via `mobile` slot |
-| `src/components/layout/app-title.tsx` | layout | src/components/layout/sidebar_top.rs | todo |  |
+| `src/components/layout/app-title.tsx` | layout | src/components/layout/app_title.rs | done | alternative header, unused like the reference (TeamSwitcher is used) |
 | `src/components/layout/authenticated-layout.tsx` | layout | src/components/layout/app_shell.rs | done | guard + search state + SidebarProvider/Inset |
 | `src/components/layout/data/sidebar-data.ts` | data | src/components/layout/nav_config.rs | done | reference tree minus Clerk; permission filter; demo items marked for flags (M7) |
 | `src/components/layout/header.tsx` | layout | src/components/layout/header.rs | done | sticky + blur when `fixed` |
@@ -93,10 +93,10 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/layout/team-switcher.tsx` | layout | src/components/layout/team_switcher.rs | done | single tenant: app name + org; multi-tenant list in M16 |
 | `src/components/layout/top-nav.tsx` | layout | src/components/layout/top_nav.rs | done | menu below lg |
 | `src/components/layout/types.ts` | data | src/components/layout/nav_config.rs | done | typed NavGroup/NavItem/NavLink |
-| `src/components/learn-more.tsx` | component | src/components/learn_more.rs | todo |  |
+| `src/components/learn-more.tsx` | component | src/components/learn_more.rs | done | popover help; reference uses it only on Clerk pages |
 | `src/components/long-text.tsx` | component | src/components/long_text.rs | done | tooltip ≥ sm, popover < sm, only when overflowing |
-| `src/components/navigation-progress.tsx` | component | src/components/navigation_progress.rs | todo |  |
-| `src/components/password-input.test.tsx` | test | src/components/password_input.rs #[cfg(test)] | todo | logic test → Rust #[test] |
+| `src/components/navigation-progress.tsx` | component | src/components/layout/navigation_progress.rs | done | 2px bar per page change (path, not query) |
+| `src/components/password-input.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
 | `src/components/password-input.tsx` | component | src/components/password_input.rs | done |  |
 | `src/components/profile-dropdown.tsx` | component | src/components/profile_dropdown.rs | done | real user |
 | `src/components/search.tsx` | component | src/components/layout/search.rs | done |  |
@@ -136,10 +136,10 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/ui/textarea.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::TextArea (Rust/UI one cannot bind state) |
 | `src/components/ui/tooltip.tsx` | ui-primitive | src/ui/tooltip.rs | done | sidebar tooltip in `ui_extra::sidebar` (fixed, collapsed only); general tooltip = Rust/UI |
 | `src/config/fonts.ts` | config | src/state/font.rs + self-hosted fonts in assets/fonts/ | done | inter/manrope/system; cookie `font`; pre-paint class |
-| `src/context/direction-provider.tsx` | context | src/state/direction.rs | in-progress | cookie `dir` + html dir; full RTL review in P11 |
+| `src/context/direction-provider.tsx` | context | src/state/prefs.rs (Dir) | done | cookie `dir` + html dir before paint; RTL checked against the demo (dashboard, tasks, settings) |
 | `src/context/font-provider.tsx` | context | src/state/prefs.rs | done | `Ui.font` / `set_font` |
 | `src/context/layout-provider.tsx` | context | src/state/prefs.rs | done | Ui.variant / Ui.collapsible (cookies) |
-| `src/context/search-provider.test.tsx` | test | src/state/search.rs #[cfg(test)] | todo | logic test → Rust #[test] |
+| `src/context/search-provider.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
 | `src/context/search-provider.tsx` | context | src/state/search.rs + app_shell.rs | done | SearchOpen + Ctrl/Cmd+K |
 | `src/context/theme-provider.tsx` | context | src/state/prefs.rs | done | Ui.theme + apply_theme |
 | `src/features/apps/data/apps.tsx` | data | src/pages/apps.rs (APPS) | done | demo data (§5) |
@@ -227,14 +227,14 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/hooks/use-mobile.tsx` | hook | src/components/ui_extra/sidebar.rs (SidebarProvider) | done | matchMedia(<768px) via eval |
 | `src/hooks/use-table-url-state.test.ts` | test | src/components/data_table/mod.rs #[cfg(test)] | done | url_* tests |
 | `src/hooks/use-table-url-state.ts` | hook | src/components/data_table/mod.rs | done | UrlState + TableState::use_from_query/to_query; arrays comma-separated |
-| `src/lib/cookies.test.ts` | test | src/util/cookies.rs #[cfg(test)] | todo | logic test → Rust #[test] |
+| `src/lib/cookies.test.ts` | test | src/util/cookies.rs #[cfg(test)] | done | stores_a_value…, clears_a_value… |
 | `src/lib/cookies.ts` | lib/util | src/util/cookies.rs | done | request (SSR) + set/remove (browser) |
-| `src/lib/handle-server-error.test.ts` | test | src/i18n.rs (error_text) #[cfg(test)] | todo | logic test → Rust #[test] |
-| `src/lib/handle-server-error.ts` | lib/util | src/i18n.rs (error_text) + domain::errors | todo |  |
+| `src/lib/handle-server-error.test.ts` | test | src/domain/mod.rs #[cfg(test)] | done | generic fallback + coded mapping (Axios/console cases n/a) |
+| `src/lib/handle-server-error.ts` | lib/util | src/i18n.rs (error_text) + domain::errors | done | server sends codes, client toasts translated text (§26) |
 | `src/lib/show-submitted-data.tsx` | lib/util | src/util/mod.rs | done | toast with JSON description |
 | `src/lib/utils.test.ts` | test | src/components/data_table/mod.rs #[cfg(test)] | done | page_numbers_* tests (getPageNumbers) |
 | `src/lib/utils.ts` | lib/util | src/util/mod.rs | done | cn → tw_merge!; sleep → toast_promise; getPageNumbers → data_table/pagination.rs; getDisplayNameInitials → pages/chats initials() |
-| `src/main.tsx` | config | src/main.rs + src/app.rs | in-progress | providers: i18n, Ui prefs, toaster, router; font provider in P5 |
+| `src/main.tsx` | config | src/main.rs + src/app.rs | done | providers: i18n, Ui prefs (theme/dir/font/layout), toaster, router |
 | `src/routeTree.gen.ts` | route | src/app.rs (Route enum) | n/a | generated by TanStack Router; the Routable enum replaces it |
 | `src/routes/(auth)/forgot-password.tsx` | route | src/app.rs | done | public route |
 | `src/routes/(auth)/otp.tsx` | route | src/app.rs | done | public route |
@@ -246,7 +246,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/routes/(errors)/404.tsx` | route | src/app.rs (Route::Error404) | done | public route |
 | `src/routes/(errors)/500.tsx` | route | src/app.rs (Route::Error500) | done | public route |
 | `src/routes/(errors)/503.tsx` | route | src/app.rs (Route::Error503) | done | public route |
-| `src/routes/__root.tsx` | route | src/app.rs (Route::…) | in-progress | root = App; navigation progress bar in P3 |
+| `src/routes/__root.tsx` | route | src/app.rs (Route::…) | done | root = App + AppShell (NavigationProgress, toaster) |
 | `src/routes/_authenticated/apps/index.tsx` | route | src/app.rs (Route::Apps) | done |  |
 | `src/routes/_authenticated/chats/index.tsx` | route | src/app.rs (Route::Chats) | done |  |
 | `src/routes/_authenticated/errors/$error.tsx` | route | src/app.rs (Route::ShellError) | done | `ShellError` with fixed header |
@@ -267,8 +267,8 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/routes/clerk/_authenticated/route.tsx` | route | — | n/a | §5: Clerk routes removed; their screens map to our own auth/user pages |
 | `src/routes/clerk/_authenticated/user-management.tsx` | route | — | n/a | §5: Clerk routes removed; their screens map to our own auth/user pages |
 | `src/routes/clerk/route.tsx` | route | — | n/a | §5: Clerk routes removed; their screens map to our own auth/user pages |
-| `src/stores/auth-store.test.ts` | test | src/components/layout/app_layout.rs (UserResource) #[cfg(test)] | todo | logic test → Rust #[test] |
-| `src/stores/auth-store.ts` | context | src/components/layout/app_layout.rs (UserResource) | todo | client auth state = current_user() resource (M1) |
+| `src/stores/auth-store.test.ts` | test | — | n/a | tests the client token store, which does not exist (HttpOnly session, M1); server auth tests cover sessions |
+| `src/stores/auth-store.ts` | context | src/components/layout/app_shell.rs (UserResource) | done | current_user() resource + HttpOnly session cookie (M1); no client token store |
 | `src/styles/index.css` | config | tailwind.css | done | base layer (body scroll, min-h-svh, inset bg), no-scrollbar, faded-bottom (inset-s → start for Tailwind 4.1); Radix CollapsibleContent rules n/a |
 | `src/styles/theme.css` | config | tailwind.css | done | tokens match the reference in light + dark (47 colours checked in the browser); sidenav-* follows sidebar-* |
 | `src/tanstack-table.d.ts` | config | — | n/a | TypeScript type declarations |

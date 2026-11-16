@@ -18,7 +18,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 1 | Auth core | 🟡 in progress | 17/19 done; open: M1.1 timing check (release build), M1.19 notification (needs M8) |
 | 2 | RBAC core + `ModuleFlags` + settings cache | ⚪ | |
 | 3 | App shell + i18n layer | ⚪ | shell/routes/RTL replaced by the UI port (SPEC-02) |
-| 3b | **UI port (SPEC-02)** | 🟡 in progress | P0–P2, P6, P7, P9, P10 done; P3–P5/P8 partly; manifest 186/215 |
+| 3b | **UI port (SPEC-02)** | 🟡 in progress | P0–P3, P5–P7, P9, P10 done; P4 branding (M7) and P8 real data (M5/M10) pending; manifest 212/212 |
 | 4 | Audit | ⚪ | M4.8 done early |
 | 5 | Users + DataTable (bulk, CSV, Deleted tab) | ⚪ | |
 | 6 | Roles + Permissions | ⚪ | |
@@ -144,9 +144,9 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 - [x] P0 `reference/` in place (git/Docker-ignored), NOTICE attribution, `docs/PORT_MANIFEST.md` (272 rows: 215 todo, 57 n/a), `just manifest-check [final]`
 - [x] P1 Missing Rust/UI primitives added or built; theme tokens verified against the reference CSS — added `command`, `date_picker`(+`_state`), `input_otp`, `radio_button`(+`_group`), `scroll_area`; all 30 reference primitives map to Rust/UI (none needed in `ui_extra`). Slate tokens, sidebar tokens, base layer and utilities from the reference; 47 colours verified in the browser; Inter + Manrope self-hosted
 - [x] P2 Layout shell: `app_shell`, `sidebar`, `nav_group`, `nav_config`, `layout_state` (cookie), mobile sheet — `ui_extra::sidebar` is a faithful port of shadcn Sidebar (icon/offcanvas, inset/floating/sidebar, rail, Ctrl+B, cookie `sidebar_state`, mobile sheet, collapsed tooltips); menu tree permission-filtered; browser-checked at 1440 and 390 px
-- [~] P3 Header, profile dropdown, sign-out dialog, theme, skip link, progress bar — all done except the navigation progress bar
+- [x] P3 Header, profile dropdown, sign-out dialog, theme, skip link, progress bar — navigation progress bar added (2px bar per page change)
 - [~] P4 Command palette + search (`Ctrl/Cmd+K`), branding (logo + app name from settings) — palette + search button done (pages + theme, keyboard); branding from settings (M7) pending
-- [~] P5 Appearance drawer (theme, variant, collapsible, layout, direction, font) and RTL — working drawer (theme, sidebar, layout, direction, reset); illustrated cards, font option and RTL review pending
+- [x] P5 Appearance drawer (theme, variant, collapsible, layout, direction, font) and RTL — illustrated cards (`icons/custom.rs`, generated from the reference SVGs), per-section reset, close ×; font in Settings → Appearance; RTL compared with the demo (menus mirror start/end)
 - [x] P6 Error pages (401, 403, 404, 500, 503) — public `/401`…`/503`, `/errors/:error` in the shell, catch-all = 404 view
 - [x] P7 Auth screens wired to our auth (M1) — `/sign-in` is the real login (old `/login` redirects); sign-in-2, sign-up (self sign-up off), forgot password (email in M13), OTP (2FA in M9)
 - [~] P8 Dashboard and Users pages on real data (M10, M5) — Dashboard **UI** done and matched with the demo at 1440 px (Overview + Analytics tabs, SVG charts with Recharts ticks); real data in M10. Users **UI** done (`/users?:..query`: username/status/role filters in URL, sort, pagination, view options, sticky mobile columns, row + bulk actions, add/edit/invite/delete dialogs) on faker demo data identical to the demo; real users API in M5
