@@ -13,3 +13,7 @@ shadcn-admin — https://github.com/satnaing/shadcn-admin
   Commit:   e16c87f (2026-06-11)
   License:  MIT — reference copy with its LICENSE in reference/shadcn-admin/ (not committed)
   Use:      UI design ported from satnaing/shadcn-admin, MIT (rebuilt in Dioxus/Rust; no source copied)
+
+Inter and Manrope (variable, latin) — via @fontsource-variable 5.3.0
+  License:  SIL Open Font License 1.1
+  Files:    public/fonts/inter-latin-wght-normal.woff2, public/fonts/manrope-latin-wght-normal.woff2

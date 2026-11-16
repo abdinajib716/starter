@@ -118,12 +118,7 @@ mod tests {
 
 /// Paths that are never page navigations or never need a session.
 fn is_passthrough(path: &str) -> bool {
-    path.starts_with("/api/")
-        || path.starts_with("/assets/")
-        || path.starts_with("/wasm/")
-        || path.starts_with("/_dioxus")
-        || path.starts_with("/favicon")
-        || path == "/healthz"
+    path.starts_with("/api/") || path == "/healthz" || crate::server::ctx::is_asset(path)
 }
 
 /// Public pages (§12, §30.4). Everything else needs a session.

@@ -65,11 +65,13 @@ pub fn set_cookie(value: &str) -> Result<(), ServerFnError> {
     Ok(())
 }
 
-/// Static files never need a session lookup.
-fn is_asset(path: &str) -> bool {
-    ["/assets/", "/wasm/", "/_dioxus", "/favicon"]
-        .iter()
-        .any(|p| path.starts_with(p))
+/// Static files (dx assets, wasm, dev tooling, `public/` folders) never need a session.
+pub const STATIC_PREFIXES: &[&str] = &[
+    "/assets/", "/wasm/", "/_dioxus", "/favicon", "/fonts/", "/images/",
+];
+
+pub fn is_asset(path: &str) -> bool {
+    STATIC_PREFIXES.iter().any(|p| path.starts_with(p))
 }
 
 /// Builds `Ctx` for every request: default org (single mode; multi mode resolves it from

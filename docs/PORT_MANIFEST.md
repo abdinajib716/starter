@@ -105,37 +105,37 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/sign-out-dialog.tsx` | component | src/components/sign_out_dialog.rs | todo |  |
 | `src/components/skip-to-main.tsx` | component | src/components/skip_to_main.rs | todo |  |
 | `src/components/theme-switch.tsx` | component | src/components/theme_switch.rs | todo |  |
-| `src/components/ui/alert-dialog.tsx` | ui-primitive | src/ui/alert_dialog.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/alert.tsx` | ui-primitive | src/ui/alert.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/avatar.tsx` | ui-primitive | src/ui/avatar.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/badge.tsx` | ui-primitive | src/ui/badge.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/button.tsx` | ui-primitive | src/ui/button.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/calendar.tsx` | ui-primitive | src/ui/date_picker.rs | todo | add from Rust/UI 4f5a516 (P1) |
-| `src/components/ui/card.tsx` | ui-primitive | src/ui/card.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/checkbox.tsx` | ui-primitive | src/ui/checkbox.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/collapsible.tsx` | ui-primitive | src/ui/collapsible.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/command.tsx` | ui-primitive | src/ui/command.rs | todo | add from Rust/UI 4f5a516 (P1) |
-| `src/components/ui/dialog.tsx` | ui-primitive | src/ui/dialog.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/dropdown-menu.tsx` | ui-primitive | src/ui/dropdown_menu.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/form.tsx` | ui-primitive | src/ui/form.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/input-otp.tsx` | ui-primitive | src/ui/input_otp.rs | todo | add from Rust/UI 4f5a516 (P1) |
-| `src/components/ui/input.tsx` | ui-primitive | src/ui/input.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/label.tsx` | ui-primitive | src/ui/label.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/popover.tsx` | ui-primitive | src/ui/popover.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/radio-group.tsx` | ui-primitive | src/ui/radio_button_group.rs | todo | add from Rust/UI 4f5a516 (P1) |
-| `src/components/ui/scroll-area.tsx` | ui-primitive | src/ui/scroll_area.rs | todo | add from Rust/UI 4f5a516 (P1) |
-| `src/components/ui/select.tsx` | ui-primitive | src/ui/select.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/separator.tsx` | ui-primitive | src/ui/separator.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/sheet.tsx` | ui-primitive | src/ui/sheet.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/sidebar.tsx` | ui-primitive | src/ui/sidenav.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/skeleton.tsx` | ui-primitive | src/ui/skeleton.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/sonner.tsx` | ui-primitive | src/ui/toast.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/switch.tsx` | ui-primitive | src/ui/switch.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/table.tsx` | ui-primitive | src/ui/table.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/tabs.tsx` | ui-primitive | src/ui/tabs.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/textarea.tsx` | ui-primitive | src/ui/textarea.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/components/ui/tooltip.tsx` | ui-primitive | src/ui/tooltip.rs | todo | vendored Rust/UI; verify look vs reference |
-| `src/config/fonts.ts` | config | src/state/font.rs + self-hosted fonts in assets/fonts/ | todo |  |
+| `src/components/ui/alert-dialog.tsx` | ui-primitive | src/ui/alert_dialog.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/alert.tsx` | ui-primitive | src/ui/alert.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/avatar.tsx` | ui-primitive | src/ui/avatar.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/badge.tsx` | ui-primitive | src/ui/badge.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/button.tsx` | ui-primitive | src/ui/button.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/calendar.tsx` | ui-primitive | src/ui/date_picker.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
+| `src/components/ui/card.tsx` | ui-primitive | src/ui/card.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/checkbox.tsx` | ui-primitive | src/ui/checkbox.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/collapsible.tsx` | ui-primitive | src/ui/collapsible.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/command.tsx` | ui-primitive | src/ui/command.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
+| `src/components/ui/dialog.tsx` | ui-primitive | src/ui/dialog.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/dropdown-menu.tsx` | ui-primitive | src/ui/dropdown_menu.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/form.tsx` | ui-primitive | src/ui/form.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/input-otp.tsx` | ui-primitive | src/ui/input_otp.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
+| `src/components/ui/input.tsx` | ui-primitive | src/ui/input.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/label.tsx` | ui-primitive | src/ui/label.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/popover.tsx` | ui-primitive | src/ui/popover.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/radio-group.tsx` | ui-primitive | src/ui/radio_button_group.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
+| `src/components/ui/scroll-area.tsx` | ui-primitive | src/ui/scroll_area.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
+| `src/components/ui/select.tsx` | ui-primitive | src/ui/select.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/separator.tsx` | ui-primitive | src/ui/separator.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/sheet.tsx` | ui-primitive | src/ui/sheet.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/sidebar.tsx` | ui-primitive | src/ui/sidenav.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/skeleton.tsx` | ui-primitive | src/ui/skeleton.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/sonner.tsx` | ui-primitive | src/ui/toast.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/switch.tsx` | ui-primitive | src/ui/switch.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/table.tsx` | ui-primitive | src/ui/table.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/tabs.tsx` | ui-primitive | src/ui/tabs.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/textarea.tsx` | ui-primitive | src/ui/textarea.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/tooltip.tsx` | ui-primitive | src/ui/tooltip.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/config/fonts.ts` | config | src/state/font.rs + self-hosted fonts in assets/fonts/ | in-progress | Inter + Manrope self-hosted in public/fonts, `font-inter`/`font-manrope`/`font-system` utilities; switcher in P5 |
 | `src/context/direction-provider.tsx` | context | src/state/direction.rs | todo |  |
 | `src/context/font-provider.tsx` | context | src/state/font.rs | todo |  |
 | `src/context/layout-provider.tsx` | context | src/state/layout.rs | todo |  |
@@ -269,8 +269,8 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/routes/clerk/route.tsx` | route | — | n/a | §5: Clerk routes removed; their screens map to our own auth/user pages |
 | `src/stores/auth-store.test.ts` | test | src/components/layout/app_layout.rs (UserResource) #[cfg(test)] | todo | logic test → Rust #[test] |
 | `src/stores/auth-store.ts` | context | src/components/layout/app_layout.rs (UserResource) | todo | client auth state = current_user() resource (M1) |
-| `src/styles/index.css` | config | tailwind.css | todo | compare tokens with Rust/UI theme (P1) |
-| `src/styles/theme.css` | config | tailwind.css | todo | compare tokens with Rust/UI theme (P1) |
+| `src/styles/index.css` | config | tailwind.css | done | base layer (body scroll, min-h-svh, inset bg), no-scrollbar, faded-bottom (inset-s → start for Tailwind 4.1); Radix CollapsibleContent rules n/a |
+| `src/styles/theme.css` | config | tailwind.css | done | tokens match the reference in light + dark (47 colours checked in the browser); sidenav-* follows sidebar-* |
 | `src/tanstack-table.d.ts` | config | — | n/a | TypeScript type declarations |
 | `src/test-utils/cookies.ts` | test | — | n/a | JS test helpers; Rust tests need none |
 | `src/test-utils/tanstack-table.ts` | test | — | n/a | JS test helpers; Rust tests need none |

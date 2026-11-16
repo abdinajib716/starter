@@ -43,9 +43,6 @@ pub fn App() -> Element {
 
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
-        // Dioxus mounts the app inside <div id="main">; give it full height so
-        // Rust/UI's html(100dvh) -> body(h-full) chain keeps working.
-        document::Style { "#main {{ height: 100%; overflow-y: auto; }}" }
         document::Stylesheet { href: TAILWIND_CSS }
         document::Stylesheet { href: TOAST_RUNTIME_CSS }
         document::Script { src: APEXCHARTS_JS }

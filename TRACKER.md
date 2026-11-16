@@ -18,7 +18,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 1 | Auth core | 🟡 in progress | 17/19 done; open: M1.1 timing check (release build), M1.19 notification (needs M8) |
 | 2 | RBAC core + `ModuleFlags` + settings cache | ⚪ | |
 | 3 | App shell + i18n layer | ⚪ | shell/routes/RTL replaced by the UI port (SPEC-02) |
-| 3b | **UI port (SPEC-02)** | 🟡 in progress | P0 done; manifest 0/215 |
+| 3b | **UI port (SPEC-02)** | 🟡 in progress | P0–P1 done; manifest 32/215 |
 | 4 | Audit | ⚪ | M4.8 done early |
 | 5 | Users + DataTable (bulk, CSV, Deleted tab) | ⚪ | |
 | 6 | Roles + Permissions | ⚪ | |
@@ -142,7 +142,7 @@ LTR/RTL; only logo + app name differ; no reference source outside `reference/`; 
 command palette and routes permission-filtered; demo pages off by default; no hard-coded colours or strings.
 
 - [x] P0 `reference/` in place (git/Docker-ignored), NOTICE attribution, `docs/PORT_MANIFEST.md` (272 rows: 215 todo, 57 n/a), `just manifest-check [final]`
-- [ ] P1 Missing Rust/UI primitives added or built; theme tokens verified against the reference CSS
+- [x] P1 Missing Rust/UI primitives added or built; theme tokens verified against the reference CSS — added `command`, `date_picker`(+`_state`), `input_otp`, `radio_button`(+`_group`), `scroll_area`; all 30 reference primitives map to Rust/UI (none needed in `ui_extra`). Slate tokens, sidebar tokens, base layer and utilities from the reference; 47 colours verified in the browser; Inter + Manrope self-hosted
 - [ ] P2 Layout shell: `app_shell`, `sidebar`, `nav_group`, `nav_config`, `layout_state` (cookie), mobile sheet
 - [ ] P3 Header, profile dropdown, sign-out dialog, theme, skip link, progress bar
 - [ ] P4 Command palette + search (`Ctrl/Cmd+K`), branding (logo + app name from settings)
@@ -439,9 +439,13 @@ Blockers first; each names the item that proves it.
 | 2026-11-16 | **SPEC-02 v3**: pure port of satnaing/shadcn-admin (`e16c87f`) to Dioxus + Rust/UI; supersedes SPEC-01 | User decision. Reference kept in git-ignored `reference/`; progress per file in `docs/PORT_MANIFEST.md` |
 | 2026-11-16 | Manifest `n/a` also used for Clerk files (routes, logos, `.env.example`) and generated/type-only files (`routeTree.gen.ts`, `*.d.ts`) | §5 removes Clerk; generated router tree is replaced by the `Routable` enum. Each row states its reason |
 | 2026-11-16 | Port targets: app-level state in `src/state/`, app hooks in `src/app_hooks/`, helpers in `src/util/`, missing primitives in `src/components/ui_extra/` | `src/ui` and `src/hooks` stay vendored and untouched |
+| 2026-11-16 | Theme colours = shadcn-admin slate palette (replaces Rust/UI neutral); Rust/UI-only tokens (success/warning/info, selection, surface) kept; `sidenav-*` = `sidebar-*` | SPEC-02 §1.2: the reference is the design source of truth |
+| 2026-11-16 | Base layer follows the reference: the body scrolls (`min-h-svh`), no fixed-height `html`/`#main` | Reference layout; removed the `#main { height: 100% }` workaround |
+| 2026-11-16 | Fonts Inter + Manrope self-hosted (`public/fonts`, OFL) instead of Google Fonts | CSP stays `'self'`, no third-party requests; `/fonts/` and `/images/` bypass session + page guard |
+| 2026-11-16 | Reference classes `inset-s-*` / `inset-e-*` are written `start-*` / `end-*` | dx bundles Tailwind 4.1.5; those utilities need 4.2. An unknown class fails the whole CSS build silently (old CSS stays) |
 | 2026-11-15 | Password minimum length uses the blueprint's existing key `security.password_min_length`, not a new `security.min_password_length` | Avoid two keys for one setting |
 
 ## Rust/UI components installed
 
-`alert alert_dialog avatar badge breadcrumb button card charts checkbox collapsible data_table dialog dropdown_menu empty field form input input_group label pagination popover progress select separator sheet sidenav skeleton spinner switch table tabs textarea theme_toggle toast tooltip`
+`alert alert_dialog avatar badge breadcrumb button card charts checkbox collapsible command data_table date_picker date_picker_state dialog dropdown_menu empty field form input input_group input_otp label pagination popover progress radio_button radio_button_group scroll_area select separator sheet sidenav skeleton spinner switch table tabs textarea theme_toggle toast tooltip` (42)
 Hooks: `use_can_scroll_vertical use_form use_pagination use_random`
