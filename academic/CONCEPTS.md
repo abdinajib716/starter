@@ -257,6 +257,14 @@ such work (password hashing, compression) to a separate pool of threads and retu
 can be awaited. Values sent there must be owned (`move` closures), because the thread may outlive
 the current scope. First seen: entry 17. docs.rs/tokio `task::spawn_blocking`.
 
+<a id="float"></a>
+### Floating-point numbers
+`f64` is an IEEE-754 double: most decimal fractions (0.1, 0.05) cannot be represented exactly in
+binary, so `0.05 * 10000.0` gives `500.00000000000006`. Exact results come from integer-valued
+intermediates (`5.0 * 10000.0 / 100.0`), and comparisons of computed floats should allow a
+tolerance. Numeric conversions are explicit (`as f64`, `as usize`); `as` truncates or saturates
+instead of failing. First seen: entry 31. Book ch. 3.2.
+
 ---
 
 ## Libraries and architecture
@@ -395,4 +403,13 @@ and the browser attaches this app's cookies automatically. Defences here: `SameS
 cannot set it, so it identifies the request's real initiator even behind proxies that rewrite
 `Host`. `Origin` is the fallback for browsers without it. First seen: entry 25. OWASP CSRF
 Prevention Cheat Sheet; MDN "Sec-Fetch-Site".
+
+<a id="eval"></a>
+### JavaScript interop with `eval`
+`dioxus::document::eval(js)` runs JavaScript in the page (in the browser; during SSR it does
+nothing useful) and returns a handle. Inside the script, `dioxus.send(value)` sends a JSON value
+to Rust, received with `handle.recv::<T>().await`; Rust can also `send` to the script, which
+reads it with `await dioxus.recv()`. Used for browser APIs Dioxus does not wrap: media queries,
+global keyboard shortcuts, `ResizeObserver`, `document.cookie`. Run it from `use_effect` or event
+handlers, never during render. First seen: entry 28. Dioxus guide, "Interacting with JavaScript".
 

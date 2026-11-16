@@ -1186,3 +1186,269 @@ fn is_passthrough(path: &str) -> bool {
 **Concepts:** [static and lifetimes](CONCEPTS.md#static), [arrays and slices](CONCEPTS.md#array), [iterators](CONCEPTS.md#iterator), [module](CONCEPTS.md#module), [middleware and layers](CONCEPTS.md#middleware)
 
 **Try it:** run `curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/fonts/inter-latin-wght-normal.woff2`; it prints `200`. Remove `"/fonts/"` from the list, wait for the rebuild and run it again. Expected: `303`, because the page guard now treats the font as a protected page and redirects to `/login`. Restore the entry.
+
+---
+
+# UI port — app shell + dashboard UI (commit `2a762ef`, branch `ui/shadcn-port`)
+
+## 27. Shared sidebar state as a `Copy` context
+**Feature:** every part of the shell (trigger, rail, nav groups, menus) reads and toggles one sidebar state; on desktop the choice is saved in a cookie, on mobile it opens a sheet (SPEC-02 P2).
+
+**Code:**
+
+`src/components/ui_extra/sidebar.rs` lines 24–45
+
+```rust
+impl SidebarCtx {
+    pub fn get() -> Self {
+        use_context::<SidebarCtx>()
+    }
+    pub fn open(&self) -> bool {
+        (self.ui.sidebar_open)()
+    }
+    pub fn collapsed(&self) -> bool {
+        !self.open()
+    }
+    pub fn toggle(mut self) {
+        if (self.is_mobile)() {
+            let v = (self.open_mobile)();
+            self.open_mobile.set(!v);
+        } else {
+            self.ui.set_sidebar_open(!self.open());
+        }
+    }
+    pub fn close_mobile(mut self) {
+        self.open_mobile.set(false);
+    }
+}
+```
+
+**Line notes:**
+
+1. L24 — `impl SidebarCtx` adds methods to a struct whose fields are signals; because signals are `Copy`, the whole context is `Copy` and can be passed to closures freely.
+2. L26 — `use_context::<SidebarCtx>()` fetches the value provided by the nearest `SidebarProvider` ancestor; it panics if there is none.
+3. L29 — `(self.ui.sidebar_open)()` calls a signal stored in a field; the parentheses around the field access are needed so Rust calls the field's value, not a method named `sidebar_open`.
+4. L34 — `mut self` takes the context by value and allows mutation; since it is `Copy`, the caller keeps its own copy.
+5. L36 — the value is read into `v` first, then written: reading and writing the same signal in one expression would hold a read borrow during the write.
+6. L39 — on desktop the change goes through `Ui::set_sidebar_open`, which also writes the `sidebar_state` cookie read during the next server render.
+
+**Concepts:** [context](CONCEPTS.md#context), [signals and hooks](CONCEPTS.md#signals), [Arc and Clone](CONCEPTS.md#arc), [impl block and methods](CONCEPTS.md#impl), [mutability](CONCEPTS.md#mut)
+
+**Try it:** sign in, press Ctrl+B, then reload the page. Expected: the sidebar stays collapsed after the reload, because the server rendered it from the `sidebar_state=false` cookie.
+
+## 28. Browser events into Rust through `eval`
+**Feature:** a media query (mobile width) and a keyboard shortcut (Ctrl/Cmd+B) are observed in the browser and delivered to Rust as messages (SPEC-02 P2).
+
+**Code:**
+
+`src/components/ui_extra/sidebar.rs` lines 61–78
+
+```rust
+    use_effect(move || {
+        let mut is_mobile = is_mobile;
+        spawn(async move {
+            let mut ev = document::eval(
+                "const mq = matchMedia('(max-width: 767px)'); dioxus.send(['m', mq.matches]);
+                 mq.addEventListener('change', e => dioxus.send(['m', e.matches]));
+                 window.addEventListener('keydown', e => {
+                   if (e.key === 'b' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); dioxus.send(['b', true]); }
+                 });",
+            );
+            while let Ok((kind, value)) = ev.recv::<(String, bool)>().await {
+                match kind.as_str() {
+                    "m" => is_mobile.set(value),
+                    _ => ctx.toggle(),
+                }
+            }
+        });
+    });
+```
+
+**Line notes:**
+
+1. L61 — `use_effect` runs after the component has rendered in the browser (never during SSR), which is where browser APIs are available.
+2. L63 — `spawn` starts an async task owned by the component; it is cancelled when the component unmounts.
+3. L64 — `document::eval` runs JavaScript in the page and returns a handle for two-way messages.
+4. L65 — inside that JavaScript, `dioxus.send(value)` sends a JSON-serialisable value back to Rust.
+5. L71 — `ev.recv::<(String, bool)>()` awaits the next message and deserialises it into a Rust tuple; `while let Ok(...)` loops until the channel closes.
+6. L72 — `match kind.as_str()` compares an owned `String` with string literals by borrowing it as `&str`.
+
+**Concepts:** [JS interop with eval](CONCEPTS.md#eval), [async/await and Future](CONCEPTS.md#async), [signals and hooks](CONCEPTS.md#signals), [match and patterns](CONCEPTS.md#match)
+
+**Try it:** with the dashboard open, narrow the browser window below 768 px and press the sidebar button in the header. Expected: the sidebar opens as a sheet from the left (the `m` message set `is_mobile` to `true`, so `toggle` opened the mobile sheet instead of collapsing the desktop sidebar).
+
+## 29. Positioning a menu from the trigger's measured rectangle
+**Feature:** dropdowns open next to their button and are never clipped by scrolling areas, because they are placed with `position: fixed` from the button's on-screen position (SPEC-02 P2).
+
+**Code:**
+
+`src/components/ui_extra/menu.rs` lines 45–67
+
+```rust
+    let toggle = move |_| async move {
+        if open() {
+            open.set(false);
+            return;
+        }
+        let Some(el) = anchor() else { return };
+        let Ok(r) = el.get_client_rect().await else {
+            return;
+        };
+        let (top, left, bottom, right, width) =
+            (r.min_y(), r.min_x(), r.max_y(), r.max_x(), r.width());
+        let vh = viewport_height();
+        let mut css = match side {
+            // Open upwards when the trigger sits in the lower part of the screen.
+            Side::Bottom if bottom > vh * 0.6 => {
+                format!("top:{}px;transform:translateY(-100%);", top - side_offset)
+            }
+            Side::Bottom => format!("top:{}px;", bottom + side_offset),
+            Side::Right => match align {
+                Align::Start => format!("top:{top}px;"),
+                Align::End => format!("top:{bottom}px;transform:translateY(-100%);"),
+            },
+        };
+```
+
+**Line notes:**
+
+1. L45 — `move |_| async move { ... }` is an event handler that returns a future, so it may await the measurement.
+2. L50 — `let Some(el) = anchor() else { return };` takes the trigger's `MountedData` (saved by `onmounted`) or stops if it is not mounted yet.
+3. L51 — `get_client_rect().await` asks the browser for the element's position and size, like `getBoundingClientRect()` in JavaScript.
+4. L54 — a tuple pattern binds five values at once from one expression.
+5. L59 — `Side::Bottom if bottom > vh * 0.6` is a match arm with a guard: near the bottom of the screen the menu opens upwards.
+6. L63 — a `match` nested inside a `match` arm handles the second dimension (alignment) only where it matters.
+
+**Concepts:** [match and patterns](CONCEPTS.md#match), [if let and let-else](CONCEPTS.md#iflet), [async/await and Future](CONCEPTS.md#async), [Vec and tuples](CONCEPTS.md#vec)
+
+**Try it:** open the user menu at the bottom of the sidebar, then shrink the window height. Expected: the menu still appears fully on screen above the button (the `translateY(-100%)` branch), not cut off below it.
+
+## 30. Filtering the menu tree by permission
+**Feature:** links the user may not open are removed, and a section or group with nothing left disappears (§8, SPEC-02 §7.6).
+
+**Code:**
+
+`src/components/layout/nav_config.rs` lines 138–160
+
+```rust
+pub fn visible_groups(user: &UserInfo) -> Vec<NavGroup> {
+    let allowed = |l: &NavLink| l.permission.is_none_or(|p| user.can(p));
+    nav_groups()
+        .into_iter()
+        .filter_map(|g| {
+            let items: Vec<NavItem> = g
+                .items
+                .into_iter()
+                .filter_map(|item| match item {
+                    NavItem::Link(l) => allowed(&l).then_some(NavItem::Link(l)),
+                    NavItem::Collapsible {
+                        title,
+                        icon,
+                        badge,
+                        items,
+                    } => {
+                        let items: Vec<NavLink> =
+                            items.into_iter().filter(|l| allowed(l)).collect();
+                        (!items.is_empty()).then_some(NavItem::Collapsible {
+                            title,
+                            icon,
+                            badge,
+                            items,
+```
+
+**Line notes:**
+
+1. L139 — the closure `allowed` captures `user` by reference and is reused for every link.
+2. L139 — `is_none_or(|p| user.can(p))` reads "no permission required, or the user holds it".
+3. L141 — `into_iter()` consumes the vector, so items are moved into the result instead of cloned.
+4. L142 — `filter_map` both transforms each group and drops the ones that become empty (`None`).
+5. L147 — `bool::then_some(value)` keeps the link only when `allowed` returned `true`.
+6. L148 — the `NavItem::Collapsible { title, icon, badge, items }` pattern moves all four fields out of the enum variant so they can be reused in the rebuilt value.
+
+**Concepts:** [iterators](CONCEPTS.md#iterator), [closure](CONCEPTS.md#closure), [Option combinators](CONCEPTS.md#option), [enum](CONCEPTS.md#enum), [match and patterns](CONCEPTS.md#match)
+
+**Try it:** in the test `users_link_needs_permission`, change `"users.view"` to `"users.create"` and run `just test users_link`. Expected: the test fails, because the Users link requires exactly `users.view`.
+
+## 31. Reproducing a library's algorithm: chart ticks
+**Feature:** the Y axis shows the same values as the reference's Recharts chart (0, 1500, 3000, 4500, 6000 for a maximum of 5,800), computed in Rust (SPEC-02 P8).
+
+**Code:**
+
+`src/components/ui_extra/chart.rs` lines 24–41
+
+```rust
+pub fn nice_ticks(max: f64, count: usize) -> Vec<f64> {
+    if max <= 0.0 || count < 2 {
+        return vec![0.0];
+    }
+    let rough = max / (count - 1) as f64;
+    let digits = rough.log10().floor() + 1.0;
+    let unit = 10f64.powf(digits);
+    // Scale in hundredths of `unit`, so steps like 1,500 stay exact in floating point.
+    let scale = if digits == 1.0 { 10.0 } else { 5.0 };
+    let mut correction = 0.0;
+    loop {
+        let step = ((rough / unit * 100.0 / scale).ceil() + correction) * scale * unit / 100.0;
+        if step * (count - 1) as f64 >= max {
+            return (0..count).map(|i| i as f64 * step).collect();
+        }
+        correction += 1.0;
+    }
+}
+```
+
+**Line notes:**
+
+1. L25 — an early `return` handles the degenerate inputs before any logarithm is taken.
+2. L28 — `as f64` converts the integer `count` to a float; Rust never converts numeric types implicitly.
+3. L29 — `log10().floor() + 1.0` counts the digits of the rough step (1450 → 4).
+4. L32 — the scale is kept in hundredths, so `5.0 * 10000.0 / 100.0` is exact, whereas `0.05 * 10000.0` is not in binary floating point.
+5. L34 — `loop` repeats until a `return` inside it; Rust's `loop` is an expression and could also `break` with a value.
+6. L37 — `(0..count).map(...).collect()` builds the tick list from a range.
+
+**Concepts:** [expressions vs statements](CONCEPTS.md#expr), [iterators](CONCEPTS.md#iterator), [floating point](CONCEPTS.md#float), [unit tests and cfg(test)](CONCEPTS.md#tests)
+
+**Try it:** change `5.0` to `10.0` on line 32 and run `just test nice_ticks`. Expected: the test fails with ticks `[0, 2000, 4000, 6000]`, the result of rounding steps to 0.1 × 10ⁿ (what d3 would do), not Recharts' 0.05 × 10ⁿ.
+
+## 32. Preferences that are correct on the first paint
+**Feature:** theme, sidebar state, layout and direction come from cookies on the server, so the first HTML already matches the user's choice, and hydration does not change it (SPEC-02 P2, P5).
+
+**Code:**
+
+`src/state/prefs.rs` lines 124–133
+
+```rust
+    pub fn from_request() -> Self {
+        let c = |n| cookies::request(n).unwrap_or_default();
+        Self {
+            theme: Theme::parse(&c(THEME_COOKIE)),
+            variant: Variant::parse(&c(VARIANT_COOKIE)),
+            collapsible: Collapsible::parse(&c(COLLAPSIBLE_COOKIE)),
+            sidebar_open: c(SIDEBAR_COOKIE) != "false",
+            dir: Dir::parse(&c(DIR_COOKIE)),
+        }
+    }
+```
+
+`src/app.rs` lines 41–46
+
+```rust
+    let initial = use_server_cached(i18n::request_locale);
+    use_init_i18n(|| i18n::config(&initial));
+    // Theme, sidebar, layout and direction from cookies (SSR), shared app-wide.
+    let prefs = use_server_cached(UiPrefs::from_request);
+    use_hook(|| Ui::provide(prefs));
+
+```
+
+**Line notes:**
+
+1. L125 (prefs.rs) — the closure `c` takes a cookie name and returns its value or an empty string, keeping the struct literal short.
+2. L130 — `c(SIDEBAR_COOKIE) != "false"` makes "open" the default when the cookie is absent.
+3. L131 — each enum has a `parse` function that maps unknown text to its default variant, so a tampered cookie cannot cause an error.
+4. L44 (app.rs) — `use_server_cached(UiPrefs::from_request)` runs on the server during SSR and ships the result to the browser, where the same value is used during hydration.
+5. L45 — `use_hook(|| Ui::provide(prefs))` runs the provider once per component instance, creating the signals only on the first render.
+
+**Concepts:** [SSR and hydration](CONCEPTS.md#hydration), [cookies](CONCEPTS.md#cookie), [closure](CONCEPTS.md#closure), [signals and hooks](CONCEPTS.md#signals), [context](CONCEPTS.md#context)
+
+**Try it:** choose "Dark" in the theme menu and reload with JavaScript disabled in the browser's developer tools. Expected: the page is still dark, because the `theme` cookie was applied before the app's JavaScript runs (the inline script in `index.html`).
