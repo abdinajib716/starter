@@ -151,7 +151,7 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 - [x] P7 Auth screens wired to our auth (M1) — `/sign-in` is the real login (old `/login` redirects); sign-in-2, sign-up (self sign-up off), forgot password (email in M13), OTP (2FA in M9)
 - [~] P8 Dashboard and Users pages on real data (M10, M5) — Dashboard **UI** done and matched with the demo at 1440 px (Overview + Analytics tabs, SVG charts with Recharts ticks); real data in M10; Users page pending
 - [x] P9 Settings pages — layout + 5 reference demo forms with validation; font preference; real profile settings in M9
-- [ ] P10 Demo pages behind feature flags (apps, chats, tasks, help-center)
+- [~] P10 Demo pages behind feature flags (apps, chats, tasks, help-center) — Apps, Chats, Help Center done (flags in M7); Tasks pending
 - [ ] P11 Final pass: manifest check, side-by-side comparison, a11y, light/dark, RTL
 
 ---

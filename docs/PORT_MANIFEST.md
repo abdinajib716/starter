@@ -38,23 +38,23 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `public/images/favicon_light.png` | asset | assets/brand/favicon_light.png | todo | replaced by our branding (§1.3) |
 | `public/images/favicon_light.svg` | asset | assets/brand/favicon_light.svg | todo | replaced by our branding (§1.3) |
 | `public/images/shadcn-admin.png` | asset | — | n/a | README screenshot |
-| `src/assets/brand-icons/icon-discord.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-docker.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-facebook.tsx` | asset | src/pages/auth/mod.rs (SocialButtons) | done | inline path in SocialButtons |
-| `src/assets/brand-icons/icon-figma.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-github.tsx` | asset | src/pages/auth/mod.rs (SocialButtons) | done | inline path in SocialButtons |
-| `src/assets/brand-icons/icon-gitlab.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-gmail.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-medium.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-notion.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-skype.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-slack.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-stripe.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-telegram.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-trello.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-whatsapp.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/icon-zoom.tsx` | asset | src/components/icons/brand.rs | todo | inline SVG components |
-| `src/assets/brand-icons/index.ts` | asset | src/components/icons/brand.rs | todo | inline SVG components |
+| `src/assets/brand-icons/icon-discord.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
+| `src/assets/brand-icons/icon-docker.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
+| `src/assets/brand-icons/icon-facebook.tsx` | asset | src/components/icons/brand.rs | done | `BrandIcon` |
+| `src/assets/brand-icons/icon-figma.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
+| `src/assets/brand-icons/icon-github.tsx` | asset | src/components/icons/brand.rs | done | `BrandIcon` |
+| `src/assets/brand-icons/icon-gitlab.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
+| `src/assets/brand-icons/icon-gmail.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
+| `src/assets/brand-icons/icon-medium.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
+| `src/assets/brand-icons/icon-notion.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
+| `src/assets/brand-icons/icon-skype.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
+| `src/assets/brand-icons/icon-slack.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
+| `src/assets/brand-icons/icon-stripe.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
+| `src/assets/brand-icons/icon-telegram.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
+| `src/assets/brand-icons/icon-trello.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
+| `src/assets/brand-icons/icon-whatsapp.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
+| `src/assets/brand-icons/icon-zoom.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
+| `src/assets/brand-icons/index.ts` | asset | src/components/icons/brand.rs | done | `Brand` enum |
 | `src/assets/clerk-full-logo.tsx` | asset | — | n/a | Clerk branding (§5: Clerk removed) |
 | `src/assets/clerk-logo.tsx` | asset | — | n/a | Clerk branding (§5: Clerk removed) |
 | `src/assets/custom/icon-dir.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
@@ -115,7 +115,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/ui/checkbox.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::CheckBox |
 | `src/components/ui/collapsible.tsx` | ui-primitive | src/ui/collapsible.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/command.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::Combobox + layout/search.rs palette |
-| `src/components/ui/dialog.tsx` | ui-primitive | src/ui/dialog.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/dialog.tsx` | ui-primitive | src/components/ui_extra/dialog.rs | done | `ui_extra::dialog::Modal` |
 | `src/components/ui/dropdown-menu.tsx` | ui-primitive | src/components/ui_extra/menu.rs | done | `ui_extra::menu` (fixed-position, no inline script); Rust/UI version kept vendored |
 | `src/components/ui/form.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form (FormItem/Label/Description/Message) |
 | `src/components/ui/input-otp.tsx` | ui-primitive | src/pages/auth/otp.rs (OtpInput) | done | single transparent input over 6 slots |
@@ -142,8 +142,8 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/context/search-provider.test.tsx` | test | src/state/search.rs #[cfg(test)] | todo | logic test → Rust #[test] |
 | `src/context/search-provider.tsx` | context | src/state/search.rs + app_shell.rs | done | SearchOpen + Ctrl/Cmd+K |
 | `src/context/theme-provider.tsx` | context | src/state/prefs.rs | done | Ui.theme + apply_theme |
-| `src/features/apps/data/apps.tsx` | data | src/pages/apps/data/apps.rs | todo | demo seed data, flag `demo.apps` (§5) |
-| `src/features/apps/index.tsx` | feature | src/pages/apps/mod.rs | todo | demo page behind flag `demo.apps`, default off (§5) |
+| `src/features/apps/data/apps.tsx` | data | src/pages/apps.rs (APPS) | done | demo data (§5) |
+| `src/features/apps/index.tsx` | feature | src/pages/apps.rs | done | filter/type/sort in URL (?:..query); demo flag `demo.apps` in M7 |
 | `src/features/auth/auth-layout.tsx` | feature | src/pages/auth/mod.rs (AuthLayout) | done |  |
 | `src/features/auth/forgot-password/components/forgot-password-form.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
 | `src/features/auth/forgot-password/components/forgot-password-form.tsx` | feature | src/pages/auth/forgot_password.rs | done |  |
@@ -160,10 +160,10 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/features/auth/sign-up/components/sign-up-form.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
 | `src/features/auth/sign-up/components/sign-up-form.tsx` | feature | src/pages/auth/sign_up.rs | done |  |
 | `src/features/auth/sign-up/index.tsx` | feature | src/pages/auth/sign_up.rs | done | self sign-up off: submit explains (setting `auth.self_signup`, M7) |
-| `src/features/chats/components/new-chat.tsx` | feature | src/pages/chats/components/new_chat.rs | todo | demo page behind flag `demo.chats`, default off (§5) |
-| `src/features/chats/data/chat-types.ts` | data | src/pages/chats/data/chat_types.rs | todo | demo seed data, flag `demo.chats` (§5) |
-| `src/features/chats/data/convo.json` | data | src/pages/chats/data/convo.rs | todo | demo seed data, flag `demo.chats` (§5) |
-| `src/features/chats/index.tsx` | feature | src/pages/chats/mod.rs | todo | demo page behind flag `demo.chats`, default off (§5) |
+| `src/features/chats/components/new-chat.tsx` | feature | src/pages/chats/mod.rs (NewChat) | done | `ui_extra::dialog::Modal` |
+| `src/features/chats/data/chat-types.ts` | data | src/pages/chats/mod.rs | done | serde structs |
+| `src/features/chats/data/convo.json` | data | src/pages/chats/convo.json | done | embedded demo data |
+| `src/features/chats/index.tsx` | feature | src/pages/chats/mod.rs | done | initials instead of remote photos (CSP); demo flag `demo.chats` in M7 |
 | `src/features/dashboard/components/analytics-chart.tsx` | feature | src/components/ui_extra/chart.rs | done | SVG monotone area chart |
 | `src/features/dashboard/components/analytics.tsx` | feature | src/pages/dashboard/analytics.rs | done |  |
 | `src/features/dashboard/components/overview.tsx` | feature | src/pages/dashboard/overview.rs | done | SVG bar chart, Recharts ticks |
@@ -247,8 +247,8 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/routes/(errors)/500.tsx` | route | src/app.rs (Route::Error500) | done | public route |
 | `src/routes/(errors)/503.tsx` | route | src/app.rs (Route::Error503) | done | public route |
 | `src/routes/__root.tsx` | route | src/app.rs (Route::…) | in-progress | root = App; navigation progress bar in P3 |
-| `src/routes/_authenticated/apps/index.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/apps/index |
-| `src/routes/_authenticated/chats/index.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/chats/index |
+| `src/routes/_authenticated/apps/index.tsx` | route | src/app.rs (Route::Apps) | done |  |
+| `src/routes/_authenticated/chats/index.tsx` | route | src/app.rs (Route::Chats) | done |  |
 | `src/routes/_authenticated/errors/$error.tsx` | route | src/app.rs (Route::ShellError) | done | `ShellError` with fixed header |
 | `src/routes/_authenticated/help-center/index.tsx` | route | src/app.rs (Route::ComingSoon) | done |  |
 | `src/routes/_authenticated/index.tsx` | route | src/app.rs (Route::Dashboard) | done |  |

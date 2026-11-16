@@ -1,4 +1,6 @@
+pub mod apps;
 pub mod auth;
+pub mod chats;
 pub mod dashboard;
 pub mod errors;
 pub mod not_found;

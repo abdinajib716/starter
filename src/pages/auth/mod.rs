@@ -14,6 +14,7 @@ pub use sign_up::SignUp;
 use dioxus::prelude::*;
 use dioxus_i18n::t;
 
+use crate::components::icons::brand::{Brand, BrandIcon};
 use crate::components::ui_extra::icon::{Icon, IconType};
 
 /// `assets/logo.tsx` → our branding (the command glyph used in the sidebar).
@@ -49,17 +50,12 @@ pub fn SocialButtons(disabled: bool) -> Element {
             }
         }
         div { class: "grid grid-cols-2 gap-2",
-            for (name, path) in [
-                ("GitHub", "M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"),
-                ("Facebook", "M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3"),
-            ] {
+            for (name, brand) in [("GitHub", Brand::Github), ("Facebook", Brand::Facebook)] {
                 button {
                     r#type: "button",
                     disabled,
                     class: "inline-flex h-9 items-center justify-center gap-2 rounded-md border bg-background px-4 py-2 text-sm font-medium whitespace-nowrap shadow-xs transition-all hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50 dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
-                    svg { view_box: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", class: "h-4 w-4",
-                        path { d: path }
-                    }
+                    BrandIcon { brand, class: "h-4 w-4" }
                     "{name}"
                 }
             }

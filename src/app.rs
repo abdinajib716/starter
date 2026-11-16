@@ -16,9 +16,12 @@ use crate::pages::settings::{
     SettingsAccount, SettingsAppearance, SettingsDisplay, SettingsLayout, SettingsNotifications,
     SettingsProfile,
 };
-use crate::pages::{dashboard::Dashboard, not_found::NotFound, profile::Profile};
+use crate::pages::{
+    apps::Apps, chats::Chats, dashboard::Dashboard, not_found::NotFound, profile::Profile,
+};
 use crate::state::{Ui, UiPrefs};
 use crate::ui::toast::ToastToaster;
+use crate::util::query::Query;
 
 /// Route table (§12, SPEC-02). Pages under `AppShell` need a session: the server redirects
 /// page loads (`server::auth::guard::pages`), `AppShell` covers client-side navigation.
@@ -54,6 +57,10 @@ pub enum Route {
         Dashboard {},
         #[route("/profile")]
         Profile {},
+        #[route("/apps?:..query")]
+        Apps { query: Query },
+        #[route("/chats")]
+        Chats {},
         #[route("/help-center")]
         ComingSoon {},
         #[route("/errors/:error")]

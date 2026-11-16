@@ -1,5 +1,6 @@
 //! Small helpers shared by server and client (port of shadcn-admin `src/lib/*`).
 pub mod cookies;
+pub mod query;
 
 /// Toast that also works right before navigation. Rust/UI's `show_toast` runs its script in a
 /// task owned by the calling component; when the component unmounts (e.g. login navigates
