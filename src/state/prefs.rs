@@ -11,6 +11,7 @@ pub const SIDEBAR_COOKIE: &str = "sidebar_state";
 pub const VARIANT_COOKIE: &str = "layout_variant";
 pub const COLLAPSIBLE_COOKIE: &str = "layout_collapsible";
 pub const DIR_COOKIE: &str = "dir";
+pub const FONT_COOKIE: &str = "font";
 
 /// Theme choice (theme-provider.tsx). `System` follows `prefers-color-scheme`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -110,6 +111,36 @@ impl Dir {
     }
 }
 
+/// Font choice (font-provider.tsx, `config/fonts.ts`): class `font-<name>` on `<html>`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub enum Font {
+    #[default]
+    Inter,
+    Manrope,
+    System,
+}
+
+/// Literal class names so Tailwind generates them (it scans the source for strings).
+pub const FONT_CLASSES: [&str; 3] = ["font-inter", "font-manrope", "font-system"];
+
+impl Font {
+    pub const ALL: [Font; 3] = [Font::Inter, Font::Manrope, Font::System];
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Inter => "inter",
+            Self::Manrope => "manrope",
+            Self::System => "system",
+        }
+    }
+    pub fn parse(s: &str) -> Self {
+        match s {
+            "manrope" => Self::Manrope,
+            "system" => Self::System,
+            _ => Self::Inter,
+        }
+    }
+}
+
 /// Preferences read from the request cookies during SSR.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct UiPrefs {
@@ -118,6 +149,7 @@ pub struct UiPrefs {
     pub collapsible: Collapsible,
     pub sidebar_open: bool,
     pub dir: Dir,
+    pub font: Font,
 }
 
 impl UiPrefs {
@@ -129,6 +161,7 @@ impl UiPrefs {
             collapsible: Collapsible::parse(&c(COLLAPSIBLE_COOKIE)),
             sidebar_open: c(SIDEBAR_COOKIE) != "false",
             dir: Dir::parse(&c(DIR_COOKIE)),
+            font: Font::parse(&c(FONT_COOKIE)),
         }
     }
 }
@@ -141,6 +174,7 @@ pub struct Ui {
     pub collapsible: Signal<Collapsible>,
     pub dir: Signal<Dir>,
     pub sidebar_open: Signal<bool>,
+    pub font: Signal<Font>,
 }
 
 impl Ui {
@@ -151,6 +185,7 @@ impl Ui {
             collapsible: Signal::new(prefs.collapsible),
             dir: Signal::new(prefs.dir),
             sidebar_open: Signal::new(prefs.sidebar_open),
+            font: Signal::new(prefs.font),
         };
         provide_context(ui)
     }
@@ -181,6 +216,16 @@ impl Ui {
         let _ = document::eval(&format!("document.documentElement.dir = '{}'", d.as_str()));
     }
 
+    pub fn set_font(mut self, f: Font) {
+        cookies::set(FONT_COOKIE, f.as_str(), YEAR);
+        self.font.set(f);
+        let _ = document::eval(&format!(
+            "const c = document.documentElement.classList; {:?}.forEach(x => c.remove(x)); c.add('font-{}')",
+            FONT_CLASSES,
+            f.as_str()
+        ));
+    }
+
     pub fn set_sidebar_open(mut self, open: bool) {
         cookies::set(SIDEBAR_COOKIE, if open { "true" } else { "false" }, WEEK);
         self.sidebar_open.set(open);
@@ -188,7 +233,13 @@ impl Ui {
 
     /// Back to the defaults (config drawer "Reset").
     pub fn reset(self) {
-        for name in [THEME_COOKIE, VARIANT_COOKIE, COLLAPSIBLE_COOKIE, DIR_COOKIE] {
+        for name in [
+            THEME_COOKIE,
+            VARIANT_COOKIE,
+            COLLAPSIBLE_COOKIE,
+            DIR_COOKIE,
+            FONT_COOKIE,
+        ] {
             cookies::remove(name);
         }
         let d = UiPrefs {
@@ -197,6 +248,7 @@ impl Ui {
             collapsible: Collapsible::default(),
             sidebar_open: true,
             dir: Dir::default(),
+            font: Font::default(),
         };
         let mut s = self;
         s.theme.set(d.theme);
@@ -204,6 +256,7 @@ impl Ui {
         s.collapsible.set(d.collapsible);
         s.dir.set(d.dir);
         self.set_sidebar_open(true);
+        self.set_font(d.font);
         apply_theme(d.theme);
         let _ = document::eval("document.documentElement.dir = 'ltr'");
     }

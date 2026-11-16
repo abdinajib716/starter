@@ -71,7 +71,9 @@ fn is_passthrough(path: &str) -> bool {
 
 /// Public pages (§12, §30.4). Everything else needs a session.
 fn is_public_page(path: &str) -> bool {
-    path == "/login" || path.starts_with("/auth/") || path == "/403"
+    path == "/login"
+        || path.starts_with("/auth/")
+        || matches!(path, "/401" | "/403" | "/404" | "/500" | "/503")
 }
 
 pub async fn pages(req: Request, next: Next) -> Response {

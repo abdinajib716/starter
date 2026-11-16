@@ -4,5 +4,5 @@
 pub mod prefs;
 pub mod search;
 
-pub use prefs::{Collapsible, Dir, Theme, Ui, UiPrefs, Variant};
+pub use prefs::{Collapsible, Dir, Font, Theme, Ui, UiPrefs, Variant};
 pub use search::SearchOpen;

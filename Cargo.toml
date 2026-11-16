@@ -57,3 +57,12 @@ server = [
     "dep:tower-http",
     "dep:tracing",
 ]
+
+# `dx serve` builds the browser bundle with this profile. opt-level 1 makes the dev wasm much
+# faster at runtime (opt-level 0 made interactions such as collapsing the sidebar feel laggy).
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"

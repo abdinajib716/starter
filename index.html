@@ -14,6 +14,8 @@
                 document.documentElement.classList.add(dark ? 'dark' : 'light');
                 var d = document.cookie.match(/(?:^|; )dir=(rtl|ltr)/);
                 if (d) document.documentElement.dir = d[1];
+                var f = document.cookie.match(/(?:^|; )font=(inter|manrope|system)/);
+                document.documentElement.classList.add('font-' + (f ? f[1] : 'inter'));
             })();
         </script>
     </head>

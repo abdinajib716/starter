@@ -278,13 +278,16 @@ pub enum MenuButtonSize {
     Lg,
 }
 
-const MENU_BUTTON: &str = "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-start text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 aria-[current=page]:bg-sidebar-accent aria-[current=page]:font-medium aria-[current=page]:text-sidebar-accent-foreground in-data-[state=open]:hover:bg-sidebar-accent in-data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0";
+const MENU_BUTTON: &str = "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-start text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 aria-[current=page]:bg-sidebar-accent aria-[current=page]:font-medium aria-[current=page]:text-sidebar-accent-foreground in-data-[state=open]:hover:bg-sidebar-accent in-data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0";
 
 pub fn menu_button_class(size: MenuButtonSize, extra: &str) -> String {
     tw_merge!(
         MENU_BUTTON,
         match size {
-            MenuButtonSize::Default => "h-8 text-sm",
+            // The icon-mode padding is chosen here, not overridden: tw_merge does not treat
+            // `p-2!`/`p-0!` (Tailwind 4 important suffix) as conflicting, so both would be emitted
+            // and `p-2!` would win, pushing the 32px logo/avatar out of the 32px button.
+            MenuButtonSize::Default => "h-8 text-sm group-data-[collapsible=icon]:p-2!",
             MenuButtonSize::Lg => "h-12 text-sm group-data-[collapsible=icon]:p-0!",
         },
         extra

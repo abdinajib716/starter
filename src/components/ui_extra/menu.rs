@@ -37,8 +37,15 @@ pub fn Menu(
     match_trigger_width: bool,
     #[props(into, optional)] class: Option<String>,
     #[props(into, optional)] trigger_class: Option<String>,
+    /// `false` for content with inputs (combobox search, calendar): close via selection only.
+    #[props(default = true)]
+    close_on_click: bool,
+    /// Lets the parent close the menu (e.g. after a combobox selection).
+    #[props(optional)]
+    open_signal: Option<Signal<bool>>,
 ) -> Element {
-    let mut open = use_signal(|| false);
+    let own_open = use_signal(|| false);
+    let mut open = open_signal.unwrap_or(own_open);
     let mut anchor = use_signal(|| None::<Rc<MountedData>>);
     let mut style = use_signal(String::new);
 
@@ -103,7 +110,7 @@ pub fn Menu(
                 onmounted: move |e| async move { let _ = e.data().set_focus(true).await; },
                 onkeydown: move |e| if e.key() == Key::Escape { open.set(false) },
                 // Any item click closes the menu (links navigate, buttons run their handler).
-                onclick: move |_| open.set(false),
+                onclick: move |_| if close_on_click { open.set(false) },
                 {children}
             }
         }

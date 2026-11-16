@@ -68,7 +68,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/assets/custom/icon-theme-light.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
 | `src/assets/custom/icon-theme-system.tsx` | asset | src/components/icons/custom.rs | todo | inline SVG components |
 | `src/assets/logo.tsx` | asset | src/components/icons/logo.rs | todo | our logo (branding) |
-| `src/components/coming-soon.tsx` | component | src/components/coming_soon.rs | todo |  |
+| `src/components/coming-soon.tsx` | component | src/pages/errors/mod.rs (ComingSoon) | done |  |
 | `src/components/command-menu.tsx` | component | src/components/layout/search.rs | done | Ctrl/Cmd+K, filter, ↑↓/Enter, pages + theme |
 | `src/components/config-drawer.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
 | `src/components/config-drawer.tsx` | component | src/components/config_drawer.rs | in-progress | options + behaviour done; illustrated option cards (assets/custom/*) in P5 |
@@ -81,7 +81,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/data-table/pagination.tsx` | component | src/components/data_table/pagination.rs | todo |  |
 | `src/components/data-table/toolbar.tsx` | component | src/components/data_table/toolbar.rs | todo |  |
 | `src/components/data-table/view-options.tsx` | component | src/components/data_table/view_options.rs | todo |  |
-| `src/components/date-picker.tsx` | component | src/components/date_picker.rs | todo |  |
+| `src/components/date-picker.tsx` | component | src/components/ui_extra/form.rs | done | `ui_extra::form::DatePicker` (month/year dropdowns, future disabled) |
 | `src/components/layout/app-sidebar.tsx` | layout | src/components/layout/sidebar.rs | done | variant/collapsible from layout state; mobile copy via `mobile` slot |
 | `src/components/layout/app-title.tsx` | layout | src/components/layout/sidebar_top.rs | todo |  |
 | `src/components/layout/authenticated-layout.tsx` | layout | src/components/layout/app_shell.rs | done | guard + search state + SidebarProvider/Inset |
@@ -110,34 +110,34 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/ui/avatar.tsx` | ui-primitive | src/ui/avatar.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/badge.tsx` | ui-primitive | src/ui/badge.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/button.tsx` | ui-primitive | src/ui/button.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
-| `src/components/ui/calendar.tsx` | ui-primitive | src/ui/date_picker.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
+| `src/components/ui/calendar.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::DatePicker calendar |
 | `src/components/ui/card.tsx` | ui-primitive | src/ui/card.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
-| `src/components/ui/checkbox.tsx` | ui-primitive | src/ui/checkbox.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/checkbox.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::CheckBox |
 | `src/components/ui/collapsible.tsx` | ui-primitive | src/ui/collapsible.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
-| `src/components/ui/command.tsx` | ui-primitive | src/ui/command.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
+| `src/components/ui/command.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::Combobox + layout/search.rs palette |
 | `src/components/ui/dialog.tsx` | ui-primitive | src/ui/dialog.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/dropdown-menu.tsx` | ui-primitive | src/components/ui_extra/menu.rs | done | `ui_extra::menu` (fixed-position, no inline script); Rust/UI version kept vendored |
-| `src/components/ui/form.tsx` | ui-primitive | src/ui/form.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/form.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form (FormItem/Label/Description/Message) |
 | `src/components/ui/input-otp.tsx` | ui-primitive | src/ui/input_otp.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
-| `src/components/ui/input.tsx` | ui-primitive | src/ui/input.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/input.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::TextInput (controlled) |
 | `src/components/ui/label.tsx` | ui-primitive | src/ui/label.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
-| `src/components/ui/popover.tsx` | ui-primitive | src/ui/popover.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
-| `src/components/ui/radio-group.tsx` | ui-primitive | src/ui/radio_button_group.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
+| `src/components/ui/popover.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::menu (popover content) |
+| `src/components/ui/radio-group.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::Radio |
 | `src/components/ui/scroll-area.tsx` | ui-primitive | src/ui/scroll_area.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
-| `src/components/ui/select.tsx` | ui-primitive | src/ui/select.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/select.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::SelectBox |
 | `src/components/ui/separator.tsx` | ui-primitive | src/ui/separator.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/sheet.tsx` | ui-primitive | src/components/ui_extra/sheet.rs | done | `ui_extra::sheet::SideSheet` (signal-controlled) |
 | `src/components/ui/sidebar.tsx` | ui-primitive | src/components/ui_extra/sidebar.rs | done | faithful port (Rust/UI sidenav lacks icon mode, mobile sheet, cookie, Ctrl+B) |
 | `src/components/ui/skeleton.tsx` | ui-primitive | src/ui/skeleton.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/sonner.tsx` | ui-primitive | src/ui/toast.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
-| `src/components/ui/switch.tsx` | ui-primitive | src/ui/switch.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/switch.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::Switch (Rust/UI one has no change handler) |
 | `src/components/ui/table.tsx` | ui-primitive | src/ui/table.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/tabs.tsx` | ui-primitive | src/ui/tabs.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
-| `src/components/ui/textarea.tsx` | ui-primitive | src/ui/textarea.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/textarea.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::TextArea (Rust/UI one cannot bind state) |
 | `src/components/ui/tooltip.tsx` | ui-primitive | src/ui/tooltip.rs | done | sidebar tooltip in `ui_extra::sidebar` (fixed, collapsed only); general tooltip = Rust/UI |
-| `src/config/fonts.ts` | config | src/state/font.rs + self-hosted fonts in assets/fonts/ | in-progress | Inter + Manrope self-hosted in public/fonts, `font-inter`/`font-manrope`/`font-system` utilities; switcher in P5 |
+| `src/config/fonts.ts` | config | src/state/font.rs + self-hosted fonts in assets/fonts/ | done | inter/manrope/system; cookie `font`; pre-paint class |
 | `src/context/direction-provider.tsx` | context | src/state/direction.rs | in-progress | cookie `dir` + html dir; full RTL review in P11 |
-| `src/context/font-provider.tsx` | context | src/state/font.rs | todo |  |
+| `src/context/font-provider.tsx` | context | src/state/prefs.rs | done | `Ui.font` / `set_font` |
 | `src/context/layout-provider.tsx` | context | src/state/prefs.rs | done | Ui.variant / Ui.collapsible (cookies) |
 | `src/context/search-provider.test.tsx` | test | src/state/search.rs #[cfg(test)] | todo | logic test → Rust #[test] |
 | `src/context/search-provider.tsx` | context | src/state/search.rs + app_shell.rs | done | SearchOpen + Ctrl/Cmd+K |
@@ -169,24 +169,24 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/features/dashboard/components/overview.tsx` | feature | src/pages/dashboard/overview.rs | done | SVG bar chart, Recharts ticks |
 | `src/features/dashboard/components/recent-sales.tsx` | feature | src/pages/dashboard/recent_sales.rs | done |  |
 | `src/features/dashboard/index.tsx` | feature | src/pages/dashboard/mod.rs | done | UI only; sample figures until M10 |
-| `src/features/errors/forbidden.tsx` | feature | src/pages/errors/forbidden.rs | todo |  |
-| `src/features/errors/general-error.tsx` | feature | src/pages/errors/general_error.rs | todo |  |
-| `src/features/errors/maintenance-error.tsx` | feature | src/pages/errors/maintenance_error.rs | todo |  |
-| `src/features/errors/not-found-error.tsx` | feature | src/pages/errors/not_found_error.rs | todo |  |
-| `src/features/errors/unauthorized-error.tsx` | feature | src/pages/errors/unauthorized_error.rs | todo |  |
-| `src/features/settings/account/account-form.tsx` | feature | src/pages/settings/account/account_form.rs | todo |  |
-| `src/features/settings/account/index.tsx` | feature | src/pages/settings/account/mod.rs | todo |  |
-| `src/features/settings/appearance/appearance-form.tsx` | feature | src/pages/settings/appearance/appearance_form.rs | todo |  |
-| `src/features/settings/appearance/index.tsx` | feature | src/pages/settings/appearance/mod.rs | todo |  |
-| `src/features/settings/components/content-section.tsx` | feature | src/pages/settings/components/content_section.rs | todo |  |
-| `src/features/settings/components/sidebar-nav.tsx` | feature | src/pages/settings/components/sidebar_nav.rs | todo |  |
-| `src/features/settings/display/display-form.tsx` | feature | src/pages/settings/display/display_form.rs | todo |  |
-| `src/features/settings/display/index.tsx` | feature | src/pages/settings/display/mod.rs | todo |  |
-| `src/features/settings/index.tsx` | feature | src/pages/settings/mod.rs | todo |  |
-| `src/features/settings/notifications/index.tsx` | feature | src/pages/settings/notifications/mod.rs | todo |  |
-| `src/features/settings/notifications/notifications-form.tsx` | feature | src/pages/settings/notifications/notifications_form.rs | todo |  |
-| `src/features/settings/profile/index.tsx` | feature | src/pages/settings/profile/mod.rs | todo |  |
-| `src/features/settings/profile/profile-form.tsx` | feature | src/pages/settings/profile/profile_form.rs | todo |  |
+| `src/features/errors/forbidden.tsx` | feature | src/pages/errors/mod.rs | done | `ErrorView` + `ErrorKind` |
+| `src/features/errors/general-error.tsx` | feature | src/pages/errors/mod.rs | done | `ErrorView` + `ErrorKind` |
+| `src/features/errors/maintenance-error.tsx` | feature | src/pages/errors/mod.rs | done | `ErrorView` + `ErrorKind` |
+| `src/features/errors/not-found-error.tsx` | feature | src/pages/errors/mod.rs | done | `ErrorView` + `ErrorKind` |
+| `src/features/errors/unauthorized-error.tsx` | feature | src/pages/errors/mod.rs | done | `ErrorView` + `ErrorKind` |
+| `src/features/settings/account/account-form.tsx` | feature | src/pages/settings/account.rs | done | demo form as in the reference (submit → toast); real data M9 |
+| `src/features/settings/account/index.tsx` | feature | src/pages/settings/account.rs | done | demo form as in the reference (submit → toast); real data M9 |
+| `src/features/settings/appearance/appearance-form.tsx` | feature | src/pages/settings/appearance.rs | done | demo form as in the reference (submit → toast); real data M9 |
+| `src/features/settings/appearance/index.tsx` | feature | src/pages/settings/appearance.rs | done | demo form as in the reference (submit → toast); real data M9 |
+| `src/features/settings/components/content-section.tsx` | feature | src/pages/settings/mod.rs (ContentSection) | done | demo form as in the reference (submit → toast); real data M9 |
+| `src/features/settings/components/sidebar-nav.tsx` | feature | src/pages/settings/mod.rs (SidebarNav) | done | demo form as in the reference (submit → toast); real data M9 |
+| `src/features/settings/display/display-form.tsx` | feature | src/pages/settings/display.rs | done | demo form as in the reference (submit → toast); real data M9 |
+| `src/features/settings/display/index.tsx` | feature | src/pages/settings/display.rs | done | demo form as in the reference (submit → toast); real data M9 |
+| `src/features/settings/index.tsx` | feature | src/pages/settings/mod.rs | done | demo form as in the reference (submit → toast); real data M9 |
+| `src/features/settings/notifications/index.tsx` | feature | src/pages/settings/notifications.rs | done | demo form as in the reference (submit → toast); real data M9 |
+| `src/features/settings/notifications/notifications-form.tsx` | feature | src/pages/settings/notifications.rs | done | demo form as in the reference (submit → toast); real data M9 |
+| `src/features/settings/profile/index.tsx` | feature | src/pages/settings/profile.rs | done | demo form as in the reference (submit → toast); real data M9 |
+| `src/features/settings/profile/profile-form.tsx` | feature | src/pages/settings/profile.rs | done | demo form as in the reference (submit → toast); real data M9 |
 | `src/features/tasks/components/data-table-bulk-actions.tsx` | feature | src/pages/tasks/components/data_table_bulk_actions.rs | todo | demo page behind flag `demo.tasks`, default off (§5) |
 | `src/features/tasks/components/data-table-row-actions.tsx` | feature | src/pages/tasks/components/data_table_row_actions.rs | todo | demo page behind flag `demo.tasks`, default off (§5) |
 | `src/features/tasks/components/tasks-columns.tsx` | feature | src/pages/tasks/components/tasks_columns.rs | todo | demo page behind flag `demo.tasks`, default off (§5) |
@@ -231,7 +231,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/lib/cookies.ts` | lib/util | src/util/cookies.rs | done | request (SSR) + set/remove (browser) |
 | `src/lib/handle-server-error.test.ts` | test | src/i18n.rs (error_text) #[cfg(test)] | todo | logic test → Rust #[test] |
 | `src/lib/handle-server-error.ts` | lib/util | src/i18n.rs (error_text) + domain::errors | todo |  |
-| `src/lib/show-submitted-data.tsx` | lib/util | src/util/mod.rs (toast helper) | todo |  |
+| `src/lib/show-submitted-data.tsx` | lib/util | src/util/mod.rs | done | toast with JSON description |
 | `src/lib/utils.test.ts` | test | src/util/mod.rs #[cfg(test)] | todo | logic test → Rust #[test] |
 | `src/lib/utils.ts` | lib/util | src/util/mod.rs | todo |  |
 | `src/main.tsx` | config | src/main.rs + src/app.rs | in-progress | providers: i18n, Ui prefs, toaster, router; font provider in P5 |
@@ -241,24 +241,24 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/routes/(auth)/sign-in-2.tsx` | route | src/app.rs (Route::…) | todo | (auth)/sign-in-2 |
 | `src/routes/(auth)/sign-in.tsx` | route | src/app.rs (Route::…) | todo | (auth)/sign-in |
 | `src/routes/(auth)/sign-up.tsx` | route | src/app.rs (Route::…) | todo | (auth)/sign-up |
-| `src/routes/(errors)/401.tsx` | route | src/app.rs (Route::…) | todo | (errors)/401 |
-| `src/routes/(errors)/403.tsx` | route | src/app.rs (Route::…) | todo | (errors)/403 |
-| `src/routes/(errors)/404.tsx` | route | src/app.rs (Route::…) | todo | (errors)/404 |
-| `src/routes/(errors)/500.tsx` | route | src/app.rs (Route::…) | todo | (errors)/500 |
-| `src/routes/(errors)/503.tsx` | route | src/app.rs (Route::…) | todo | (errors)/503 |
+| `src/routes/(errors)/401.tsx` | route | src/app.rs (Route::Error401) | done | public route |
+| `src/routes/(errors)/403.tsx` | route | src/app.rs (Route::Error403) | done | public route |
+| `src/routes/(errors)/404.tsx` | route | src/app.rs (Route::Error404) | done | public route |
+| `src/routes/(errors)/500.tsx` | route | src/app.rs (Route::Error500) | done | public route |
+| `src/routes/(errors)/503.tsx` | route | src/app.rs (Route::Error503) | done | public route |
 | `src/routes/__root.tsx` | route | src/app.rs (Route::…) | in-progress | root = App; navigation progress bar in P3 |
 | `src/routes/_authenticated/apps/index.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/apps/index |
 | `src/routes/_authenticated/chats/index.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/chats/index |
-| `src/routes/_authenticated/errors/$error.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/errors/$error |
-| `src/routes/_authenticated/help-center/index.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/help-center/index |
+| `src/routes/_authenticated/errors/$error.tsx` | route | src/app.rs (Route::ShellError) | done | `ShellError` with fixed header |
+| `src/routes/_authenticated/help-center/index.tsx` | route | src/app.rs (Route::ComingSoon) | done |  |
 | `src/routes/_authenticated/index.tsx` | route | src/app.rs (Route::Dashboard) | done |  |
 | `src/routes/_authenticated/route.tsx` | route | src/app.rs (#[layout(AppShell)]) | done |  |
-| `src/routes/_authenticated/settings/account.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/settings/account |
-| `src/routes/_authenticated/settings/appearance.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/settings/appearance |
-| `src/routes/_authenticated/settings/display.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/settings/display |
-| `src/routes/_authenticated/settings/index.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/settings/index |
-| `src/routes/_authenticated/settings/notifications.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/settings/notifications |
-| `src/routes/_authenticated/settings/route.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/settings/route |
+| `src/routes/_authenticated/settings/account.tsx` | route | src/app.rs (#[nest("/settings")]) | done |  |
+| `src/routes/_authenticated/settings/appearance.tsx` | route | src/app.rs (#[nest("/settings")]) | done |  |
+| `src/routes/_authenticated/settings/display.tsx` | route | src/app.rs (#[nest("/settings")]) | done |  |
+| `src/routes/_authenticated/settings/index.tsx` | route | src/app.rs (#[nest("/settings")]) | done |  |
+| `src/routes/_authenticated/settings/notifications.tsx` | route | src/app.rs (#[nest("/settings")]) | done |  |
+| `src/routes/_authenticated/settings/route.tsx` | route | src/app.rs (#[nest("/settings")]) | done |  |
 | `src/routes/_authenticated/tasks/index.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/tasks/index |
 | `src/routes/_authenticated/users/index.tsx` | route | src/app.rs (Route::…) | todo | _authenticated/users/index |
 | `src/routes/clerk/(auth)/route.tsx` | route | — | n/a | §5: Clerk routes removed; their screens map to our own auth/user pages |

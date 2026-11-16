@@ -152,3 +152,105 @@ dash-devices-desc = How users access your app
 dash-desktop = Desktop
 dash-mobile = Mobile
 dash-tablet = Tablet
+
+# ---- Error pages / coming soon ----
+err-go-back = Go Back
+err-back-home = Back to Home
+err-learn-more = Learn more
+err401-title = Unauthorized Access
+err401-desc-1 = Please log in with the appropriate credentials
+err401-desc-2 = to access this resource.
+err403-title = Access Forbidden
+err403-desc-1 = You don't have necessary permission
+err403-desc-2 = to view this resource.
+err404-title = Oops! Page Not Found!
+err404-desc-1 = It seems like the page you're looking for
+err404-desc-2 = does not exist or might have been removed.
+err500-title = Oops! Something went wrong :')
+err500-desc-1 = We apologize for the inconvenience.
+err500-desc-2 = Please try again later.
+err503-title = Website is under maintenance!
+err503-desc-1 = The site is not available at the moment.
+err503-desc-2 = We'll be back online shortly.
+coming-soon-title = Coming Soon!
+coming-soon-desc-1 = This page has not been created yet.
+coming-soon-desc-2 = Stay tuned though!
+
+# ---- Settings (shadcn-admin demo forms) ----
+settings-desc = Manage your account settings and set e-mail preferences.
+settings-profile-desc = This is how others will see you on the site.
+settings-account-desc = Update your account settings. Set your preferred language and timezone.
+settings-appearance-desc = Customize the appearance of the app. Automatically switch between day and night themes.
+settings-notifications-desc = Configure how you receive notifications.
+settings-display-desc = Turn items on or off to control what's displayed in the app.
+submitted-title = You submitted the following values:
+
+f-username = Username
+f-username-desc = This is your public display name. It can be your real name or a pseudonym. You can only change this once every 30 days.
+f-email-placeholder = Select a verified email to display
+f-email-desc-1 = You can manage verified email addresses in your
+f-email-desc-link = email settings
+f-bio = Bio
+f-bio-placeholder = Tell us a little bit about yourself
+f-bio-desc-1 = You can
+f-bio-desc-2 = other users and organizations to link to them.
+f-urls = URLs
+f-urls-desc = Add links to your website, blog, or social media profiles.
+f-add-url = Add URL
+f-update-profile = Update profile
+
+f-name = Name
+f-name-placeholder = Your name
+f-name-desc = This is the name that will be displayed on your profile and in emails.
+f-dob = Date of birth
+f-dob-placeholder = Pick a date
+f-dob-desc = Your date of birth is used to calculate your age.
+f-language = Language
+f-language-placeholder = Select language
+f-language-search = Search language...
+f-language-empty = No language found.
+f-language-desc = This is the language that will be used in the dashboard.
+f-update-account = Update account
+
+f-font = Font
+f-font-desc = Set the font you want to use in the dashboard.
+f-theme-desc = Select the theme for the dashboard.
+f-update-preferences = Update preferences
+
+f-notify-about = Notify me about...
+f-notify-all = All new messages
+f-notify-mentions = Direct messages and mentions
+f-notify-none = Nothing
+f-email-notifications = Email Notifications
+f-comm-emails = Communication emails
+f-comm-emails-desc = Receive emails about your account activity.
+f-marketing-emails = Marketing emails
+f-marketing-emails-desc = Receive emails about new products, features, and more.
+f-social-emails = Social emails
+f-social-emails-desc = Receive emails for friend requests, follows, and more.
+f-security-emails = Security emails
+f-security-emails-desc = Receive emails about your account activity and security.
+f-mobile = Use different settings for my mobile devices
+f-mobile-desc-1 = You can manage your mobile notifications in the
+f-mobile-desc-link = mobile settings
+f-mobile-desc-2 = page.
+f-update-notifications = Update notifications
+
+f-display-sidebar = Sidebar
+f-display-sidebar-desc = Select the items you want to display in the sidebar.
+f-update-display = Update display
+
+v-username-required = Please enter your username.
+v-username-min = Username must be at least 2 characters.
+v-username-max = Username must not be longer than 30 characters.
+v-email-select = Please select an email to display.
+v-bio-min = Too small: expected string to have >=4 characters
+v-bio-max = Too big: expected string to have <=160 characters
+v-url = Please enter a valid URL.
+v-name-required = Please enter your name.
+v-name-min = Name must be at least 2 characters.
+v-name-max = Name must not be longer than 30 characters.
+v-dob = Please select your date of birth.
+v-language = Please select a language.
+v-notify-type = Please select a notification type.
+v-display-items = You have to select at least one item.

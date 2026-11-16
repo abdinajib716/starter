@@ -1,28 +1,65 @@
 //! Root component, route table and document head.
 // The `Routable` derive generates an unreachable call (Dioxus 0.7.10); an attribute on the
 // enum does not reach the generated impl, so the lint is allowed for this module.
-#![allow(unreachable_code)]
+// Nested layouts need `#[end_layout]` twice, which clippy reports as duplicated attributes.
+#![allow(unreachable_code, clippy::duplicated_attributes)]
 use dioxus::prelude::*;
 use dioxus_i18n::prelude::use_init_i18n;
 
 use crate::components::layout::AppShell;
 use crate::i18n;
+use crate::pages::errors::{
+    ComingSoon, Error401, Error403, Error404, Error500, Error503, ShellError,
+};
+use crate::pages::settings::{
+    SettingsAccount, SettingsAppearance, SettingsDisplay, SettingsLayout, SettingsNotifications,
+    SettingsProfile,
+};
 use crate::pages::{dashboard::Dashboard, login::Login, not_found::NotFound, profile::Profile};
 use crate::state::{Ui, UiPrefs};
 use crate::ui::toast::ToastToaster;
 
 /// Route table (§12, SPEC-02). Pages under `AppShell` need a session: the server redirects
 /// page loads (`server::auth::guard::pages`), `AppShell` covers client-side navigation.
+/// Public: `/login` and the standalone error pages (`/401` … `/503`).
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
 pub enum Route {
     #[route("/login?:next")]
     Login { next: String },
+    #[route("/401")]
+    Error401 {},
+    #[route("/403")]
+    Error403 {},
+    #[route("/404")]
+    Error404 {},
+    #[route("/500")]
+    Error500 {},
+    #[route("/503")]
+    Error503 {},
     #[layout(AppShell)]
         #[route("/")]
         Dashboard {},
         #[route("/profile")]
         Profile {},
+        #[route("/help-center")]
+        ComingSoon {},
+        #[route("/errors/:error")]
+        ShellError { error: String },
+        #[nest("/settings")]
+            #[layout(SettingsLayout)]
+                #[route("/")]
+                SettingsProfile {},
+                #[route("/account")]
+                SettingsAccount {},
+                #[route("/appearance")]
+                SettingsAppearance {},
+                #[route("/notifications")]
+                SettingsNotifications {},
+                #[route("/display")]
+                SettingsDisplay {},
+            #[end_layout]
+        #[end_nest]
     #[end_layout]
     #[route("/:..segments")]
     NotFound { segments: Vec<String> },
