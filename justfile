@@ -43,3 +43,7 @@ test:
 # Install the git pre-commit hook
 hooks:
     git config core.hooksPath .githooks
+
+# SPEC-02 port: every reference file in docs/PORT_MANIFEST.md (`just manifest-check final` = acceptance gate)
+manifest-check *mode:
+    python3 scripts/manifest_check.py {{mode}}

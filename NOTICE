@@ -8,3 +8,8 @@ Rust/UI — https://github.com/rust-ui/ui
 
 ApexCharts 5.3.6 — https://apexcharts.com (MIT)
   File:     public/cdn/apexcharts.5.3.6.min.js (shipped via the Rust/UI repo)
+
+shadcn-admin — https://github.com/satnaing/shadcn-admin
+  Commit:   e16c87f (2026-06-11)
+  License:  MIT — reference copy with its LICENSE in reference/shadcn-admin/ (not committed)
+  Use:      UI design ported from satnaing/shadcn-admin, MIT (rebuilt in Dioxus/Rust; no source copied)

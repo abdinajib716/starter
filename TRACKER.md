@@ -17,7 +17,8 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 0 | Toolchain, skeleton, Postgres, migrations, org + `Ctx` | 🟡 in progress | 24/25 done; open: M0.24 (runs after M1) |
 | 1 | Auth core | 🟡 in progress | 17/19 done; open: M1.1 timing check (release build), M1.19 notification (needs M8) |
 | 2 | RBAC core + `ModuleFlags` + settings cache | ⚪ | |
-| 3 | App shell + i18n layer | ⚪ | |
+| 3 | App shell + i18n layer | ⚪ | shell/routes/RTL replaced by the UI port (SPEC-02) |
+| 3b | **UI port (SPEC-02)** | 🟡 in progress | P0 done; manifest 0/215 |
 | 4 | Audit | ⚪ | M4.8 done early |
 | 5 | Users + DataTable (bulk, CSV, Deleted tab) | ⚪ | |
 | 6 | Roles + Permissions | ⚪ | |
@@ -118,17 +119,40 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 
 **Done when:** layout + Profile/Logout work; sidebar shows only permitted items; every UI string goes through `t!`.
 
-- [ ] M3.1 Router enum with all routes from §12 + §30.4 (stubs OK)
-- [ ] M3.2 Layout: Rust/UI `sidenav` — collapsible, "Access Control" group with 6 children, active-route highlight, remembers collapsed state
-- [ ] M3.3 Sidebar filtering per §8 visibility table
-- [ ] M3.4 Top bar: breadcrumb, `ThemeToggle`, (bell slot for M8), (language switcher slot)
-- [ ] M3.5 Avatar dropdown: name + email + role badge → Profile / Logout
-- [ ] M3.6 `/403` and `*` Not Found pages
-- [ ] M3.7 Loading skeletons, empty states (`Empty`), error boundaries pattern
+- [-] M3.1 Router enum with all routes from §12 + §30.4 (stubs OK) — **replaced by SPEC-02** (see "UI port" below)
+- [-] M3.2 Layout: Rust/UI `sidenav` — collapsible, "Access Control" group with 6 children, active-route highlight, remembers collapsed state — **replaced by SPEC-02** (see "UI port" below)
+- [-] M3.3 Sidebar filtering per §8 visibility table — **replaced by SPEC-02** (see "UI port" below)
+- [-] M3.4 Top bar: breadcrumb, `ThemeToggle`, (bell slot for M8), (language switcher slot) — **replaced by SPEC-02** (see "UI port" below)
+- [-] M3.5 Avatar dropdown: name + email + role badge → Profile / Logout — **replaced by SPEC-02** (see "UI port" below)
+- [-] M3.6 `/403` and `*` Not Found pages — **replaced by SPEC-02** (see "UI port" below)
+- [-] M3.7 Loading skeletons, empty states (`Empty`), error boundaries pattern — **replaced by SPEC-02** (see "UI port" below)
 - [ ] M3.8 i18n layer wired in, using the crate chosen in M0.25 (no UI strings before M0.25 is decided); `en` source of truth. Base already in place from M0.25 (`src/i18n.rs`, `locales/*.ftl`, `App` init); remaining: own `t!` wrapper that logs a missing key once and returns the key instead of panicking (`dioxus_i18n::t!` panics when even `en` lacks it), move every UI string to keys
 - [ ] M3.9 Locale resolution: `users.locale` → cookie → `Accept-Language` → default; SSR first paint correct
-- [ ] M3.10 RTL: `dir="rtl"` by locale; logical Tailwind utilities (`ms-*`, `ps-*`, `text-start`)
+- [-] M3.10 RTL: `dir="rtl"` by locale; logical Tailwind utilities (`ms-*`, `ps-*`, `text-start`) — **replaced by SPEC-02** (see "UI port" below)
 - [ ] M3.11 `fmt::date()` / `fmt::number()` helpers (UTC stored, user timezone + locale displayed)
+
+## UI port — SPEC-02 v3: shadcn-admin → Dioxus + Rust/UI
+
+**Source:** `reference/shadcn-admin` (commit `e16c87f`, MIT, git-ignored, read-only). Every reference file has a row
+in [docs/PORT_MANIFEST.md](docs/PORT_MANIFEST.md); `just manifest-check final` is the acceptance gate.
+Replaces M3.1–M3.7 and M3.10; expands the UI work of M5 (users), M6 and M10 (dashboard).
+
+**Done when (§7):** manifest-check final passes; side-by-side match with the demo at 1440/1024/390 px, light/dark,
+LTR/RTL; only logo + app name differ; no reference source outside `reference/`; NOTICE attribution; menus,
+command palette and routes permission-filtered; demo pages off by default; no hard-coded colours or strings.
+
+- [x] P0 `reference/` in place (git/Docker-ignored), NOTICE attribution, `docs/PORT_MANIFEST.md` (272 rows: 215 todo, 57 n/a), `just manifest-check [final]`
+- [ ] P1 Missing Rust/UI primitives added or built; theme tokens verified against the reference CSS
+- [ ] P2 Layout shell: `app_shell`, `sidebar`, `nav_group`, `nav_config`, `layout_state` (cookie), mobile sheet
+- [ ] P3 Header, profile dropdown, sign-out dialog, theme, skip link, progress bar
+- [ ] P4 Command palette + search (`Ctrl/Cmd+K`), branding (logo + app name from settings)
+- [ ] P5 Appearance drawer (theme, variant, collapsible, layout, direction, font) and RTL
+- [ ] P6 Error pages (401, 403, 404, 500, 503)
+- [ ] P7 Auth screens wired to our auth (M1)
+- [ ] P8 Dashboard and Users pages on real data (M10, M5)
+- [ ] P9 Settings pages
+- [ ] P10 Demo pages behind feature flags (apps, chats, tasks, help-center)
+- [ ] P11 Final pass: manifest check, side-by-side comparison, a11y, light/dark, RTL
 
 ---
 
@@ -412,6 +436,9 @@ Blockers first; each names the item that proves it.
 | 2026-11-16 | `cargo sqlx prepare` runs with `--all-targets` | Test-only `query!` calls need offline data too |
 | 2026-11-16 | CSRF check uses Fetch Metadata (`Sec-Fetch-Site`) first, `Origin` vs `APP_URL` only as fallback | Origin-only check returned 403 for every login opened via `localhost`, a forwarded port or a tunnel, because the origin differs from `APP_URL`. Browsers set `Sec-Fetch-Site` and page scripts cannot change it |
 | 2026-11-16 | Form errors are shown as toasts, not inline alerts | User decision; the informational "must change password" banner stays inline |
+| 2026-11-16 | **SPEC-02 v3**: pure port of satnaing/shadcn-admin (`e16c87f`) to Dioxus + Rust/UI; supersedes SPEC-01 | User decision. Reference kept in git-ignored `reference/`; progress per file in `docs/PORT_MANIFEST.md` |
+| 2026-11-16 | Manifest `n/a` also used for Clerk files (routes, logos, `.env.example`) and generated/type-only files (`routeTree.gen.ts`, `*.d.ts`) | §5 removes Clerk; generated router tree is replaced by the `Routable` enum. Each row states its reason |
+| 2026-11-16 | Port targets: app-level state in `src/state/`, app hooks in `src/app_hooks/`, helpers in `src/util/`, missing primitives in `src/components/ui_extra/` | `src/ui` and `src/hooks` stay vendored and untouched |
 | 2026-11-15 | Password minimum length uses the blueprint's existing key `security.password_min_length`, not a new `security.min_password_length` | Avoid two keys for one setting |
 
 ## Rust/UI components installed
