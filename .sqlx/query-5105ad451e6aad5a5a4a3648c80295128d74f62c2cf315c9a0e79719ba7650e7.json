@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO users (org_id, email, full_name, password_hash, role_id, must_change_pw)\n           VALUES ($1, $2::text::citext, 'Administrator', $3, $4, true)\n           ON CONFLICT DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5105ad451e6aad5a5a4a3648c80295128d74f62c2cf315c9a0e79719ba7650e7"
+}

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO roles (org_id, name, description, is_system)\n           VALUES (NULL, $1, 'All permissions; cannot be edited or deleted', true)\n           ON CONFLICT DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e266f88b244054be98fc5652f8c4a13366bb8717bda20e879a25ba25dadb31d8"
+}

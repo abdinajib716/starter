@@ -27,14 +27,18 @@ pub struct Config {
     #[allow(dead_code)] // M11
     #[serde(default = "default_backup_dir")]
     pub backup_dir: PathBuf,
-    #[allow(dead_code)] // M1.12
     pub seed_admin_email: Option<String>,
-    #[allow(dead_code)] // M1.12
     pub seed_admin_password: Option<String>,
     #[serde(default)]
     pub tenancy_mode: TenancyMode,
     #[serde(default = "default_db_max_connections")]
     pub db_max_connections: u32,
+    /// Header carrying the client IP, set by the trusted reverse proxy (e.g. `x-forwarded-for`).
+    /// Unset in local dev: the client IP is then unknown and rate limits fall back to per-email keys.
+    pub client_ip_header: Option<String>,
+    /// Public origin, e.g. `https://app.example.com` (no path). Used by the CSRF origin check
+    /// and, from M13, for links in emails (§20).
+    pub app_url: Option<String>,
 }
 
 fn default_backup_dir() -> PathBuf {
@@ -54,6 +58,8 @@ const KEYS: &[&str] = &[
     "SEED_ADMIN_PASSWORD",
     "TENANCY_MODE",
     "DB_MAX_CONNECTIONS",
+    "CLIENT_IP_HEADER",
+    "APP_URL",
 ];
 
 impl Config {
@@ -68,6 +74,15 @@ impl Config {
         Ok(cfg)
     }
 
+    /// `__Host-` prefix requires `Secure`, `Path=/` and no `Domain` (M1.17).
+    pub fn session_cookie_name(&self) -> &'static str {
+        if self.cookie_secure {
+            "__Host-sid"
+        } else {
+            "sid"
+        }
+    }
+
     pub fn is_production(&self) -> bool {
         self.app_env == AppEnv::Production
     }
@@ -80,6 +95,9 @@ impl Config {
             }
             if !self.cookie_secure {
                 bail!("COOKIE_SECURE must be true in production");
+            }
+            if self.app_url.is_none() {
+                bail!("APP_URL must be set in production (CSRF origin check, email links)");
             }
         } else if self.app_secret.as_deref().is_none_or(|s| s.len() < 32) {
             tracing::warn!("APP_SECRET missing or < 32 bytes; acceptable in development only");

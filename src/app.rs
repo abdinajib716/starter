@@ -1,17 +1,30 @@
 //! Root component, route table and document head.
+// The `Routable` derive generates an unreachable call (Dioxus 0.7.10); an attribute on the
+// enum does not reach the generated impl, so the lint is allowed for this module.
+#![allow(unreachable_code)]
 use dioxus::prelude::*;
-
 use dioxus_i18n::prelude::use_init_i18n;
 
+use crate::components::layout::AppLayout;
 use crate::i18n;
-use crate::pages::home::Home;
+use crate::pages::{home::Home, login::Login, not_found::NotFound, profile::Profile};
 use crate::ui::toast::ToastToaster;
 
+/// Route table (§12). Pages under `AppLayout` need a session: the server redirects page
+/// loads (`server::auth::guard::pages`), `AppLayout` covers client-side navigation.
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
 pub enum Route {
-    #[route("/")]
-    Home {},
+    #[route("/login?:next")]
+    Login { next: String },
+    #[layout(AppLayout)]
+        #[route("/")]
+        Home {},
+        #[route("/profile")]
+        Profile {},
+    #[end_layout]
+    #[route("/:..segments")]
+    NotFound { segments: Vec<String> },
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
@@ -37,8 +50,10 @@ pub fn App() -> Element {
         document::Stylesheet { href: TOAST_RUNTIME_CSS }
         document::Script { src: APEXCHARTS_JS }
         document::Script { src: CHART_INIT_JS }
+        // `defer`: runs once after parsing (needs `document.body`). A plain `script {}` in the
+        // body ran twice: once from the SSR HTML and again when hydration re-created it.
+        document::Script { src: TOAST_RUNTIME_JS, defer: true }
         ToastToaster {}
-        script { src: TOAST_RUNTIME_JS }
         LocaleRoot { Router::<Route> {} }
     }
 }

@@ -9,6 +9,7 @@
     --color-white: #fff;
     --spacing: 0.25rem;
     --breakpoint-2xl: 96rem;
+    --container-sm: 24rem;
     --container-md: 28rem;
     --container-7xl: 80rem;
     --text-xs: 0.75rem;
@@ -583,8 +584,8 @@
   .min-h-\[150px\] {
     min-height: 150px;
   }
-  .min-h-screen {
-    min-height: 100vh;
+  .min-h-full {
+    min-height: 100%;
   }
   .scrollbar__on_hover {
     scrollbar-width: none;
@@ -659,6 +660,9 @@
   }
   .max-w-md {
     max-width: var(--container-md);
+  }
+  .max-w-sm {
+    max-width: var(--container-sm);
   }
   .min-w-0 {
     min-width: calc(var(--spacing) * 0);
@@ -764,6 +768,9 @@
   }
   .justify-center {
     justify-content: center;
+  }
+  .justify-end {
+    justify-content: flex-end;
   }
   .justify-start {
     justify-content: flex-start;
@@ -1157,6 +1164,9 @@
   .align-middle {
     vertical-align: middle;
   }
+  .font-mono {
+    font-family: var(--font-mono);
+  }
   .text-2xl {
     font-size: var(--text-2xl);
     line-height: var(--tw-leading, var(--text-2xl--line-height));
@@ -1313,6 +1323,9 @@
   }
   .no-underline {
     text-decoration-line: none;
+  }
+  .underline {
+    text-decoration-line: underline;
   }
   .underline-offset-4 {
     text-underline-offset: 4px;
@@ -2989,6 +3002,11 @@
       display: grid;
     }
   }
+  .sm\:inline {
+    @media (width >= 40rem) {
+      display: inline;
+    }
+  }
   .sm\:auto-rows-min {
     @media (width >= 40rem) {
       grid-auto-rows: min-content;
@@ -3017,6 +3035,11 @@
   .sm\:justify-self-end {
     @media (width >= 40rem) {
       justify-self: flex-end;
+    }
+  }
+  .sm\:p-8 {
+    @media (width >= 40rem) {
+      padding: calc(var(--spacing) * 8);
     }
   }
   .sm\:text-left {

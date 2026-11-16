@@ -21,6 +21,13 @@ pub fn config(locale: &str) -> I18nConfig {
         .with_fallback(langid!("en"))
 }
 
+/// Translated text for a server-function error (§26 rule 2: the server sends codes).
+/// Never panics: an unknown code falls back to `err-generic`.
+pub fn error_text(err: &dioxus::prelude::ServerFnError) -> String {
+    let key = crate::domain::errors::i18n_key(err);
+    dioxus_i18n::te!(&key).unwrap_or_else(|_| dioxus_i18n::t!("err-generic"))
+}
+
 /// Right-to-left scripts; drives `dir="rtl"` (§26 rule 7). No RTL locale ships today,
 /// but adding one needs no further code.
 pub fn is_rtl(locale: &str) -> bool {

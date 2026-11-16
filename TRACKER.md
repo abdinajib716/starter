@@ -15,7 +15,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | # | Milestone | Status | Notes |
 |---|---|---|---|
 | 0 | Toolchain, skeleton, Postgres, migrations, org + `Ctx` | 🟡 in progress | 24/25 done; open: M0.24 (runs after M1) |
-| 1 | Auth core | ⚪ | |
+| 1 | Auth core | 🟡 in progress | 17/19 done; open: M1.1 timing check (release build), M1.19 notification (needs M8) |
 | 2 | RBAC core + `ModuleFlags` + settings cache | ⚪ | |
 | 3 | App shell + i18n layer | ⚪ | |
 | 4 | Audit | ⚪ | M4.8 done early |
@@ -73,25 +73,25 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 
 **Done when:** can log in/out; protected routes redirect to `/login`; lockout after N failures works.
 
-- [ ] M1.1 Argon2id hashing, params tuned to ~100–250 ms; dummy verify when user not found (constant time)
-- [ ] M1.2 `login(email, password)` — rate limit (IP + email), lockout (`security.max_failed_attempts`, `security.lockout_minutes`), inactive check, generic errors
-- [ ] M1.3 Session create: 32 random bytes → base64url token; store SHA-256 in `sessions.token_hash`; `expires_at` from `security.session_hours`
-- [ ] M1.4 Cookie `sid`: `HttpOnly; SameSite=Lax; Path=/; Secure` (when `COOKIE_SECURE`)
-- [ ] M1.5 Session middleware: cookie → hash → session + user + role + permissions; sliding expiry (≤ once/min); `CurrentUser` in request extensions
-- [ ] M1.6 Server-function extractor reads the session cookie (verify Dioxus 0.7 extractor support early — §31.4.2)
-- [ ] M1.7 `logout()` deletes session, clears cookie
-- [ ] M1.8 `current_user()` server fn (permissions + `ModuleFlags` + flags later)
-- [ ] M1.9 CSRF: `Origin`/`Host` check on all non-GET requests
-- [ ] M1.10 Route guard: unauthenticated → `/login`; logged-in on `/login` → `/`
-- [ ] M1.11 Login page (Rust/UI `Card`, `Input`, `Label`, `Button`, inline errors)
-- [ ] M1.12 First-run seed: `Super Admin` role + admin from `SEED_ADMIN_*` with `must_change_pw = true`
-- [ ] M1.13 `must_change_pw` → redirect to `/profile` after login
-- [ ] M1.14 Audit hooks for `auth.login`, `auth.login_failed`, `auth.logout` (wired fully in M4)
-- [ ] M1.15 Tests: lockout, inactive user, expired session, constant-time path
-- [ ] M1.16 Security headers via `tower-http` (CSP, nosniff, frame-ancestors, Referrer-Policy), body limits, timeouts (§13; moved from M17)
-- [ ] M1.17 Cookie name `__Host-sid` when `COOKIE_SECURE=true` (requires `Secure`, `Path=/`, no `Domain`); plain `sid` in local dev
-- [ ] M1.18 Password policy: minimum length (setting `security.password_min_length`, §9.6), reject common passwords list; applied in create, reset and change flows
-- [ ] M1.19 Lockout notification to the user (in-app now, email after M13)
+- [~] M1.1 Argon2id hashing, params tuned to ~100–250 ms; dummy verify when user not found (constant time) — Argon2id v19 m=19 MiB t=2 p=1 (OWASP), hashing on `spawn_blocking`; dummy hash verified for unknown/locked users (test). Timing not yet measured in a release build: dev login ≈ 0.5 s end to end → check in M0.24
+- [x] M1.2 `login(email, password)` — rate limit (IP + email), lockout (`security.max_failed_attempts`, `security.lockout_minutes`), inactive check, generic errors — `services::auth::login`; per IP+email/email/IP limits; lockout from `security.*` settings (defaults until M2.8); one generic error; tests for lockout, inactive, unknown email
+- [x] M1.3 Session create: 32 random bytes → base64url token; store SHA-256 in `sessions.token_hash`; `expires_at` from `security.session_hours` — `auth::token` (getrandom + base64url), SHA-256 stored; expiry from `security.session_hours`
+- [x] M1.4 Cookie `sid`: `HttpOnly; SameSite=Lax; Path=/; Secure` (when `COOKIE_SECURE`) — verified in browser: `HttpOnly`, `SameSite=Lax`, `Path=/`, 43-char token
+- [x] M1.5 Session middleware: cookie → hash → session + user + role + permissions; sliding expiry (≤ once/min); `CurrentUser` in request extensions — `ctx_layer` → `session::load` (one query incl. role + permissions), sliding expiry ≤ 1/min; skipped for asset paths
+- [x] M1.6 Server-function extractor reads the session cookie (verify Dioxus 0.7 extractor support early — §31.4.2) — server fns read the user from `Ctx` (set by middleware); spike M0.19 also proved direct cookie extraction
+- [x] M1.7 `logout()` deletes session, clears cookie — deletes the session in the audit transaction; cookie cleared (browser-checked)
+- [x] M1.8 `current_user()` server fn (permissions + `ModuleFlags` + flags later) — `GET /api/auth/me` → `Option<UserInfo>`; `ModuleFlags`/flags added in M2/M7
+- [x] M1.9 CSRF: `Origin`/`Host` check on all non-GET requests — `guard::csrf`: `Origin` must equal `APP_URL` (or the host when unset), `Sec-Fetch-Site: cross-site` refused; foreign origin → 403 (checked)
+- [x] M1.10 Route guard: unauthenticated → `/login`; logged-in on `/login` → `/` — server redirect (303) for page loads + `AppLayout` client guard; `/login?next=` round-trip and `/login` → `/` when signed in (browser-checked)
+- [x] M1.11 Login page (Rust/UI `Card`, `Input`, `Label`, `Button`, inline errors) — `pages/login.rs`, translated inline errors (en/so)
+- [x] M1.12 First-run seed: `Super Admin` role + admin from `SEED_ADMIN_*` with `must_change_pw = true` — `seed::ensure_super_admin_role` + `ensure_first_admin` (only when the org has no users)
+- [x] M1.13 `must_change_pw` → redirect to `/profile` after login — server redirect to `/profile` + change-password form; banner disappears after the change (browser-checked)
+- [x] M1.14 Audit hooks for `auth.login`, `auth.login_failed`, `auth.logout` (wired fully in M4) — `server::audit::record` in the same transaction: `auth.login`, `auth.login_failed` (with reason), `auth.logout`, `auth.account_locked`, `profile.password_change`
+- [x] M1.15 Tests: lockout, inactive user, expired session, constant-time path — 6 `#[sqlx::test]` service tests + unit tests (18 total pass); constant-time path = dummy hash is a real Argon2 hash (test)
+- [x] M1.16 Security headers via `tower-http` (CSP, nosniff, frame-ancestors, Referrer-Policy), body limits, timeouts (§13; moved from M17) — `server/security.rs`: CSP, nosniff, `X-Frame-Options: DENY`, Referrer-Policy, Permissions-Policy, HSTS when `COOKIE_SECURE`, 2 MiB body limit, 30 s timeout; no CSP violations in the browser
+- [x] M1.17 Cookie name `__Host-sid` when `COOKIE_SECURE=true` (requires `Secure`, `Path=/`, no `Domain`); plain `sid` in local dev — `Config::session_cookie_name()`; the `Secure` path is not browser-tested yet (needs HTTPS, M17)
+- [x] M1.18 Password policy: minimum length (setting `security.password_min_length`, §9.6), reject common passwords list; applied in create, reset and change flows — `password::check_policy` (chars ≥ `security.password_min_length`, ≤ 256, embedded common list); applied on change now, on create/reset in M5
+- [~] M1.19 Lockout notification to the user (in-app now, email after M13) — `auth.account_locked` audit row written; the in-app notification needs the notifications table (M8.7)
 
 ---
 
@@ -136,7 +136,7 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 
 **Done when:** every login writes an entry; filters, JSON diff and CSV export work.
 
-- [ ] M4.1 `audit::record(&mut tx, ctx, action, entity, before, after)` inside the same transaction
+- [~] M4.1 `audit::record(&mut tx, ctx, action, entity, before, after)` inside the same transaction — helper exists (`server/audit.rs`), used by auth since M1; secret masking + page in M4
 - [ ] M4.2 Secret masking (never log password/token fields)
 - [ ] M4.3 `list_audit(filters; cursor)` with keyset pagination on `(at, id)`
 - [ ] M4.4 Audit page: filter bar (date range, actor, action, success, q), expandable before/after diff
@@ -223,7 +223,7 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 **Done when:** a user can enroll TOTP, log in with code or recovery code, and revoke other sessions.
 
 - [ ] M9.1 Profile tabs: Profile · Security · API Tokens · Notifications · Language
-- [ ] M9.2 `update_profile(name, avatar)`; `change_password(old, new)` (kills other sessions)
+- [~] M9.2 `update_profile(name, avatar)`; `change_password(old, new)` (kills other sessions) — `change_password` done in M1 (needed for `must_change_pw`); `update_profile` pending
 - [ ] M9.3 Sessions: `device_label` from User-Agent; `list_my_sessions`, `revoke_my_session`, `revoke_other_sessions`
 - [ ] M9.4 Admin: `admin_list_user_sessions`, `admin_revoke_user_sessions` (`users.revoke_sessions`)
 - [ ] M9.5 Daily expired-session purge job
@@ -401,6 +401,15 @@ Blockers first; each names the item that proves it.
 | 2026-11-15 | Locales: **en** (source) + **so** (placeholder text, needs native review). No Arabic | User decision |
 | 2026-11-15 | Fluent wraps arguments in Unicode isolation marks (U+2068/U+2069) | Correct for mixed-direction text; tests comparing strings must strip them |
 | 2026-11-15 | Browser checks run with `mcr.microsoft.com/playwright:v1.56.1-noble` via Docker | Host (Ubuntu 26.04) lacks Chromium system libs; installing them needs sudo |
+| 2026-11-16 | `APP_URL` added (required in production); CSRF compares `Origin` with it | The `dx serve` dev proxy rewrites `Host` and sends no `X-Forwarded-Host`, so an Origin-vs-Host check blocked every browser POST in dev. §20 already needs `APP_URL` for email links |
+| 2026-11-16 | Client IP only from a configured proxy header (`CLIENT_IP_HEADER`, rightmost `x-forwarded-for` value) | `dioxus::serve` exposes no peer address, and behind Caddy the peer is the proxy anyway. Unset → IP unknown, rate limits fall back to per-email keys |
+| 2026-11-16 | Login rate limiter is in memory (per instance) | Replaced by the Postgres limiter in M14.2, same call sites |
+| 2026-11-16 | Security settings read from `settings` on each request, with code defaults | No seeds/cache yet; M2.8/M2.9 add both |
+| 2026-11-16 | Super Admin = `is_system` role named `Super Admin`, flagged `is_super_admin` | Computed, not stored (§8); M2.3 expands it to the full registry |
+| 2026-11-16 | Own `index.html` (= dx's production template) | dx's dev template imports Google Fonts (Inter), which the CSP blocks; dev and prod now render the same head |
+| 2026-11-16 | `toast.js` loaded with `document::Script { defer }` | A plain `script {}` in the body ran twice (SSR HTML + hydration), throwing "TOAST_PROPS already declared" |
+| 2026-11-16 | CSP keeps `'unsafe-inline'` and `'unsafe-eval'` for scripts | Dioxus hydration injects inline scripts; Rust/UI uses `document::eval`. Revisit with nonces later |
+| 2026-11-16 | `cargo sqlx prepare` runs with `--all-targets` | Test-only `query!` calls need offline data too |
 | 2026-11-15 | Password minimum length uses the blueprint's existing key `security.password_min_length`, not a new `security.min_password_length` | Avoid two keys for one setting |
 
 ## Rust/UI components installed

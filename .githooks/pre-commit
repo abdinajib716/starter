@@ -16,7 +16,7 @@ cargo clippy -q --target wasm32-unknown-unknown -- -D warnings
 if [ -f .env ]; then set -a; . ./.env; set +a; fi
 if [ -n "${DATABASE_URL:-}" ] && pg_isready -q -d "$DATABASE_URL" 2>/dev/null; then
   echo "pre-commit: cargo sqlx prepare --check"
-  cargo sqlx prepare --check -- --no-default-features --features server
+  cargo sqlx prepare --check -- --all-targets --no-default-features --features server
 else
   echo "pre-commit: WARNING dev DB not reachable, skipping .sqlx freshness check"
 fi

@@ -19,14 +19,23 @@ uuid = { version = "1", features = ["serde"] }
 
 # ---- server-only (feature "server"); must never reach the wasm build ----
 anyhow = { version = "1", optional = true }
+argon2 = { version = "0.6", optional = true }
+base64 = { version = "0.22", optional = true }
+getrandom = { version = "0.3", optional = true }
+ipnet = { version = "2", optional = true }
+sha2 = { version = "0.10", optional = true }
+time = { version = "0.3", optional = true }
 dotenvy = { version = "0.15", optional = true }
 figment = { version = "0.10", features = ["env"], optional = true }
-sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "postgres", "macros", "migrate", "uuid", "time", "json"], optional = true }
-tokio = { version = "1", features = ["sync", "time"], optional = true }
-tower-http = { version = "0.6", features = ["request-id", "trace", "util"], optional = true }
+sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "postgres", "macros", "migrate", "uuid", "time", "json", "ipnet"], optional = true }
+tokio = { version = "1", features = ["sync", "time", "rt"], optional = true }
+tower-http = { version = "0.6", features = ["request-id", "trace", "util", "set-header", "limit", "timeout"], optional = true }
 tracing = { version = "0.1", optional = true }
 web-sys = { version = "0.3", default-features = false, features = ["Attr", "Blob", "console", "CssStyleDeclaration", "Document", "DomRect", "DomTokenList", "DragEvent", "Element", "Event", "EventTarget", "History", "HtmlAnchorElement", "HtmlDocument", "HtmlElement", "HtmlInputElement", "InputEvent", "KeyboardEvent", "Location", "MediaQueryList", "MouseEvent", "MutationObserver", "MutationObserverInit", "MutationRecord", "Navigator", "NamedNodeMap", "Node", "NodeList", "PointerEvent", "ScrollBehavior", "ScrollIntoViewOptions", "ScrollLogicalPosition", "ScrollToOptions", "Storage", "Url", "Window"] }
 dioxus-i18n = "0.6.0"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 
 [features]
 default = ["web"]
@@ -36,6 +45,12 @@ mobile = ["dioxus/mobile"]
 server = [
     "dioxus/server",
     "dep:anyhow",
+    "dep:argon2",
+    "dep:base64",
+    "dep:getrandom",
+    "dep:ipnet",
+    "dep:sha2",
+    "dep:time",
     "dep:dotenvy",
     "dep:figment",
     "dep:sqlx",

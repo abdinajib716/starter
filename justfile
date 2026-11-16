@@ -23,7 +23,7 @@ migration name:
 
 # Refresh .sqlx/ offline query data (commit the result)
 prepare:
-    cargo sqlx prepare -- --no-default-features --features server
+    cargo sqlx prepare -- --all-targets --no-default-features --features server
 
 # fmt check + clippy for both the server and the wasm build
 lint:

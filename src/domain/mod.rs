@@ -26,3 +26,70 @@ pub struct ServerInfo {
     pub tenancy: TenancyMode,
     pub db: String,
 }
+
+/// Where the client goes after a successful login (§7 step 8).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum AfterLogin {
+    Home,
+    /// `must_change_pw`: the profile page with the change-password form.
+    ChangePassword,
+}
+
+/// The signed-in user as the UI sees it (`current_user()`, §8). No secrets.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct UserInfo {
+    pub id: uuid::Uuid,
+    pub email: String,
+    pub full_name: String,
+    pub role_name: String,
+    pub is_super_admin: bool,
+    pub permissions: Vec<String>,
+    pub must_change_pw: bool,
+}
+
+impl UserInfo {
+    /// Cosmetic check for hiding UI (§7); the server re-checks in every server fn.
+    #[allow(dead_code)] // used by PermissionGate (M2.6)
+    pub fn can(&self, permission: &str) -> bool {
+        self.is_super_admin || self.permissions.iter().any(|p| p == permission)
+    }
+
+    pub fn initials(&self) -> String {
+        self.full_name
+            .split_whitespace()
+            .filter_map(|w| w.chars().next())
+            .take(2)
+            .collect::<String>()
+            .to_uppercase()
+    }
+}
+
+/// Stable error codes in `ServerFnError::ServerError { message }` (§26 rule 2): the client
+/// translates them, the server never sends sentences.
+pub mod errors {
+    use dioxus::prelude::ServerFnError;
+
+    #[cfg_attr(not(feature = "server"), allow(dead_code))]
+    pub fn coded(status: u16, code: &str) -> ServerFnError {
+        ServerFnError::ServerError {
+            message: code.to_string(),
+            code: status,
+            details: None,
+        }
+    }
+
+    /// Fluent message id for an error: `auth.invalid_credentials` → `err-auth-invalid-credentials`.
+    /// Unknown or transport errors map to `err-generic`.
+    pub fn i18n_key(err: &ServerFnError) -> String {
+        match err {
+            ServerFnError::ServerError { message, .. }
+                if message
+                    .chars()
+                    .all(|c| c.is_ascii_lowercase() || c == '.' || c == '_') =>
+            {
+                format!("err-{}", message.replace(['.', '_'], "-"))
+            }
+            _ => "err-generic".to_string(),
+        }
+    }
+}
