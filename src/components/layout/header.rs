@@ -36,17 +36,17 @@ pub fn Header(
         } else {
             ""
         },
-        if scrolled { "shadow" } else { "shadow-none" },
+        // The reference blurs through an `::after` layer at `-z-10` inside the header; in
+        // our tree Chrome gives that layer an empty backdrop (nothing blurs), so the same
+        // 20% background + blur goes on the sticky header itself.
+        if scrolled {
+            "shadow bg-background/20 backdrop-blur-lg"
+        } else {
+            "shadow-none"
+        },
         class.as_deref().unwrap_or("")
     );
-    let inner = tw_merge!(
-        "relative flex h-full items-center gap-3 p-4 sm:gap-4",
-        if scrolled {
-            "after:absolute after:inset-0 after:-z-10 after:bg-background/20 after:backdrop-blur-lg"
-        } else {
-            ""
-        }
-    );
+    let inner = "relative flex h-full items-center gap-3 p-4 sm:gap-4";
     rsx! {
         header { class: "{class}",
             div { class: "{inner}",
