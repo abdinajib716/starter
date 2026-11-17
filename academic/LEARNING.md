@@ -1742,3 +1742,40 @@ pub async fn bulk(
 **Concepts:** [match and patterns](CONCEPTS.md#match), [Result and ?](CONCEPTS.md#result), [transactions](CONCEPTS.md#transaction), [iterators](CONCEPTS.md#iterator)
 
 **Try it:** on `/users`, tick "Select all" (your own row is on the page) and press Deactivate. Expected: a success toast for the others and a warning toast "Skipped 1: You can't do that to your own account." Your own account stays active.
+
+## 40. A chart with no missing days: `generate_series` + `LEFT JOIN`
+**Feature:** the dashboard's sign-in chart always has 14 points, one per day, even on days with no sign-ins (§10, M10.3).
+
+**Code:**
+
+`src/server/services/dashboard.rs` lines 72–85
+
+```rust
+    let daily = sqlx::query!(
+        r#"SELECT to_char(d, 'YYYY-MM-DD') AS "day!",
+                  count(a.id) FILTER (WHERE a.action = 'auth.login') AS "ok!",
+                  count(a.id) FILTER (WHERE a.action = 'auth.login_failed') AS "failed!"
+           FROM generate_series(date_trunc('day', now()) - interval '13 days', date_trunc('day', now()),
+                                interval '1 day') AS d
+           LEFT JOIN audit_logs a
+             ON a.at >= d AND a.at < d + interval '1 day'
+            AND a.action IN ('auth.login', 'auth.login_failed')
+            AND (a.org_id = $1 OR a.org_id IS NULL)
+           GROUP BY d ORDER BY d"#,
+        org
+    )
+    .fetch_all(pool);
+```
+
+**Line notes:**
+
+1. L76–77 — `generate_series(start, end, interval '1 day')` produces one row per day, today and the 13 days before, whether or not anything happened.
+2. L78 — `LEFT JOIN` keeps every day even when no audit row matches it (an inner `JOIN` would drop empty days, and the chart would jump over them).
+3. L79 — each audit row is attached to the day whose 24 hours contain it.
+4. L74–75 — `count(a.id) FILTER (WHERE …)` counts successful and failed sign-ins separately in one pass; `count(a.id)` is 0 for an empty day because `a.id` is NULL there.
+5. L73 — `AS "day!"`: the `!` tells SQLx the column is never NULL, so Rust gets a `String`, not `Option<String>`.
+6. L85 — `.fetch_all(pool)` only builds the future here; it runs later inside `tokio::try_join!` together with the other eight dashboard queries.
+
+**Concepts:** [SQLx macros](CONCEPTS.md#sqlx-macros), [async and Future](CONCEPTS.md#async), [Option](CONCEPTS.md#option)
+
+**Try it:** run `cargo test --features server numbers_match_the_data`. Then change `LEFT JOIN` to `JOIN` and run it again: the test fails on `logins_14d.len() == 14`, because days without sign-ins disappear.

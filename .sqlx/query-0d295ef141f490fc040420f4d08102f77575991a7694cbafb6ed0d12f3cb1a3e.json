@@ -1,0 +1,44 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n             count(*) FILTER (WHERE deleted_at IS NULL) AS \"total!\",\n             count(*) FILTER (WHERE deleted_at IS NULL AND created_at > now() - interval '30 days') AS \"new30!\",\n             count(*) FILTER (WHERE deleted_at IS NULL AND last_login_at > now() - interval '30 days') AS \"active30!\",\n             count(*) FILTER (WHERE deleted_at IS NULL AND last_login_at > now() - interval '60 days'\n                              AND last_login_at <= now() - interval '30 days') AS \"active_prev!\"\n           FROM users WHERE org_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "total!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "new30!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 2,
+        "name": "active30!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 3,
+        "name": "active_prev!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "0d295ef141f490fc040420f4d08102f77575991a7694cbafb6ed0d12f3cb1a3e"
+}

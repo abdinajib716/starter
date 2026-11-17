@@ -130,15 +130,26 @@ fn YAxis(ticks: Vec<f64>, top: f64, plot_h: f64, max: f64, prefix: &'static str)
 /// Recharts `BarChart` + `Bar radius={[4,4,0,0]}` (`overview.tsx`).
 #[component]
 pub fn BarChart(
-    labels: Vec<&'static str>,
+    labels: Vec<String>,
     values: Vec<f64>,
     #[props(default = 350.0)] height: f64,
     #[props(default = "")] y_prefix: &'static str,
     #[props(default = "fill-primary")] bar_class: &'static str,
+    /// Counts: never draw fractional ticks (0, 0.5, 1 …) for small values.
+    #[props(default)]
+    integer: bool,
 ) -> Element {
     let (width, id) = use_width();
     let w = width();
-    let ticks = nice_ticks(values.iter().cloned().fold(0.0, f64::max), 5);
+    let top_value = values.iter().cloned().fold(0.0, f64::max);
+    let ticks = nice_ticks(
+        if integer {
+            top_value.max(4.0)
+        } else {
+            top_value
+        },
+        5,
+    );
     let max = *ticks.last().unwrap_or(&1.0);
     let (left, top) = (MARGIN + Y_AXIS_WIDTH, MARGIN);
     let plot_w = (w - left - MARGIN).max(1.0);
@@ -147,7 +158,7 @@ pub fn BarChart(
     let bar_w = band * 0.8;
     let r = 4.0_f64.min(bar_w / 2.0);
 
-    let bars: Vec<(String, f64, &'static str)> = values
+    let bars: Vec<(String, f64, String)> = values
         .iter()
         .zip(&labels)
         .enumerate()
@@ -165,7 +176,7 @@ pub fn BarChart(
                 x2 = x + bar_w - rr,
                 xr = x + bar_w,
             );
-            (d, left + band * (i as f64 + 0.5), *l)
+            (d, left + band * (i as f64 + 0.5), l.clone())
         })
         .collect();
 
@@ -193,9 +204,10 @@ pub fn BarChart(
 /// Recharts `AreaChart` with `type="monotone"` areas (`analytics-chart.tsx`).
 #[component]
 pub fn AreaChart(
-    labels: Vec<&'static str>,
+    labels: Vec<String>,
     series: Vec<Series>,
     #[props(default = 300.0)] height: f64,
+    #[props(default)] integer: bool,
 ) -> Element {
     let (width, id) = use_width();
     let w = width();
@@ -203,7 +215,7 @@ pub fn AreaChart(
         .iter()
         .flat_map(|s| s.values.iter().cloned())
         .fold(0.0, f64::max);
-    let ticks = nice_ticks(all_max, 5);
+    let ticks = nice_ticks(if integer { all_max.max(4.0) } else { all_max }, 5);
     let max = *ticks.last().unwrap_or(&1.0);
     let (left, top) = (MARGIN + Y_AXIS_WIDTH, MARGIN);
     let plot_w = (w - left - MARGIN).max(1.0);

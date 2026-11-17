@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT r.name, count(u.id) AS \"n!\" FROM roles r\n           LEFT JOIN users u ON u.role_id = r.id AND u.org_id = $1 AND u.deleted_at IS NULL\n           WHERE r.org_id = $1 OR r.org_id IS NULL\n           GROUP BY r.id, r.name ORDER BY 2 DESC, r.name",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "roles",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "n!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "23bb5970453647d795e8df3fb101e12f32cc951362c64f2bc145b20931d9ec9f"
+}

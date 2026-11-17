@@ -17,7 +17,6 @@ mod sign_out_dialog;
 mod skip_to_main;
 mod team_switcher;
 mod theme_switch;
-mod top_nav;
 
 pub use app_shell::{AppShell, UserResource, use_current_user};
 pub use config_drawer::ConfigDrawer;
@@ -30,4 +29,3 @@ pub use navigation_progress::NavigationProgress;
 pub use profile_dropdown::ProfileDropdown;
 pub use search::Search;
 pub use theme_switch::ThemeSwitch;
-pub use top_nav::{TopNav, TopNavLink};

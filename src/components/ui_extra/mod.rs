@@ -7,4 +7,3 @@ pub mod icon;
 pub mod menu;
 pub mod sheet;
 pub mod sidebar;
-pub mod tabs;

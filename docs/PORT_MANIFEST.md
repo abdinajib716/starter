@@ -91,7 +91,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/layout/nav-group.tsx` | layout | src/components/layout/nav_group.rs | done | collapsible sections; dropdown when icons-only |
 | `src/components/layout/nav-user.tsx` | layout | src/components/layout/nav_user.rs | done | real user (current_user) |
 | `src/components/layout/team-switcher.tsx` | layout | src/components/layout/team_switcher.rs | done | single tenant: app name + org; multi-tenant list in M16 |
-| `src/components/layout/top-nav.tsx` | layout | src/components/layout/top_nav.rs | done | menu below lg |
+| `src/components/layout/top-nav.tsx` | layout | — | n/a | removed at the owner's request (2026-11-17): only used by the dashboard, all its links were disabled demo items |
 | `src/components/layout/types.ts` | data | src/components/layout/nav_config.rs | done | typed NavGroup/NavItem/NavLink |
 | `src/components/learn-more.tsx` | component | src/components/learn_more.rs | done | popover help; reference uses it only on Clerk pages |
 | `src/components/long-text.tsx` | component | src/components/long_text.rs | done | tooltip ≥ sm, popover < sm, only when overflowing |
@@ -165,10 +165,10 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/features/chats/data/convo.json` | data | src/pages/chats/convo.json | done | embedded demo data |
 | `src/features/chats/index.tsx` | feature | src/pages/chats/mod.rs | done | initials instead of remote photos (CSP); demo flag `demo.chats` in M7 |
 | `src/features/dashboard/components/analytics-chart.tsx` | feature | src/components/ui_extra/chart.rs | done | SVG monotone area chart |
-| `src/features/dashboard/components/analytics.tsx` | feature | src/pages/dashboard/analytics.rs | done |  |
-| `src/features/dashboard/components/overview.tsx` | feature | src/pages/dashboard/overview.rs | done | SVG bar chart, Recharts ticks |
-| `src/features/dashboard/components/recent-sales.tsx` | feature | src/pages/dashboard/recent_sales.rs | done |  |
-| `src/features/dashboard/index.tsx` | feature | src/pages/dashboard/mod.rs | done | UI only; sample figures until M10 |
+| `src/features/dashboard/components/analytics.tsx` | feature | src/pages/dashboard/activity.rs | done | Activity tab on real data (M10): failed sign-ins, backups, audit by module, users by role, new users per week |
+| `src/features/dashboard/components/overview.tsx` | feature | src/pages/dashboard/overview.rs | done | Overview tab on real data (M10): KPIs + sign-ins 14 days |
+| `src/features/dashboard/components/recent-sales.tsx` | feature | src/pages/dashboard/overview.rs | done | became "Recent activity" (last 10 audit rows) |
+| `src/features/dashboard/index.tsx` | feature | src/pages/dashboard/mod.rs | done | real KPIs via `get_dashboard()` (M10); demo top nav, Download button and disabled tabs removed |
 | `src/features/errors/forbidden.tsx` | feature | src/pages/errors/mod.rs | done | `ErrorView` + `ErrorKind` |
 | `src/features/errors/general-error.tsx` | feature | src/pages/errors/mod.rs | done | `ErrorView` + `ErrorKind` |
 | `src/features/errors/maintenance-error.tsx` | feature | src/pages/errors/mod.rs | done | `ErrorView` + `ErrorKind` |

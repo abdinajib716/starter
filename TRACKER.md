@@ -25,7 +25,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 7 | System Setting (tabs, deps, feature flags) | ⚪ | |
 | 8 | Realtime (SSE) + notifications | ⚪ | |
 | 9 | Profile: password, sessions, 2FA | ⚪ | |
-| 10 | Dashboard KPIs + charts | ⚪ | |
+| 10 | Dashboard KPIs + charts | 🟢 done | branch `m10/dashboard`; live push waits for M8 |
 | 11 | Storage (local) + avatars + Backup | ⚪ | |
 | 12 | Backup encryption, R2, off-site, **restore** | ⚪ | |
 | 13 | Email via Resend | ⚪ | |
@@ -267,15 +267,15 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 **Done when:** every number matches a hand-run SQL query.
 
-- [ ] M10.1 `get_dashboard(range)` → one `DashboardData`, queries via `tokio::try_join!`, ~5 s cache
-- [ ] M10.2 KPI cards with delta + sparkline: total users, active 30d, online now, logins today vs yesterday, failed 24h, last backup
-- [ ] M10.3 Chart: logins & failed logins, 14 days (line, `generate_series` gap fill)
-- [ ] M10.4 Chart: audit activity by module, 7 days (bar)
-- [ ] M10.5 Chart: users by role (donut)
-- [ ] M10.6 Chart: new users per week, 12 weeks (bar)
-- [ ] M10.7 Recent activity list (last 10 audit rows, live)
-- [ ] M10.8 Charts via Rust/UI `charts` (ApexCharts runtime) — confirm SSR/hydration behaviour, else custom SVG (§15.6)
-- [ ] M10.9 Dev-only `seed --demo` command (users, logins, failed logins, audit rows spread over 90 days) so charts can be checked against hand-run SQL. Refuses to run when `APP_ENV=production`.
+- [x] M10.1 `get_dashboard(range)` → one `DashboardData`, queries via `tokio::try_join!`, ~5 s cache — `services/dashboard.rs` (9 queries, per-org 5 s cache); page refreshes every 30 s
+- [~] M10.2 KPI cards with delta + sparkline: total users, active 30d, online now, logins today vs yesterday, failed 24h, last backup — all six with deltas; sparklines not drawn (the reference cards have none)
+- [x] M10.3 Chart: logins & failed logins, 14 days (line, `generate_series` gap fill)
+- [x] M10.4 Chart: audit activity by module, 7 days (bar)
+- [x] M10.5 Chart: users by role (donut) — horizontal bars instead of a donut (reference style)
+- [x] M10.6 Chart: new users per week, 12 weeks (bar)
+- [~] M10.7 Recent activity list (last 10 audit rows, live) — list done (30 s refresh); live push with SSE in M8
+- [x] M10.8 Charts via Rust/UI `charts` (ApexCharts runtime) — confirm SSR/hydration behaviour, else custom SVG (§15.6) — custom SVG (`ui_extra/chart.rs`); Rust/UI `charts` + ApexCharts runtime removed
+- [-] M10.9 Dev-only `seed --demo` command — **dropped at the owner's request (2026-11-17): no demo seed data**; the numbers are checked by `dashboard::tests::numbers_match_the_data` (known rows → every field compared)
 
 ---
 

@@ -1,0 +1,44 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n             count(*) FILTER (WHERE action = 'auth.login' AND at >= date_trunc('day', now())) AS \"today!\",\n             count(*) FILTER (WHERE action = 'auth.login' AND at >= date_trunc('day', now()) - interval '1 day'\n                              AND at < date_trunc('day', now())) AS \"yesterday!\",\n             count(*) FILTER (WHERE action = 'auth.login_failed' AND at > now() - interval '24 hours') AS \"failed!\",\n             count(*) FILTER (WHERE action = 'auth.login_failed' AND at > now() - interval '48 hours'\n                              AND at <= now() - interval '24 hours') AS \"failed_prev!\"\n           FROM audit_logs\n           WHERE (org_id = $1 OR org_id IS NULL) AND at > now() - interval '2 days'\n             AND action IN ('auth.login', 'auth.login_failed')",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "today!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "yesterday!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 2,
+        "name": "failed!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 3,
+        "name": "failed_prev!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "c01877c288651b09960a18588b79ec4b936aaf36e3c6b130b50363f8c7539f9e"
+}

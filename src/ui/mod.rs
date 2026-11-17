@@ -5,7 +5,6 @@ pub mod badge;
 pub mod breadcrumb;
 pub mod button;
 pub mod card;
-pub mod charts;
 pub mod checkbox;
 pub mod collapsible;
 pub mod command;
