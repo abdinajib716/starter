@@ -37,7 +37,7 @@ pub async fn load(pool: &PgPool, raw: &str, hours: i64) -> sqlx::Result<Option<C
     let row = sqlx::query!(
         r#"SELECT s.id AS session_id, s.last_seen_at < now() - interval '1 minute' AS "stale!",
                   u.id AS user_id, u.org_id, u.email::text AS "email!", u.full_name,
-                  u.must_change_pw, u.locale,
+                  u.must_change_pw, u.locale, u.timezone,
                   r.id AS role_id, r.name AS role_name, r.is_system,
                   COALESCE(array_agg(rp.permission_key) FILTER (WHERE rp.permission_key IS NOT NULL),
                            '{}') AS "permissions!"
@@ -84,5 +84,6 @@ pub async fn load(pool: &PgPool, raw: &str, hours: i64) -> sqlx::Result<Option<C
         permissions,
         must_change_pw: r.must_change_pw,
         locale: r.locale,
+        timezone: r.timezone,
     }))
 }

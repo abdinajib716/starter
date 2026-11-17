@@ -2,8 +2,11 @@
 //! status / role filters, sort and paging; Active · Deleted tabs; row and bulk actions;
 //! add / edit / delete / restore / purge dialogs; CSV export.
 mod actions;
+mod detail;
 mod dialogs;
 mod table;
+
+pub use detail::UserDetailPage;
 
 use dioxus::prelude::*;
 use dioxus_i18n::t;

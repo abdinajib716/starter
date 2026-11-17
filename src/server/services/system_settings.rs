@@ -154,13 +154,7 @@ pub fn check(
     if !locales.contains(&s("i18n.default_locale")) {
         return Err("settings.default_locale_not_enabled");
     }
-    let tz = s("app.timezone");
-    if !(tz == "UTC"
-        || (tz.contains('/')
-            && tz
-                .chars()
-                .all(|c| c.is_ascii_alphanumeric() || "/_-+".contains(c))))
-    {
+    if !crate::util::time::valid_zone(&s("app.timezone")) {
         return Err("settings.timezone_invalid");
     }
     if s("backup.schedule_cron").split_whitespace().count() != 6 {
@@ -460,6 +454,7 @@ mod tests {
                 permissions: crate::server::rbac::all_keys(),
                 must_change_pw: false,
                 locale: None,
+                timezone: None,
             }),
             request_id: None,
             meta: Default::default(),

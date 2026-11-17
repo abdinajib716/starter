@@ -155,6 +155,7 @@ mod tests {
             permissions: Default::default(),
             must_change_pw: false,
             locale: None,
+            timezone: None,
         }
     }
 

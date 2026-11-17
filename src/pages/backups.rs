@@ -132,6 +132,7 @@ pub fn Backups() -> Element {
 
 #[component]
 fn BackupLine(b: BackupRow, on_change: EventHandler<()>) -> Element {
+    let tz = crate::components::layout::use_tz();
     let me = use_current_user();
     let (can_download, can_delete) = (
         me.as_ref().is_some_and(|u| u.can("backup.download")),
@@ -156,7 +157,7 @@ fn BackupLine(b: BackupRow, on_change: EventHandler<()>) -> Element {
     rsx! {
         tr { class: TR,
             td { class: TD,
-                div { class: "font-medium tabular-nums", "{when(b.created_at)}" }
+                div { class: "font-medium tabular-nums", "{when(b.created_at, &tz)}" }
                 div { class: "font-mono text-xs text-muted-foreground", "{b.filename}" }
             }
             td { class: TD, {status} }

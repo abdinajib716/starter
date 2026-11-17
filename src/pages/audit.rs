@@ -13,7 +13,7 @@ use crate::components::layout::{
 };
 use crate::components::permission_gate::PermissionGate;
 use crate::components::skeletons::TableSkeleton;
-use crate::components::ui_extra::form::{DatePicker, format_date};
+use crate::components::ui_extra::form::DatePicker;
 use crate::components::ui_extra::icon::{Icon, IconType};
 use crate::domain::audit::{AuditCursor, AuditPage, AuditQuery, AuditRow, diff};
 use crate::pages::dashboard::action_label;
@@ -37,16 +37,6 @@ fn parse_date(s: Option<&str>) -> Option<time::Date> {
 
 fn iso(d: time::Date) -> String {
     format!("{:04}-{:02}-{:02}", d.year(), d.month() as u8, d.day())
-}
-
-fn when(t: time::OffsetDateTime) -> String {
-    format!(
-        "{}, {:02}:{:02}:{:02}",
-        format_date(t.date()),
-        t.hour(),
-        t.minute(),
-        t.second()
-    )
 }
 
 #[component]
@@ -93,6 +83,7 @@ fn download_csv() {
 
 #[component]
 fn AuditTable(query: Query) -> Element {
+    let tz = crate::components::layout::use_tz();
     let state = TableState::use_from_query(&query, "filter", FILTER_COLUMNS);
     let from = use_signal(|| parse_date(query.get("from")));
     let to = use_signal(|| parse_date(query.get("to")));
@@ -200,8 +191,8 @@ fn AuditTable(query: Query) -> Element {
         div { class: "flex flex-1 flex-col gap-4",
             Toolbar { state, placeholder: t!("audit-search"), filters, columns }
             div { class: "flex flex-wrap items-center gap-2",
-                div { class: "w-44", DatePicker { selected: from, placeholder: t!("audit-from") } }
-                div { class: "w-44", DatePicker { selected: to, placeholder: t!("audit-to") } }
+                DatePicker { selected: from, placeholder: t!("audit-from"), class: "h-8 w-44 px-3" }
+                DatePicker { selected: to, placeholder: t!("audit-to"), class: "h-8 w-44 px-3" }
                 if dates_set {
                     Button { variant: ButtonVariant::Ghost, class: "h-8 px-2 lg:px-3",
                         onclick: move |_| { let (mut f, mut t2) = (from, to); f.set(None); t2.set(None); },
@@ -215,7 +206,7 @@ fn AuditTable(query: Query) -> Element {
                     table { class: "w-full caption-bottom text-sm",
                         thead { class: "[&_tr]:border-b",
                             tr { class: TR,
-                                th { class: TH, {t!("audit-col-time")} }
+                                th { class: TH, {crate::ta!("audit-col-time", zone: crate::util::time::zone_label(&tz))} }
                                 th { class: TH, {t!("audit-col-actor")} }
                                 th { class: TH, {t!("audit-col-action")} }
                                 if state.visible("entity") { th { class: TH, {t!("audit-col-entity")} } }
@@ -264,6 +255,7 @@ fn AuditLine(
     cols: usize,
     on_toggle: EventHandler<i64>,
 ) -> Element {
+    let tz = crate::components::layout::use_tz();
     let id = row.id;
     let changes = diff(row.before.as_deref(), row.after.as_deref());
     let entity = match (&row.entity_type, &row.entity_id) {
@@ -277,7 +269,7 @@ fn AuditLine(
             "data-state": if open { "selected" } else { "" },
             "aria-expanded": "{open}",
             onclick: move |_| on_toggle.call(id),
-            td { class: tw_merge!(TD, "text-muted-foreground tabular-nums"), "{when(row.at)}" }
+            td { class: tw_merge!(TD, "text-muted-foreground tabular-nums"), "{crate::util::time::datetime_secs(row.at, &tz)}" }
             td { class: TD, {row.actor_email.clone().unwrap_or_else(|| t!("dash-system"))} }
             td { class: TD,
                 div { class: "font-medium", "{action_label(&row.action)}" }

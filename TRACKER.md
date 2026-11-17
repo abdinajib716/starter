@@ -129,7 +129,7 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 - [ ] M3.8 i18n layer wired in, using the crate chosen in M0.25 (no UI strings before M0.25 is decided); `en` source of truth. Base already in place from M0.25 (`src/i18n.rs`, `locales/*.ftl`, `App` init); remaining: own `t!` wrapper that logs a missing key once and returns the key instead of panicking (`dioxus_i18n::t!` panics when even `en` lacks it), move every UI string to keys
 - [ ] M3.9 Locale resolution: `users.locale` → cookie → `Accept-Language` → default; SSR first paint correct
 - [-] M3.10 RTL: `dir="rtl"` by locale; logical Tailwind utilities (`ms-*`, `ps-*`, `text-start`) — **replaced by SPEC-02** (see "UI port" below)
-- [ ] M3.11 `fmt::date()` / `fmt::number()` helpers (UTC stored, user timezone + locale displayed)
+- [x] M3.11 `fmt::date()` / `fmt::number()` helpers (UTC stored, user timezone + locale displayed) — `util/time.rs` (jiff, bundled IANA db, same text on server and client); zone = own (`/profile`) else `app.timezone`
 
 ## UI port — SPEC-02 v3: shadcn-admin → Dioxus + Rust/UI
 
@@ -460,6 +460,8 @@ Blockers first; each names the item that proves it.
 | 2026-11-16 | Data tables: own `components/data_table` kit (signals + `UrlState`) instead of a TanStack port or Rust/UI `data_table` | the reference's behaviour (URL sync, faceted counts, page window, bulk bar) is small; plain filter → sort → paginate over a `Vec` is enough for demo data and maps 1:1 to server-side paging in M5 |
 | 2026-11-16 | URL array filters are comma-separated (`?status=todo,done`), not JSON (`?status=["todo"]`) | readable links; values never contain commas |
 | 2026-11-17 | Demo UI removed at the owner's request: Tasks, Apps, Chats, Help Center, demo settings forms, sign-in-2 / sign-up / forgot / OTP screens, team switcher menu, upgrade/billing menu items, social buttons; unused Rust/UI components and hooks deleted; sidebar = §8 tree (Dashboard + Access Control) | the app shows only real features; forgot password / invites return with M13, the 2FA step with M9 |
+| 2026-11-17 | Dialogs centred with flexbox, not `translate(-50%)` | a transformed ancestor became the containing block of fixed-position menus, so selects/date pickers opened in the wrong place |
+| 2026-11-17 | Any `401 auth.unauthenticated` from a server call reloads to `/sign-in?reason=session` | after a password/role change or remote sign-out the page could not load anything but stayed usable-looking |
 | 2026-11-17 | Backup scheduler: own 30 s loop + `cron` crate instead of `tokio-cron-scheduler`; leader by `pg_try_advisory_lock` | one small dependency; reading the schedule each tick makes settings changes apply without re-registering |
 | 2026-11-17 | Settings dependency rules whose prerequisite module doesn't exist yet (test email M13, off-site test M12, own 2FA M9) refuse the change | safe default: nothing can be switched into a state the app can't honour |
 | 2026-11-17 | Audit growth: monthly range partitions on `at` once `audit_logs` passes ~10 M rows; old partitions detached + dumped to storage, never UPDATE/DELETE | keeps the append-only trigger intact (it is inherited by each partition) and makes retention a cheap DETACH |

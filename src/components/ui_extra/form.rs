@@ -60,12 +60,16 @@ pub fn TextInput(
     #[props(default)] disabled: bool,
     #[props(into, optional)] class: Option<String>,
     #[props(optional)] oninput: Option<EventHandler<String>>,
+    /// `<datalist>` id for browser suggestions.
+    #[props(into, optional)]
+    list: Option<String>,
 ) -> Element {
     let mut value = value;
     rsx! {
         input {
             id,
             r#type,
+            list,
             placeholder,
             disabled,
             "aria-invalid": if invalid { "true" } else { "false" },
@@ -286,7 +290,13 @@ pub fn format_date(d: Date) -> String {
 /// `date-picker.tsx`: outline button + popover calendar; future dates and dates before
 /// 1900 are disabled. Month and year can be picked from dropdowns (`captionLayout="dropdown"`).
 #[component]
-pub fn DatePicker(selected: Signal<Option<Date>>, placeholder: String) -> Element {
+pub fn DatePicker(
+    selected: Signal<Option<Date>>,
+    placeholder: String,
+    /// Extra trigger classes (size), merged over the default `w-60`.
+    #[props(into, optional)]
+    class: Option<String>,
+) -> Element {
     let mut selected = selected;
     let open = use_signal(|| false);
     let start = selected().unwrap_or_else(today);
@@ -326,7 +336,7 @@ pub fn DatePicker(selected: Signal<Option<Date>>, placeholder: String) -> Elemen
                 button {
                     r#type: "button",
                     "data-empty": "{empty}",
-                    class: "inline-flex h-9 w-60 items-center justify-start gap-2 rounded-md border bg-background px-4 py-2 text-start text-sm font-normal whitespace-nowrap shadow-xs transition-all hover:bg-accent hover:text-accent-foreground data-[empty=true]:text-muted-foreground dark:border-input dark:bg-input/30",
+                    class: tw_merge!("inline-flex h-9 w-60 items-center justify-start gap-2 rounded-md border bg-background px-4 py-2 text-start text-sm font-normal whitespace-nowrap shadow-xs transition-all hover:bg-accent hover:text-accent-foreground data-[empty=true]:text-muted-foreground dark:border-input dark:bg-input/30", class.as_deref().unwrap_or("")),
                     {label.unwrap_or(placeholder)}
                     Icon { icon: IconType::Calendar, class: "ms-auto h-4 w-4 opacity-50" }
                 }

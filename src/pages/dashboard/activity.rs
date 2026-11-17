@@ -10,13 +10,14 @@ use crate::domain::dashboard::DashboardData;
 
 #[component]
 pub fn Activity(data: DashboardData) -> Element {
+    let tz = crate::components::layout::use_tz();
     let d = &data;
     let events_7d: i64 = d.activity_by_module.iter().map(|x| x.1).sum();
     let (backup_value, backup_note) = match &d.last_backup {
         Some(b) => (
             dioxus_i18n::te!(&format!("dash-backup-{}", b.status))
                 .unwrap_or_else(|_| b.status.clone()),
-            when(b.created_at),
+            when(b.created_at, &tz),
         ),
         None => (t!("dash-backup-none"), t!("dash-backup-none-note")),
     };

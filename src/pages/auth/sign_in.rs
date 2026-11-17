@@ -22,15 +22,21 @@ pub fn Login(next: String) -> Element {
     use_effect(move || {
         navigator().replace(Route::SignIn {
             redirect: next.clone(),
+            reason: String::new(),
         });
     });
     rsx! {}
 }
 
 #[component]
-pub fn SignIn(redirect: String) -> Element {
+pub fn SignIn(redirect: String, reason: String) -> Element {
     rsx! {
         AuthLayout {
+            if reason == "session" {
+                div { role: "status", class: "mx-auto mb-2 w-full max-w-sm rounded-lg border bg-card px-4 py-3 text-sm",
+                    {t!("auth-session-ended")}
+                }
+            }
             Card { class: "max-w-sm gap-4",
                 CardHeader {
                     CardTitle { class: "text-lg tracking-tight", {t!("login-title")} }

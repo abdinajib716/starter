@@ -10,9 +10,15 @@ use crate::i18n;
 use crate::pages::auth::{Login, SignIn};
 use crate::pages::errors::{Error401, Error403, Error404, Error500, Error503, ShellError};
 use crate::pages::{
-    audit::Audit, backups::Backups, dashboard::Dashboard, not_found::NotFound,
-    permissions::Permissions, profile::Profile, roles::Roles, system_settings::SystemSettings,
-    users::Users,
+    audit::Audit,
+    backups::Backups,
+    dashboard::Dashboard,
+    not_found::NotFound,
+    permissions::Permissions,
+    profile::Profile,
+    roles::Roles,
+    system_settings::SystemSettings,
+    users::{UserDetailPage, Users},
 };
 use crate::state::{Ui, UiPrefs};
 use crate::ui::toast::ToastToaster;
@@ -24,8 +30,9 @@ use crate::util::query::Query;
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
 pub enum Route {
-    #[route("/sign-in?:redirect")]
-    SignIn { redirect: String },
+    /// `reason=session`: the session ended (signed out elsewhere, password / role changed).
+    #[route("/sign-in?:redirect&:reason")]
+    SignIn { redirect: String, reason: String },
     /// Old login URL, kept as a redirect to `/sign-in`.
     #[route("/login?:next")]
     Login { next: String },
@@ -46,6 +53,8 @@ pub enum Route {
         Profile {},
         #[route("/users?:..query")]
         Users { query: Query },
+        #[route("/users/:id")]
+        UserDetailPage { id: uuid::Uuid },
         #[route("/system-settings")]
         SystemSettings {},
         #[route("/roles")]

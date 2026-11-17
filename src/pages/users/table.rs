@@ -14,7 +14,7 @@ use crate::components::data_table::{
 };
 use crate::components::long_text::LongText;
 use crate::components::skeletons::TableSkeleton;
-use crate::components::ui_extra::form::{CheckBox, format_date};
+use crate::components::ui_extra::form::CheckBox;
 use crate::components::ui_extra::icon::{Icon, IconType};
 use crate::domain::users::{UserPage, UserQuery, UserRow, UserSort, UserStatus};
 use crate::util::query::Query;
@@ -293,14 +293,15 @@ fn UserRowView(
     is_system: bool,
     deleted: bool,
 ) -> Element {
+    let tz = crate::components::layout::use_tz();
     let mut sel = state.selected;
     let id = user.id.to_string();
     let td = |meta: &str| tw_merge!(TD, CELL_BG, meta);
     let deleted_info = match (&user.deleted_by_email, user.deleted_at) {
         (Some(by), Some(at)) => {
-            crate::ta!("users-deleted-by", date: format_date(at.date()), by: by.clone())
+            crate::ta!("users-deleted-by", date: crate::util::time::date(at, &tz), by: by.clone())
         }
-        (None, Some(at)) => format_date(at.date()),
+        (None, Some(at)) => crate::util::time::date(at, &tz),
         _ => String::new(),
     };
     rsx! {
@@ -313,14 +314,18 @@ fn UserRowView(
                     onchange: move |on: bool| { if on { sel.write().insert(id.clone()); } else { sel.write().remove(&id); } },
                 }
             }
-            td { class: td(NAME_META), LongText { text: user.full_name.clone(), class: "max-w-36 ps-3" } }
+            td { class: td(NAME_META),
+                Link { to: Route::UserDetailPage { id: user.id }, class: "block hover:underline underline-offset-4",
+                    LongText { text: user.full_name.clone(), class: "max-w-36 ps-3" }
+                }
+            }
             if state.visible("email") {
                 td { class: td(""), div { class: "w-fit ps-2 text-nowrap", "{user.email}" } }
             }
             if !deleted && state.visible("lastLogin") {
                 td { class: td(""),
                     match user.last_login_at {
-                        Some(at) => rsx! { div { "{format_date(at.date())}" } },
+                        Some(at) => rsx! { div { title: "{crate::util::time::datetime(at, &tz)}", "{crate::util::time::date(at, &tz)}" } },
                         None => rsx! { div { class: "text-muted-foreground", {t!("users-never")} } },
                     }
                 }

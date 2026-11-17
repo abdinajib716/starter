@@ -240,9 +240,17 @@ pub async fn update_profile(
     ctx: &Ctx,
     user: &CurrentUser,
     full_name: String,
+    timezone: String,
 ) -> Result<(), crate::server::error::AppError> {
     use crate::server::error::AppError;
     let name = full_name.trim();
+    // Empty = follow the organization's time zone.
+    let tz = Some(timezone.trim().to_string()).filter(|t| !t.is_empty());
+    if let Some(t) = &tz
+        && !crate::util::time::valid_zone(t)
+    {
+        return Err(AppError::Validation("settings.timezone_invalid"));
+    }
     if name.is_empty() {
         return Err(AppError::Validation("users.name_required"));
     }
@@ -251,17 +259,20 @@ pub async fn update_profile(
     }
     let mut tx = pool.begin().await?;
     sqlx::query!(
-        "UPDATE users SET full_name = $2, updated_at = now() WHERE id = $1",
+        "UPDATE users SET full_name = $2, timezone = $3, updated_at = now() WHERE id = $1",
         user.id,
-        name
+        name,
+        tz
     )
     .execute(&mut *tx)
     .await?;
     audit::record(
         &mut tx,
         Entry {
-            before: Some(serde_json::json!({ "full_name": user.full_name })),
-            after: Some(serde_json::json!({ "full_name": name })),
+            before: Some(
+                serde_json::json!({ "full_name": user.full_name, "timezone": user.timezone }),
+            ),
+            after: Some(serde_json::json!({ "full_name": name, "timezone": tz })),
             ..user_entry(ctx, user, "profile.update")
         },
     )

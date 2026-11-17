@@ -25,6 +25,13 @@ pub fn use_current_user() -> Option<UserInfo> {
         .flatten()
 }
 
+/// The viewer's time zone (own, else the organization's `app.timezone`) for `util::time`.
+pub fn use_tz() -> String {
+    use_current_user()
+        .map(|u| u.timezone)
+        .unwrap_or_else(|| "UTC".into())
+}
+
 #[component]
 pub fn AppShell() -> Element {
     // Fetched during SSR and reused on hydration; the server guard already redirected
@@ -80,6 +87,7 @@ fn GoToLogin() -> Element {
     use_effect(|| {
         navigator().replace(Route::SignIn {
             redirect: String::new(),
+            reason: String::new(),
         });
     });
     rsx! {}

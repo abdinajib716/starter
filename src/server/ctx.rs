@@ -28,6 +28,8 @@ pub struct CurrentUser {
     pub must_change_pw: bool,
     #[allow(dead_code)] // M3.9 locale resolution
     pub locale: Option<String>,
+    /// Own time zone; `None` = the organization default (`app.timezone`).
+    pub timezone: Option<String>,
 }
 
 #[derive(Debug, Clone)]

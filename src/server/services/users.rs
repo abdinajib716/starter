@@ -165,6 +165,81 @@ fn dir(desc: bool) -> &'static str {
     if desc { "DESC" } else { "ASC" }
 }
 
+/// One user with sessions and recent audit activity (`users.view`). Deleted users included.
+pub async fn detail(
+    pool: &PgPool,
+    ctx: &Ctx,
+    id: Uuid,
+) -> Result<crate::domain::users::UserDetail, AppError> {
+    ctx.require("users.view")?;
+    let both = UserQuery {
+        page_size: 10,
+        ..Default::default()
+    };
+    let mut found = None;
+    for deleted in [false, true] {
+        let q = UserQuery {
+            deleted,
+            ..both.clone()
+        };
+        let mut b = QueryBuilder::new("");
+        push_base(&mut b, ctx.org_id, &q);
+        b.push("SELECT * FROM base WHERE id = ").push_bind(id);
+        if let Some(r) = b.build_query_as::<Row>().fetch_optional(pool).await? {
+            found = Some(r);
+            break;
+        }
+    }
+    let user = UserRow::from(found.ok_or(AppError::NotFound)?);
+    let extra = sqlx::query!(
+        r#"SELECT timezone, failed_attempts, locked_until, updated_at,
+                  (SELECT count(*) FROM sessions s WHERE s.user_id = u.id AND s.kind = 'web'
+                     AND s.expires_at > now()) AS "sessions!"
+           FROM users u WHERE id = $1"#,
+        id
+    )
+    .fetch_one(pool)
+    .await?;
+    let activity = sqlx::query!(
+        r#"SELECT id, at, actor_email, channel, action, entity_type, entity_id, before, after,
+                  host(ip) AS ip, user_agent, success
+           FROM audit_logs
+           WHERE (org_id = $1 OR org_id IS NULL)
+             AND (actor_id = $2 OR (entity_type = 'user' AND entity_id = $3))
+           ORDER BY at DESC, id DESC LIMIT 20"#,
+        ctx.org_id,
+        id,
+        id.to_string()
+    )
+    .fetch_all(pool)
+    .await?
+    .into_iter()
+    .map(|r| crate::domain::audit::AuditRow {
+        id: r.id,
+        at: r.at,
+        actor_email: r.actor_email,
+        channel: r.channel,
+        action: r.action,
+        entity_type: r.entity_type,
+        entity_id: r.entity_id,
+        before: r.before.map(|v| v.to_string()),
+        after: r.after.map(|v| v.to_string()),
+        ip: r.ip,
+        user_agent: r.user_agent,
+        success: r.success,
+    })
+    .collect();
+    Ok(crate::domain::users::UserDetail {
+        user,
+        timezone: extra.timezone,
+        failed_attempts: extra.failed_attempts,
+        locked_until: extra.locked_until,
+        updated_at: extra.updated_at,
+        active_sessions: extra.sessions,
+        activity,
+    })
+}
+
 /// Roles for the filter menu and the user form: the org's roles plus the platform Super Admin.
 pub async fn role_options(pool: &PgPool, ctx: &Ctx) -> Result<Vec<RoleOption>, AppError> {
     Ok(sqlx::query_as!(
@@ -864,6 +939,7 @@ mod tests {
                 permissions,
                 must_change_pw: false,
                 locale: None,
+                timezone: None,
             }),
             request_id: None,
             meta: RequestMeta::default(),

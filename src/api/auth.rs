@@ -44,6 +44,11 @@ pub async fn current_user() -> Result<Option<UserInfo>, ServerFnError> {
             must_change_pw: u.must_change_pw,
             modules: crate::server::modules::Modules::get().flags(),
             flags,
+            timezone: u
+                .timezone
+                .clone()
+                .unwrap_or_else(crate::server::modules::Modules::app_timezone),
+            own_timezone: u.timezone,
         }
     }))
 }
@@ -61,11 +66,11 @@ pub async fn change_password(current: String, new: String) -> Result<(), ServerF
 
 /// Session required (own account): change the display name (§9.1).
 #[post("/api/profile/update")]
-pub async fn update_profile(full_name: String) -> Result<(), ServerFnError> {
+pub async fn update_profile(full_name: String, timezone: String) -> Result<(), ServerFnError> {
     use crate::server::{ctx, services::auth, state};
     let ctx = ctx::Ctx::current().await?;
     let st = state::get()?;
     let user = ctx.require_user()?;
-    auth::update_profile(&st.pool, &ctx, user, full_name).await?;
+    auth::update_profile(&st.pool, &ctx, user, full_name, timezone).await?;
     Ok(())
 }

@@ -93,6 +93,10 @@ pub struct UserInfo {
     pub modules: ModuleFlags,
     /// Feature flags for this user (§27).
     pub flags: std::collections::HashMap<String, bool>,
+    /// IANA zone dates are shown in: own setting, else the organization's `app.timezone`.
+    pub timezone: String,
+    /// The user's own choice (`None` = follow the organization).
+    pub own_timezone: Option<String>,
 }
 
 impl UserInfo {

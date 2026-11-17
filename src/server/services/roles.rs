@@ -407,6 +407,7 @@ mod tests {
                 permissions: rbac::all_keys(),
                 must_change_pw: false,
                 locale: None,
+                timezone: None,
             }),
             request_id: None,
             meta: RequestMeta::default(),

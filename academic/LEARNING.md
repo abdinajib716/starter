@@ -1851,3 +1851,37 @@ pub fn bucket(user: Uuid, flag: &str) -> i32 {
 **Concepts:** [integer overflow and wrapping](CONCEPTS.md#float), [iterators](CONCEPTS.md#iterator), [unit tests](CONCEPTS.md#tests)
 
 **Try it:** run `cargo test --features server bucket_is_stable_and_spread`. Then, in System Setting → Feature Flags, set `dashboard_activity` to 0 % and save: the Activity tab disappears from the dashboard (after the next sign-in or page reload); add your own email under Beta users and it comes back for you only.
+
+## 43. Store UTC, show local time
+**Feature:** every date in the app (audit log, dashboard, users, backups) is shown in the viewer's time zone — their own choice on `/profile`, otherwise the organization's `app.timezone` from System Setting → General (M3.11).
+
+**Code:**
+
+`src/util/time.rs` lines 14–25
+
+```rust
+fn zoned(t: OffsetDateTime, tz: &str) -> Option<jiff::Zoned> {
+    let ts = Timestamp::from_second(t.unix_timestamp()).ok()?;
+    let zone = TimeZone::get(tz).unwrap_or(TimeZone::UTC);
+    Some(ts.to_zoned(zone))
+}
+
+/// "Nov 17, 2026, 12:05" in `tz`.
+pub fn datetime(t: OffsetDateTime, tz: &str) -> String {
+    zoned(t, tz)
+        .map(|z| z.strftime("%b %-d, %Y, %H:%M").to_string())
+        .unwrap_or_default()
+}
+```
+
+**Line notes:**
+
+1. L14 — the database keeps every timestamp in UTC (`timestamptz`); conversion happens only for display.
+2. L15 — `time::OffsetDateTime` (used by SQLx) is turned into a `jiff::Timestamp` through the Unix second count, the one representation both crates agree on.
+3. L16 — `TimeZone::get("Africa/Mogadishu")` looks the zone up in the IANA database bundled into the binary (`tzdb-bundle-always`), so the server render and the browser (wasm) produce the same text; an unknown name falls back to UTC instead of failing.
+4. L17 — `to_zoned` applies the zone's rules for that instant, including daylight-saving changes.
+5. L21–24 — `strftime` formats it: `%-d` is the day without a leading zero, `%H:%M` the 24-hour time.
+
+**Concepts:** [Option combinators](CONCEPTS.md#option), [SSR and hydration](CONCEPTS.md#hydration), [conversions](CONCEPTS.md#conversion)
+
+**Try it:** set System Setting → General → Time zone to `Africa/Mogadishu` and open the Audit page. Expected: the column says `Time (EAT)` and every time is 3 hours later than before. Then set your own zone on `/profile` (e.g. `America/New_York`): only you see the new times.

@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use uuid::Uuid;
 
 use crate::domain::users::{
-    BulkResult, BulkUserAction, RoleOption, UserInput, UserPage, UserQuery,
+    BulkResult, BulkUserAction, RoleOption, UserDetail, UserInput, UserPage, UserQuery,
 };
 
 #[cfg(feature = "server")]
@@ -70,4 +70,11 @@ pub async fn purge_user(id: Uuid, confirm_email: String) -> Result<(), ServerFnE
     let (ctx, pool) = ctx().await?;
     ctx.require("users.purge")?;
     Ok(crate::server::services::users::purge(pool, &ctx, id, &confirm_email).await?)
+}
+
+#[post("/api/users/detail")]
+pub async fn get_user(id: Uuid) -> Result<UserDetail, ServerFnError> {
+    let (ctx, pool) = ctx().await?;
+    ctx.require("users.view")?;
+    Ok(crate::server::services::users::detail(pool, &ctx, id).await?)
 }

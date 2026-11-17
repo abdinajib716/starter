@@ -17,7 +17,7 @@ mod skip_to_main;
 mod team_switcher;
 mod theme_switch;
 
-pub use app_shell::{AppShell, UserResource, use_current_user};
+pub use app_shell::{AppShell, UserResource, use_current_user, use_tz};
 pub use config_drawer::ConfigDrawer;
 pub use header::Header;
 // Shown again when the `i18n.enabled` setting exists (M7); the reference has no switcher.

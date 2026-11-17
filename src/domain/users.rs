@@ -223,3 +223,20 @@ mod tests {
         assert!(validate_input(&edit, false, 10).is_empty());
     }
 }
+
+/// User details page (`/users/:id`).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct UserDetail {
+    pub user: UserRow,
+    /// Own time zone (`None` = organization default).
+    pub timezone: Option<String>,
+    pub failed_attempts: i32,
+    #[serde(with = "time::serde::rfc3339::option")]
+    pub locked_until: Option<OffsetDateTime>,
+    #[serde(with = "time::serde::rfc3339")]
+    pub updated_at: OffsetDateTime,
+    /// Signed-in sessions that have not expired.
+    pub active_sessions: i64,
+    /// Latest audit entries by or about this user (newest first, max 20).
+    pub activity: Vec<crate::domain::audit::AuditRow>,
+}

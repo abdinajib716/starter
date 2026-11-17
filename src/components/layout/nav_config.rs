@@ -144,6 +144,8 @@ mod tests {
             must_change_pw: false,
             modules: Default::default(),
             flags: Default::default(),
+            timezone: "UTC".into(),
+            own_timezone: None,
         }
     }
 

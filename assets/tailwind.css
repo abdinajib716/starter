@@ -56,6 +56,7 @@
     --leading-tight: 1.25;
     --leading-relaxed: 1.625;
     --radius-xs: 0.125rem;
+    --radius-2xl: 1rem;
     --ease-in: cubic-bezier(0.4, 0, 1, 1);
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
     --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
@@ -222,11 +223,56 @@
     container-type: inline-size;
     container-name: content;
   }
+  .faded-bottom {
+    &::after {
+      content: var(--tw-content);
+      pointer-events: none;
+    }
+    &::after {
+      content: var(--tw-content);
+      position: absolute;
+    }
+    &::after {
+      content: var(--tw-content);
+      inset-inline-start: calc(var(--spacing) * 0);
+    }
+    &::after {
+      content: var(--tw-content);
+      bottom: calc(var(--spacing) * 0);
+    }
+    &::after {
+      content: var(--tw-content);
+      display: none;
+    }
+    &::after {
+      content: var(--tw-content);
+      height: calc(var(--spacing) * 32);
+    }
+    &::after {
+      content: var(--tw-content);
+      width: 100%;
+    }
+    &::after {
+      content: var(--tw-content);
+      border-bottom-right-radius: var(--radius-2xl);
+      border-bottom-left-radius: var(--radius-2xl);
+    }
+    &::after {
+      content: var(--tw-content);
+      background-image: linear-gradient(180deg,transparent 10%,var(--background) 70%);
+    }
+    @media (width >= 48rem) {
+      &::after {
+        content: var(--tw-content);
+        display: block;
+      }
+    }
+  }
+  .pointer-events-auto {
+    pointer-events: auto;
+  }
   .pointer-events-none {
     pointer-events: none;
-  }
-  .collapse {
-    visibility: collapse;
   }
   .invisible {
     visibility: hidden;
@@ -598,6 +644,10 @@
     width: calc(var(--spacing) * 9);
     height: calc(var(--spacing) * 9);
   }
+  .size-14 {
+    width: calc(var(--spacing) * 14);
+    height: calc(var(--spacing) * 14);
+  }
   .size-\[1\.2rem\] {
     width: 1.2rem;
     height: 1.2rem;
@@ -679,17 +729,14 @@
   .h-svh {
     height: 100svh;
   }
-  .max-h-105 {
-    max-height: calc(var(--spacing) * 105);
-  }
   .max-h-\[70vh\] {
     max-height: 70vh;
   }
   .max-h-\[300px\] {
     max-height: 300px;
   }
-  .max-h-\[calc\(100dvh-2rem\)\] {
-    max-height: calc(100dvh - 2rem);
+  .max-h-full {
+    max-height: 100%;
   }
   .min-h-0 {
     min-height: calc(var(--spacing) * 0);
@@ -784,9 +831,6 @@
   .w-\[400px\] {
     width: 400px;
   }
-  .w-\[calc\(100\%\+0\.75rem\)\] {
-    width: calc(100% + 0.75rem);
-  }
   .w-\[inherit\] {
     width: inherit;
   }
@@ -858,6 +902,9 @@
   }
   .flex-1 {
     flex: 1;
+  }
+  .shrink {
+    flex-shrink: 1;
   }
   .shrink-0 {
     flex-shrink: 0;
@@ -1722,6 +1769,9 @@
   .text-wrap {
     text-wrap: wrap;
   }
+  .break-words {
+    overflow-wrap: break-word;
+  }
   .break-all {
     word-break: break-all;
   }
@@ -1850,6 +1900,10 @@
   }
   .uppercase {
     text-transform: uppercase;
+  }
+  .ordinal {
+    --tw-ordinal: ordinal;
+    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);
   }
   .tabular-nums {
     --tw-numeric-spacing: tabular-nums;
@@ -2069,6 +2123,10 @@
   .outline-none {
     --tw-outline-style: none;
     outline-style: none;
+  }
+  .select-all {
+    -webkit-user-select: all;
+    user-select: all;
   }
   .select-none {
     -webkit-user-select: none;
@@ -3543,6 +3601,11 @@
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
+  .lg\:grid-cols-5 {
+    @media (width >= 64rem) {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
   .lg\:grid-cols-7 {
     @media (width >= 64rem) {
       grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -4602,6 +4665,11 @@ input[type="range"][data-variant="Flat"]:active::-moz-range-thumb {
   inherits: true;
   initial-value: 20deg;
 }
+@property --tw-content {
+  syntax: "*";
+  initial-value: "";
+  inherits: false;
+}
 @property --tw-translate-x {
   syntax: "*";
   inherits: false;
@@ -4871,11 +4939,6 @@ input[type="range"][data-variant="Flat"]:active::-moz-range-thumb {
   syntax: "*";
   inherits: false;
 }
-@property --tw-content {
-  syntax: "*";
-  initial-value: "";
-  inherits: false;
-}
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -4899,6 +4962,7 @@ input[type="range"][data-variant="Flat"]:active::-moz-range-thumb {
       --shimmer-angle: 20deg;
     }
     *, ::before, ::after, ::backdrop {
+      --tw-content: "";
       --tw-translate-x: 0;
       --tw-translate-y: 0;
       --tw-translate-z: 0;
@@ -4961,7 +5025,6 @@ input[type="range"][data-variant="Flat"]:active::-moz-range-thumb {
       --tw-backdrop-sepia: initial;
       --tw-duration: initial;
       --tw-ease: initial;
-      --tw-content: "";
       --tw-animation-delay: 0s;
       --tw-animation-direction: normal;
       --tw-animation-duration: initial;

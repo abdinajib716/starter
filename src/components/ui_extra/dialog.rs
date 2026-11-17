@@ -4,6 +4,13 @@ use tw_merge::tw_merge;
 
 use crate::ui::button::{Button, ButtonVariant};
 
+/// Centres the panel with flexbox, not `translate(-50%)`: a transformed ancestor would become
+/// the containing block of the menus' `position: fixed` content (selects, date pickers) and
+/// push them off their trigger.
+const WRAPPER: &str =
+    "pointer-events-none fixed inset-0 z-[81] flex items-center justify-center p-4";
+const PANEL: &str = "pointer-events-auto relative grid max-h-full w-full gap-4 overflow-y-auto rounded-lg border bg-background p-6 shadow-lg duration-200 animate-in fade-in-0 zoom-in-95 sm:max-w-lg";
+
 /// General dialog (`dialog.tsx`): overlay, centred panel, title/description header, close ×.
 /// Click outside or Escape closes it.
 #[component]
@@ -27,12 +34,10 @@ pub fn Modal(
             h.call(())
         }
     };
-    let content = tw_merge!(
-        "fixed top-[50%] left-[50%] z-[81] grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto rounded-lg border bg-background p-6 shadow-lg duration-200 animate-in fade-in-0 zoom-in-95 sm:max-w-lg",
-        class.as_deref().unwrap_or("")
-    );
+    let content = tw_merge!(PANEL, class.as_deref().unwrap_or(""));
     rsx! {
         div { class: "fixed inset-0 z-[80] bg-black/50 animate-in fade-in-0", onclick: move |_| close() }
+        div { class: WRAPPER,
         div {
             role: "dialog",
             "aria-modal": "true",
@@ -52,6 +57,7 @@ pub fn Modal(
                 super::icon::Icon { icon: super::icon::IconType::X }
                 span { class: "sr-only", "Close" }
             }
+        }
         }
     }
 }
@@ -78,12 +84,10 @@ pub fn ConfirmDialog(
     if !open() {
         return rsx! {};
     }
-    let content = tw_merge!(
-        "fixed top-[50%] left-[50%] z-[81] grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 animate-in fade-in-0 zoom-in-95 sm:max-w-lg",
-        class.as_deref().unwrap_or("")
-    );
+    let content = tw_merge!(PANEL, class.as_deref().unwrap_or(""));
     rsx! {
         div { class: "fixed inset-0 z-[80] bg-black/50 animate-in fade-in-0" }
+        div { class: WRAPPER,
         div {
             role: "alertdialog",
             "aria-modal": "true",
@@ -114,6 +118,7 @@ pub fn ConfirmDialog(
                     "{confirm_text}"
                 }
             }
+        }
         }
     }
 }

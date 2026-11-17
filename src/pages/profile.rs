@@ -53,8 +53,29 @@ fn NameCard() -> Element {
     let me = use_current_user();
     let email = me.as_ref().map(|u| u.email.clone()).unwrap_or_default();
     let role = me.as_ref().map(|u| u.role_name.clone()).unwrap_or_default();
+    let org_tz = me
+        .as_ref()
+        .map(|u| {
+            if u.own_timezone.is_some() {
+                String::new()
+            } else {
+                u.timezone.clone()
+            }
+        })
+        .unwrap_or_default();
+    let own_tz = me
+        .as_ref()
+        .and_then(|u| u.own_timezone.clone())
+        .unwrap_or_default();
     let initial = me.map(|u| u.full_name).unwrap_or_default();
     let name = use_signal(|| initial);
+    let tz = use_signal(|| own_tz);
+    let zones = use_hook(|| {
+        jiff::tz::db()
+            .available()
+            .map(|n| n.to_string())
+            .collect::<Vec<_>>()
+    });
     let mut busy = use_signal(|| false);
     let onsubmit = move |e: FormEvent| {
         e.prevent_default();
@@ -63,7 +84,7 @@ fn NameCard() -> Element {
                 return;
             }
             busy.set(true);
-            match update_profile(name()).await {
+            match update_profile(name(), tz()).await {
                 Ok(()) => {
                     toast(ToastType::Success, t!("profile-saved"));
                     user.restart(); // sidebar and menus show the new name
@@ -93,6 +114,14 @@ fn NameCard() -> Element {
                     FormItem {
                         FormLabel { {t!("users-col-role")} }
                         p { class: "text-sm", "{role}" }
+                    }
+                    FormItem {
+                        FormLabel { html_for: "profile-tz", {t!("profile-timezone")} }
+                        TextInput { id: "profile-tz", value: tz, placeholder: if org_tz.is_empty() { t!("profile-timezone-ph") } else { crate::ta!("profile-timezone-org", zone: org_tz.clone()) }, list: "tz-list" }
+                        datalist { id: "tz-list",
+                            for z in zones.iter() { option { key: "{z}", value: "{z}" } }
+                        }
+                        FormDescription { {t!("profile-timezone-desc")} }
                     }
                     Button { button_type: "submit", class: "w-fit", disabled: busy(), {t!("action-save-changes")} }
                 }

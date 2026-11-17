@@ -125,7 +125,7 @@ fn ActionDialog(open: Signal<bool>, #[props(optional)] current: Option<User>) ->
             title: t!(if is_edit { "users-edit-title" } else { "users-add-title" }),
             description: format!("{} {}", t!(if is_edit { "users-edit-desc" } else { "users-add-desc" }), t!("tasks-save-hint")),
             class: "sm:max-w-lg",
-            div { class: "max-h-105 w-[calc(100%+0.75rem)] overflow-y-auto py-1 pe-3",
+            div { class: "overflow-x-hidden py-1 pe-1",
                 form { id: "user-form", class: "space-y-4 px-0.5", novalidate: true, onsubmit,
                     Field { id: "user-name", label: t!("users-col-name"), error: e_name.clone(),
                         TextInput { id: "user-name", value: name, placeholder: t!("users-name-ph"), class: "col-span-4", invalid: e_name.is_some() }

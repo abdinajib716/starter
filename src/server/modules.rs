@@ -69,6 +69,17 @@ impl Modules {
     pub fn i18n(&self) -> bool {
         self.flag("i18n.enabled")
     }
+    /// Organization default zone (System Setting → General → Time zone).
+    pub fn app_timezone() -> String {
+        Self::get()
+            .get_str("app.timezone")
+            .unwrap_or_else(|| "UTC".into())
+    }
+
+    fn get_str(&self, key: &str) -> Option<String> {
+        (self.get)(key).as_str().map(str::to_owned)
+    }
+
     pub fn app_name(&self) -> String {
         (self.get)("app.name")
             .as_str()

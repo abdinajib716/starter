@@ -86,6 +86,10 @@ pub fn RowActions(user: UserRow, deleted: bool) -> Element {
                     }
                 }
             } else {
+                Link { to: crate::app::Route::UserDetailPage { id }, class: ITEM,
+                    {t!("users-view")}
+                    MenuShortcut { Icon { icon: IconType::Eye, class: "size-4" } }
+                }
                 if can_update {
                     button { r#type: "button", class: ITEM, onclick: move |_| { ctx.current.set(Some(edit.clone())); ctx.open.set(Some(UserDialog::Edit)); },
                         {t!("dt-edit")}

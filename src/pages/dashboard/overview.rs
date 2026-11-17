@@ -9,6 +9,7 @@ use crate::ui::avatar::{Avatar, AvatarFallback};
 
 #[component]
 pub fn Overview(data: DashboardData) -> Element {
+    let tz = crate::components::layout::use_tz();
     let d = &data;
     // Label every other day, counted back from today so the last date is always shown.
     let n = d.logins_14d.len();
@@ -66,7 +67,7 @@ pub fn Overview(data: DashboardData) -> Element {
                                     }
                                     p { class: "truncate text-sm text-muted-foreground", {item.actor_email.clone().unwrap_or_else(|| t!("dash-system"))} }
                                 }
-                                div { class: "text-xs whitespace-nowrap text-muted-foreground tabular-nums", "{when(item.at)}" }
+                                div { class: "text-xs whitespace-nowrap text-muted-foreground tabular-nums", "{when(item.at, &tz)}" }
                             }
                         }
                     }
@@ -94,8 +95,7 @@ fn initials(email: Option<&str>) -> String {
         .unwrap_or_else(|| "SY".into())
 }
 
-/// "Nov 16, 14:05" (UTC until the per-user time zone helpers of M3.11).
-pub(crate) fn when(t: time::OffsetDateTime) -> String {
-    let m = &format!("{:?}", t.month())[..3];
-    format!("{m} {}, {:02}:{:02}", t.day(), t.hour(), t.minute())
+/// "Nov 16, 2026, 14:05" in the viewer's time zone.
+pub(crate) fn when(t: time::OffsetDateTime, tz: &str) -> String {
+    crate::util::time::datetime(t, tz)
 }

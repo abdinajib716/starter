@@ -9,6 +9,8 @@ edition = "2024"
 [dependencies]
 dioxus = { version = "0.7.1", features = ["router", "fullstack"] }
 icons = { version = "0.19", features = ["dioxus", "dioxus_animated"] }
+# Time zones (IANA database bundled, same answer on the server and in the browser).
+jiff = { version = "0.2", default-features = false, features = ["std", "alloc", "tzdb-bundle-always"] }
 js-sys = "0.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

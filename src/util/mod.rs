@@ -1,6 +1,7 @@
 //! Small helpers shared by server and client (port of shadcn-admin `src/lib/*`).
 pub mod cookies;
 pub mod query;
+pub mod time;
 
 /// Toast that also works right before navigation. Rust/UI's `show_toast` runs its script in a
 /// task owned by the calling component; when the component unmounts (e.g. login navigates
@@ -30,11 +31,25 @@ pub async fn sleep_ms(ms: u32) {
     let _ = ms;
 }
 
-/// Toast for a failed server call: the translated error code (§26 rule 2).
+/// Toast for a failed server call: the translated error code (§26 rule 2). When the session
+/// is gone (signed out elsewhere, password or role changed, expired), go to the sign-in page
+/// instead of leaving a page that can no longer load anything.
 pub fn toast_error(e: &dioxus::prelude::ServerFnError) {
+    if crate::domain::errors::i18n_key(e) == "err-auth-unauthenticated" {
+        session_ended();
+        return;
+    }
     toast(
         crate::ui::toast::ToastType::Error,
         crate::i18n::error_text(e),
+    );
+}
+
+/// Full reload to `/sign-in?redirect=<here>&reason=session`: clears every in-memory state.
+pub fn session_ended() {
+    let _ = dioxus::document::eval(
+        "(() => { const here = location.pathname + location.search;
+           location.replace('/sign-in?redirect=' + encodeURIComponent(here) + '&reason=session'); })()",
     );
 }
 
