@@ -1,6 +1,7 @@
 //! Shared DTOs + validation; compiled for both the server and wasm (§31.2).
 use serde::{Deserialize, Serialize};
 
+pub mod audit;
 pub mod dashboard;
 pub mod users;
 

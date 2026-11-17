@@ -1,5 +1,6 @@
 //! Thin server functions, one file per module (§4, §31.2).
 //! Rule (§3): session → permission check → service → audit → return. No logic here.
+pub mod audit;
 pub mod auth;
 pub mod dashboard;
 pub mod i18n;

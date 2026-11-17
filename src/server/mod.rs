@@ -29,6 +29,10 @@ pub async fn router() -> anyhow::Result<Router> {
     let router = dioxus::server::router(crate::app::App)
         .route("/healthz", get(routes::healthz))
         .route("/api/export/users.csv", get(services::users::export_route))
+        .route(
+            "/api/export/audit.csv",
+            get(services::audit_log::export_route),
+        )
         .layer(axum::middleware::from_fn(auth::guard::pages))
         .layer(axum::middleware::from_fn(ctx::ctx_layer))
         .layer(Extension(state.clone()))

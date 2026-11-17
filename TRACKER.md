@@ -19,7 +19,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 2 | RBAC core + `ModuleFlags` + settings cache | 🟢 done | branch `m2/rbac`; first permission-checked endpoints arrive with M5 |
 | 3 | App shell + i18n layer | ⚪ | shell/routes/RTL replaced by the UI port (SPEC-02) |
 | 3b | **UI port (SPEC-02)** | 🟡 in progress | P0–P3, P5–P7, P9, P10 done; P4 branding (M7) and P8 real data (M5/M10) pending; manifest 212/212 |
-| 4 | Audit | ⚪ | M4.8 done early |
+| 4 | Audit | 🟢 done | branch `m4/audit`; live mode with M8 |
 | 5 | Users + DataTable (bulk, CSV, Deleted tab) | 🟡 in progress | branch `m5/users`; real Users page live; open: select-all-matching (M5.6/M5.7), purge job (M5.12) |
 | 6 | Roles + Permissions | ⚪ | |
 | 7 | System Setting (tabs, deps, feature flags) | ⚪ | |
@@ -161,15 +161,15 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 **Done when:** every login writes an entry; filters, JSON diff and CSV export work.
 
-- [~] M4.1 `audit::record(&mut tx, ctx, action, entity, before, after)` inside the same transaction — helper exists (`server/audit.rs`), used by auth since M1; secret masking + page in M4
-- [ ] M4.2 Secret masking (never log password/token fields)
-- [ ] M4.3 `list_audit(filters; cursor)` with keyset pagination on `(at, id)`
-- [ ] M4.4 Audit page: filter bar (date range, actor, action, success, q), expandable before/after diff
-- [ ] M4.5 `export_audit_csv` (streamed, `audit.export`, itself audited)
-- [ ] M4.6 Actions rendered via i18n keys (`audit.action.user.create`)
+- [x] M4.1 `audit::record(&mut tx, ctx, action, entity, before, after)` inside the same transaction — used by auth, users, exports
+- [x] M4.2 Secret masking (never log password/token fields) — `audit::mask` (password/token/secret/hash/otp/recovery keys at any depth → `***`), applied inside `record`
+- [x] M4.3 `list_audit(filters; cursor)` with keyset pagination on `(at, id)` — `services/audit_log.rs`; test: no row repeated/skipped across pages
+- [x] M4.4 Audit page: filter bar (date range, actor, action, success, q), expandable before/after diff — `/audit` (search covers actor/action/id; module + result filters; date range; Newer/Older); browser-checked
+- [x] M4.5 `export_audit_csv` (streamed, `audit.export`, itself audited) — `GET /api/export/audit.csv`, action `export.audit`
+- [x] M4.6 Actions rendered via i18n keys (`audit.action.user.create`) — keys `audit-<module>-<action>`, raw code shown under the label
 - [ ] M4.7 Live mode hook (wired in M8)
 - [x] M4.8 Test: append-only trigger rejects UPDATE/DELETE — `audit_log_rejects_update_and_delete` (done early, with the M0 test setup)
-- [ ] M4.9 Growth plan: decide and document one of (a) monthly partitioning of `audit_logs`, (b) archive-to-storage after `audit.retention_days`. The append-only trigger must still hold for the active partition. Record decision.
+- [x] M4.9 Growth plan: decide and document one of (a) monthly partitioning of `audit_logs`, (b) archive-to-storage after `audit.retention_days`. The append-only trigger must still hold for the active partition. Record decision. — **(a) monthly partitioning**, introduced when the table passes ~10 M rows (see Decisions)
 
 ---
 
@@ -459,6 +459,7 @@ Blockers first; each names the item that proves it.
 | 2026-11-15 | Password minimum length uses the blueprint's existing key `security.password_min_length`, not a new `security.min_password_length` | Avoid two keys for one setting |
 | 2026-11-16 | Data tables: own `components/data_table` kit (signals + `UrlState`) instead of a TanStack port or Rust/UI `data_table` | the reference's behaviour (URL sync, faceted counts, page window, bulk bar) is small; plain filter → sort → paginate over a `Vec` is enough for demo data and maps 1:1 to server-side paging in M5 |
 | 2026-11-16 | URL array filters are comma-separated (`?status=todo,done`), not JSON (`?status=["todo"]`) | readable links; values never contain commas |
+| 2026-11-17 | Audit growth: monthly range partitions on `at` once `audit_logs` passes ~10 M rows; old partitions detached + dumped to storage, never UPDATE/DELETE | keeps the append-only trigger intact (it is inherited by each partition) and makes retention a cheap DETACH |
 | 2026-11-16 | Users "status" is derived, not stored: deleted → suspended (locked) → inactive → invited (never signed in) → active | gives the reference's four badge states real meaning without new columns |
 | 2026-11-16 | Users page: no Username/Phone columns (not in our schema); Last sign-in instead; Invite button hidden until the email module (M13) | real data only; invites need email |
 | 2026-11-16 | `crate::ta!` = `t!` with Fluent's U+2068/U+2069 isolation marks stripped | `dioxus-i18n` has no `use_isolating` switch; the marks leaked into aria-labels ("Go to page ⁨3⁩") |

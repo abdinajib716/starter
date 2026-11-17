@@ -17,8 +17,8 @@ use crate::pages::settings::{
     SettingsProfile,
 };
 use crate::pages::{
-    apps::Apps, chats::Chats, dashboard::Dashboard, not_found::NotFound, profile::Profile,
-    tasks::Tasks, users::Users,
+    apps::Apps, audit::Audit, chats::Chats, dashboard::Dashboard, not_found::NotFound,
+    profile::Profile, tasks::Tasks, users::Users,
 };
 use crate::state::{Ui, UiPrefs};
 use crate::ui::toast::ToastToaster;
@@ -66,6 +66,8 @@ pub enum Route {
         Tasks { query: Query },
         #[route("/users?:..query")]
         Users { query: Query },
+        #[route("/audit?:..query")]
+        Audit { query: Query },
         #[route("/help-center")]
         ComingSoon {},
         #[route("/errors/:error")]

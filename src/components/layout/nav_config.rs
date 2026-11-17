@@ -49,7 +49,10 @@ pub fn nav_groups() -> Vec<NavGroup> {
         NavGroup {
             title: "nav-group-general",
             items: vec![
-                NavItem::Link(link("nav-dashboard", "/", Some(I::LayoutDashboard))),
+                NavItem::Link(NavLink {
+                    permission: Some("dashboard.view"),
+                    ..link("nav-dashboard", "/", Some(I::LayoutDashboard))
+                }),
                 NavItem::Link(NavLink {
                     demo: Some("demo.tasks"),
                     ..link("nav-tasks", "/tasks", Some(I::ListTodo))
@@ -68,6 +71,14 @@ pub fn nav_groups() -> Vec<NavGroup> {
                     ..link("nav-users", "/users", Some(I::Users))
                 }),
             ],
+        },
+        // Our administration pages (not in the reference): each needs its permission (§8).
+        NavGroup {
+            title: "nav-group-admin",
+            items: vec![NavItem::Link(NavLink {
+                permission: Some("audit.view"),
+                ..link("nav-audit", "/audit", Some(I::ScrollText))
+            })],
         },
         NavGroup {
             title: "nav-group-pages",

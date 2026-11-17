@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT DISTINCT split_part(action, '.', 1) AS \"m!\" FROM audit_logs\n           WHERE org_id = $1 OR org_id IS NULL ORDER BY 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "m!",
+        "type_info": "Text",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "0cc52cd596e456ee911f3b241ac7da9a240d5c48cc97d1cee908be1c685d337a"
+}

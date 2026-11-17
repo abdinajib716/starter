@@ -1779,3 +1779,45 @@ pub async fn bulk(
 **Concepts:** [SQLx macros](CONCEPTS.md#sqlx-macros), [async and Future](CONCEPTS.md#async), [Option](CONCEPTS.md#option)
 
 **Try it:** run `cargo test --features server numbers_match_the_data`. Then change `LEFT JOIN` to `JOIN` and run it again: the test fails on `logins_14d.len() == 14`, because days without sign-ins disappear.
+
+## 41. Keyset pagination: "older than this row"
+**Feature:** the Audit log pages with Newer / Older buttons. Each page asks for rows older than the last row it showed, so paging stays fast and never repeats or skips rows while new entries keep arriving (§9.5, M4.3).
+
+**Code:**
+
+`src/server/services/audit_log.rs` lines 90–109
+
+```rust
+pub async fn list(pool: &PgPool, ctx: &Ctx, q: &AuditQuery) -> Result<AuditPage, AppError> {
+    ctx.require("audit.view")?;
+    let limit = q.limit.clamp(1, MAX_LIMIT);
+    let mut b = QueryBuilder::new(COLUMNS);
+    push_where(&mut b, ctx.org_id, q);
+    if let Some(c) = q.before {
+        b.push(" AND (at, id) < (")
+            .push_bind(c.at)
+            .push(", ")
+            .push_bind(c.id)
+            .push(")");
+    }
+    b.push(" ORDER BY at DESC, id DESC LIMIT ")
+        .push_bind(i64::from(limit) + 1);
+    let mut rows: Vec<Row> = b.build_query_as().fetch_all(pool).await?;
+    let more = rows.len() > limit as usize;
+    rows.truncate(limit as usize);
+    let next = more
+        .then(|| rows.last().map(|r| AuditCursor { at: r.at, id: r.id }))
+        .flatten();
+```
+
+**Line notes:**
+
+1. L92 — the page size is clamped to 1–100 whatever the browser sends.
+2. L95–101 — `(at, id) < ($1, $2)` compares the pair as a row: older time first, and for rows with the same time the smaller id. It uses the index on `at`; `OFFSET` would have to read and skip every earlier row.
+3. L102–103 — newest first, `id` breaks ties so the order is total; one extra row (`limit + 1`) is fetched only to learn whether an older page exists.
+4. L105–106 — `more` remembers that the extra row came back, then `truncate` drops it.
+5. L107–109 — the cursor of the next page is the last row shown; `then(...).flatten()` gives `None` when there is no older page, which disables the Older button.
+
+**Concepts:** [Option combinators](CONCEPTS.md#option), [SQLx macros](CONCEPTS.md#sqlx-macros), [iterators](CONCEPTS.md#iterator)
+
+**Try it:** open `/audit`, press Older, then sign in from a second browser so a new row is added, and press Older again. Expected: no row appears twice. With `LIMIT … OFFSET` the new row would push every row down by one and the first row of the next page would repeat.
