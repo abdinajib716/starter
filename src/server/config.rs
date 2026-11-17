@@ -24,7 +24,6 @@ pub struct Config {
     pub app_secret: Option<String>,
     #[serde(default)]
     pub cookie_secure: bool,
-    #[allow(dead_code)] // M11
     #[serde(default = "default_backup_dir")]
     pub backup_dir: PathBuf,
     pub seed_admin_email: Option<String>,

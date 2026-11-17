@@ -28,9 +28,12 @@ pub async fn init() -> anyhow::Result<&'static AppState> {
             let default_org_id = seed::ensure_default_org(&pool).await?;
             super::rbac::sync_permissions(&pool).await?;
             super::settings::seed(&pool).await?;
+            super::flags::sync(&pool).await?;
+            super::flags::reload(&pool).await?;
             super::settings::start(&pool).await?;
             seed::ensure_super_admin_role(&pool).await?;
             seed::ensure_first_admin(&pool, &config, default_org_id).await?;
+            super::services::backups::start_scheduler(pool.clone());
             tracing::info!(tenancy = %config.tenancy_mode, "app state ready");
             Ok(AppState {
                 pool,

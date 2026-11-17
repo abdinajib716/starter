@@ -2,7 +2,7 @@
 //! failed sign-ins, backups, audit activity by module, users by role and new users per week
 //! (Activity). Layout and card styles from the reference's `features/dashboard`.
 mod activity;
-mod overview;
+pub mod overview;
 
 use dioxus::prelude::*;
 use dioxus_i18n::t;
@@ -63,7 +63,9 @@ pub fn Dashboard() -> Element {
                         div { class: "w-full overflow-x-auto pb-2",
                             TabsList { class: "h-9 p-0.75",
                                 TabsTrigger { value: "overview", class: TAB_TRIGGER, {t!("dash-tab-overview")} }
-                                TabsTrigger { value: "activity", class: TAB_TRIGGER, {t!("dash-tab-activity")} }
+                                crate::components::feature_gate::FeatureGate { flag: "dashboard_activity",
+                                    TabsTrigger { value: "activity", class: TAB_TRIGGER, {t!("dash-tab-activity")} }
+                                }
                             }
                         }
                         TabsContent { value: "overview", class: TAB_CONTENT, overview::Overview { data: d.clone() } }

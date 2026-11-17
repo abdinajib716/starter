@@ -1,7 +1,11 @@
 pub mod audit;
 pub mod auth;
+pub mod backups;
 pub mod dashboard;
 pub mod errors;
 pub mod not_found;
+pub mod permissions;
 pub mod profile;
+pub mod roles;
+pub mod system_settings;
 pub mod users;

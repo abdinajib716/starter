@@ -10,7 +10,9 @@ use crate::i18n;
 use crate::pages::auth::{Login, SignIn};
 use crate::pages::errors::{Error401, Error403, Error404, Error500, Error503, ShellError};
 use crate::pages::{
-    audit::Audit, dashboard::Dashboard, not_found::NotFound, profile::Profile, users::Users,
+    audit::Audit, backups::Backups, dashboard::Dashboard, not_found::NotFound,
+    permissions::Permissions, profile::Profile, roles::Roles, system_settings::SystemSettings,
+    users::Users,
 };
 use crate::state::{Ui, UiPrefs};
 use crate::ui::toast::ToastToaster;
@@ -44,8 +46,16 @@ pub enum Route {
         Profile {},
         #[route("/users?:..query")]
         Users { query: Query },
+        #[route("/system-settings")]
+        SystemSettings {},
+        #[route("/roles")]
+        Roles {},
+        #[route("/permissions")]
+        Permissions {},
         #[route("/audit?:..query")]
         Audit { query: Query },
+        #[route("/backups")]
+        Backups {},
         #[route("/errors/:error")]
         ShellError { error: String },
     #[end_layout]

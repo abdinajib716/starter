@@ -1,0 +1,90 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT r.id, r.name, r.description, r.is_system, r.require_2fa,\n                  (SELECT count(*) FROM users u WHERE u.role_id = r.id AND u.deleted_at IS NULL) AS \"users!\",\n                  (SELECT count(*) FROM role_permissions rp WHERE rp.role_id = r.id) AS \"perms!\"\n           FROM roles r WHERE r.org_id = $1 OR r.org_id IS NULL\n           ORDER BY r.is_system DESC, lower(r.name)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "roles",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "roles",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "roles",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "is_system",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "roles",
+            "name": "is_system"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "require_2fa",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "roles",
+            "name": "require_2fa"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "users!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 6,
+        "name": "perms!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "4177beed671a336a885fe7f5cedcd335a66e6b6596c1d6f7daefcdfb7f4c5c85"
+}

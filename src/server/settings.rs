@@ -486,10 +486,18 @@ async fn listen(pool: &PgPool) -> sqlx::Result<()> {
         match tokio::time::timeout(TTL, listener.recv()).await {
             Ok(Ok(n)) => {
                 tracing::debug!(key = n.payload(), "settings changed");
-                cache.reload(pool).await?;
+                if n.payload().starts_with("flag:") {
+                    super::flags::reload(pool).await?;
+                } else {
+                    cache.reload(pool).await?;
+                }
             }
             Ok(Err(e)) => return Err(e),
-            Err(_) => cache.reload(pool).await?, // TTL safety net
+            Err(_) => {
+                // TTL safety net
+                cache.reload(pool).await?;
+                super::flags::reload(pool).await?;
+            }
         }
     }
 }

@@ -143,6 +143,7 @@ mod tests {
             permissions: perms.iter().map(|s| s.to_string()).collect(),
             must_change_pw: false,
             modules: Default::default(),
+            flags: Default::default(),
         }
     }
 

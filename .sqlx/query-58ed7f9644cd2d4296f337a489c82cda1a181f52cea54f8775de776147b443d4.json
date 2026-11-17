@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT rp.permission_key, r.name FROM role_permissions rp JOIN roles r ON r.id = rp.role_id\n           WHERE r.org_id = $1 OR r.org_id IS NULL ORDER BY lower(r.name)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "permission_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "role_permissions",
+            "name": "permission_key"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "roles",
+            "name": "name"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "58ed7f9644cd2d4296f337a489c82cda1a181f52cea54f8775de776147b443d4"
+}

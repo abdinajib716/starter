@@ -1,0 +1,86 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT key, org_id, enabled, rollout_percent, allowed_role_ids, allowed_user_ids FROM feature_flags",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "key"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "org_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "org_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "enabled",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "enabled"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "rollout_percent",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "rollout_percent"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "allowed_role_ids",
+        "type_info": "UuidArray",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "allowed_role_ids"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "allowed_user_ids",
+        "type_info": "UuidArray",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "allowed_user_ids"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "3910592a255618d51a4493bb60a09aaf3dd58a3d5491bbd37bb8e775593f69ce"
+}

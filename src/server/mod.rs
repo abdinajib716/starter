@@ -6,6 +6,7 @@ pub mod ctx;
 pub mod db;
 pub mod error;
 pub mod export;
+pub mod flags;
 pub mod modules;
 pub mod rbac;
 pub mod request;
@@ -15,6 +16,7 @@ pub mod seed;
 pub mod services;
 pub mod settings;
 pub mod state;
+pub mod storage;
 
 use dioxus::server::axum::{self, Extension, Router, routing::get};
 use tower_http::request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer};
@@ -32,6 +34,15 @@ pub async fn router() -> anyhow::Result<Router> {
         .route(
             "/api/export/audit.csv",
             get(services::audit_log::export_route),
+        )
+        .route("/api/export/roles.csv", get(services::roles::export_route))
+        .route(
+            "/api/export/backups.csv",
+            get(services::backups::export_route),
+        )
+        .route(
+            "/api/backups/{id}/download",
+            get(services::backups::download_route),
         )
         .layer(axum::middleware::from_fn(auth::guard::pages))
         .layer(axum::middleware::from_fn(ctx::ctx_layer))

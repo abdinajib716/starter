@@ -26,10 +26,12 @@ getrandom = { version = "0.3", optional = true }
 ipnet = { version = "2", optional = true }
 sha2 = { version = "0.10", optional = true }
 dotenvy = { version = "0.15", optional = true }
+chrono = { version = "0.4", default-features = false, features = ["clock"], optional = true }
+cron = { version = "0.15", optional = true }
 figment = { version = "0.10", features = ["env"], optional = true }
 futures-util = { version = "0.3", optional = true }
 sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "postgres", "macros", "migrate", "uuid", "time", "json", "ipnet"], optional = true }
-tokio = { version = "1", features = ["sync", "time", "rt"], optional = true }
+tokio = { version = "1", features = ["sync", "time", "rt", "process", "fs", "io-util"], optional = true }
 tower-http = { version = "0.6", features = ["request-id", "trace", "util", "set-header", "limit", "timeout"], optional = true }
 tracing = { version = "0.1", optional = true }
 web-sys = { version = "0.3", default-features = false, features = ["Attr", "Blob", "console", "CssStyleDeclaration", "Document", "DomRect", "DomTokenList", "DragEvent", "Element", "Event", "EventTarget", "History", "HtmlAnchorElement", "HtmlDocument", "HtmlElement", "HtmlInputElement", "InputEvent", "KeyboardEvent", "Location", "MediaQueryList", "MouseEvent", "MutationObserver", "MutationObserverInit", "MutationRecord", "Navigator", "NamedNodeMap", "Node", "NodeList", "PointerEvent", "ScrollBehavior", "ScrollIntoViewOptions", "ScrollLogicalPosition", "ScrollToOptions", "Storage", "Url", "Window"] }
@@ -52,6 +54,8 @@ server = [
     "dep:ipnet",
     "dep:sha2",
     "dep:dotenvy",
+    "dep:chrono",
+    "dep:cron",
     "dep:figment",
     "dep:futures-util",
     "dep:sqlx",

@@ -31,6 +31,7 @@ pub async fn logout() -> Result<(), ServerFnError> {
 pub async fn current_user() -> Result<Option<UserInfo>, ServerFnError> {
     let ctx = crate::server::ctx::Ctx::current().await?;
     Ok(ctx.user.map(|u| {
+        let flags = crate::server::flags::for_user(&u);
         let mut permissions: Vec<String> = u.permissions.into_iter().collect();
         permissions.sort();
         UserInfo {
@@ -42,6 +43,7 @@ pub async fn current_user() -> Result<Option<UserInfo>, ServerFnError> {
             permissions,
             must_change_pw: u.must_change_pw,
             modules: crate::server::modules::Modules::get().flags(),
+            flags,
         }
     }))
 }

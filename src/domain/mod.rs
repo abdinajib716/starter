@@ -2,7 +2,10 @@
 use serde::{Deserialize, Serialize};
 
 pub mod audit;
+pub mod backups;
 pub mod dashboard;
+pub mod roles;
+pub mod settings;
 pub mod users;
 
 /// `TENANCY_MODE` (§18). Install-time, read-only in the UI.
@@ -88,11 +91,17 @@ pub struct UserInfo {
     pub permissions: Vec<String>,
     pub must_change_pw: bool,
     pub modules: ModuleFlags,
+    /// Feature flags for this user (§27).
+    pub flags: std::collections::HashMap<String, bool>,
 }
 
 impl UserInfo {
     /// Cosmetic check for hiding UI (§7); the server re-checks in every server fn.
     #[allow(dead_code)] // used by PermissionGate (M2.6)
+    pub fn flag(&self, key: &str) -> bool {
+        self.flags.get(key).copied().unwrap_or(false)
+    }
+
     pub fn can(&self, permission: &str) -> bool {
         self.is_super_admin || self.permissions.iter().any(|p| p == permission)
     }

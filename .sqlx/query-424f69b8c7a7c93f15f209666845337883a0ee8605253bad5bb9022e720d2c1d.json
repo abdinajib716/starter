@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT enabled, rollout_percent, allowed_role_ids, allowed_user_ids FROM feature_flags\n         WHERE key = $1 AND org_id IS NULL FOR UPDATE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "enabled",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "enabled"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "rollout_percent",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "rollout_percent"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "allowed_role_ids",
+        "type_info": "UuidArray",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "allowed_role_ids"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "allowed_user_ids",
+        "type_info": "UuidArray",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "allowed_user_ids"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "424f69b8c7a7c93f15f209666845337883a0ee8605253bad5bb9022e720d2c1d"
+}

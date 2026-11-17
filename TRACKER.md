@@ -21,12 +21,12 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 3b | **UI port (SPEC-02)** | 🟡 in progress | P0–P3, P5–P7, P9, P10 done; P4 branding (M7) and P8 real data (M5/M10) pending; manifest 212/212 |
 | 4 | Audit | 🟢 done | branch `m4/audit`; live mode with M8 |
 | 5 | Users + DataTable (bulk, CSV, Deleted tab) | 🟡 in progress | branch `m5/users`; real Users page live; open: select-all-matching (M5.6/M5.7), purge job (M5.12) |
-| 6 | Roles + Permissions | ⚪ | |
-| 7 | System Setting (tabs, deps, feature flags) | ⚪ | |
+| 6 | Roles + Permissions | 🟢 done | branch `m6/access-control` |
+| 7 | System Setting (tabs, deps, feature flags) | 🟢 done | branch `m6/access-control`; checked: session length change applies |
 | 8 | Realtime (SSE) + notifications | ⚪ | |
 | 9 | Profile: password, sessions, 2FA | ⚪ | |
 | 10 | Dashboard KPIs + charts | 🟢 done | branch `m10/dashboard`; live push waits for M8 |
-| 11 | Storage (local) + avatars + Backup | ⚪ | |
+| 11 | Storage (local) + avatars + Backup | 🟡 in progress | backups done (branch `m6/access-control`); open: `files` table + avatars (M11.2/M11.3) |
 | 12 | Backup encryption, R2, off-site, **restore** | ⚪ | |
 | 13 | Email via Resend | ⚪ | |
 | 14 | Multi-instance hardening | ⚪ | |
@@ -197,14 +197,14 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 **Done when:** editing a role's permissions forces affected users to re-authenticate.
 
-- [ ] M6.1 `list_roles`, `get_role` (+ granted keys + user count)
-- [ ] M6.2 `create_role` / `update_role` (audit diff of keys) / `delete_role` (refuse if users assigned)
-- [ ] M6.3 System roles protected (no edit/rename/delete)
-- [ ] M6.4 Role editor: checkbox grid (rows = modules, cols = actions) + "select all in module"
-- [ ] M6.5 `require_2fa` checkbox on role (used by M9)
-- [ ] M6.6 Permissions page: read-only catalog grouped by module, with roles holding each
-- [ ] M6.7 Roles CSV export (`roles.export`); bulk delete unused roles
-- [ ] M6.8 Tests: role change invalidates sessions; cannot delete role in use
+- [x] M6.1 `list_roles`, `get_role` (+ granted keys + user count) — `services/roles.rs`
+- [x] M6.2 `create_role` / `update_role` (audit diff of keys) / `delete_role` (refuse if users assigned) — audit stores `added`/`removed`; deleted users count as assigned
+- [x] M6.3 System roles protected (no edit/rename/delete) — `roles.system` conflict; editor opens read-only
+- [x] M6.4 Role editor: checkbox grid (rows = modules, cols = actions) + "select all in module" — keys the user doesn't hold are disabled (no escalation)
+- [x] M6.5 `require_2fa` checkbox on role (used by M9)
+- [x] M6.6 Permissions page: read-only catalog grouped by module, with roles holding each — `/permissions`, filter
+- [x] M6.7 Roles CSV export (`roles.export`); bulk delete unused roles — `/api/export/roles.csv`; bulk delete skips in-use roles with a reason
+- [x] M6.8 Tests: role change invalidates sessions; cannot delete role in use — + no-escalation, name conflict
 
 ---
 
@@ -212,17 +212,17 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 **Done when:** changing `security.session_hours` actually changes session length; dependency rules refuse invalid combos server-side.
 
-- [ ] M7.1 `list_settings()` grouped by category; `update_settings()` validated by `value_type` + per-key rules (audited)
-- [ ] M7.2 Tabs: General · Security · Email · Storage & Backup · API · Localization · Feature Flags
-- [ ] M7.3 Master switch at top of each tab + dependency warnings
-- [ ] M7.4 Dependency rules enforced in `update_settings` (§17 list)
-- [ ] M7.5 Secrets shown only as "configured ✓ / missing ✗"
-- [ ] M7.6 Changing `backup.schedule_*` re-registers the scheduler job
-- [ ] M7.11 Migration `feature_flags` (§27; was blueprint `0011_feature_flags`) — do before M7.7
-- [ ] M7.7 Feature flags: code registry + startup sync, `is_enabled` with stable bucket hash, org override
-- [ ] M7.8 `require_flag(&ctx, …)` + `FeatureGate` component; flags in `current_user()`
-- [ ] M7.9 Feature Flags tab: toggle, % slider, role multi-select, beta users, stale-flag list (`flags.view` / `flags.update`)
-- [ ] M7.10 Display `tenancy: single|multi` (read-only)
+- [x] M7.1 `list_settings()` grouped by category; `update_settings()` validated by `value_type` + per-key rules (audited) — `services/system_settings.rs`; only changed keys written; one audit row with before/after
+- [x] M7.2 Tabs: General · Security · Email · Storage & Backup · API · Localization · Feature Flags — `/system-settings`
+- [x] M7.3 Master switch at top of each tab + dependency warnings — refusals come back as translated toasts
+- [x] M7.4 Dependency rules enforced in `update_settings` (§17 list) — `check()`; "test email within 24 h" (M13), "test off-site connection" (M12) and "2FA enrolled" (M9) parts refuse until those modules exist
+- [x] M7.5 Secrets shown only as "configured ✓ / missing ✗" — env presence only
+- [x] M7.6 Changing `backup.schedule_*` re-registers the scheduler job — the scheduler reads both settings each tick, so changes apply without a restart
+- [x] M7.11 Migration `feature_flags` (§27; was blueprint `0011_feature_flags`) — do before M7.7 — `…09_feature_flags` (+ NOTIFY trigger)
+- [x] M7.7 Feature flags: code registry + startup sync, `is_enabled` with stable bucket hash, org override — `server/flags.rs` (FNV-1a bucket)
+- [x] M7.8 `require_flag(&ctx, …)` + `FeatureGate` component; flags in `current_user()` — first flag `dashboard_activity` gates the dashboard's Activity tab
+- [x] M7.9 Feature Flags tab: toggle, % slider, role multi-select, beta users, stale-flag list (`flags.view` / `flags.update`) — % as a number field; audited `flag.update`
+- [x] M7.10 Display `tenancy: single|multi` (read-only) — General tab
 
 ---
 
@@ -283,15 +283,15 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 **Done when:** backup create → list → download → delete works; retention trims old files.
 
-- [ ] M11.1 `Storage` trait + `local` driver (key validation, no traversal, streaming)
+- [x] M11.1 `Storage` trait + `local` driver (key validation, no traversal, streaming) — `server/storage.rs`
 - [ ] M11.2 Migration `files`: `files` table
 - [ ] M11.3 Avatar upload: ≤ 1 MB, magic-byte MIME sniff, re-encode to WebP; served via `/files/avatars/:id`
-- [ ] M11.4 `list_backups`, `create_backup` (`pg_dump --format=custom`, password via env, sha256, status)
-- [ ] M11.5 `GET /api/backups/:id/download` (lookup by id only, streamed, audited)
-- [ ] M11.6 `delete_backup`; retention by `backup.retention_count`
-- [ ] M11.7 Scheduler (`tokio-cron-scheduler`) from `backup.schedule_*`; actor = system
-- [ ] M11.8 Backup page with live status (running → completed) and CSV export (`backup.export`)
-- [ ] M11.9 Restrictive file permissions on dumps
+- [x] M11.4 `list_backups`, `create_backup` (`pg_dump --format=custom`, password via env, sha256, status) — `PGPASSWORD`, advisory lock (one at a time across instances); browser-checked: dump starts with `PGDMP`
+- [x] M11.5 `GET /api/backups/:id/download` (lookup by id only, streamed, audited)
+- [x] M11.6 `delete_backup`; retention by `backup.retention_count` — retention runs after every backup
+- [x] M11.7 Scheduler (`tokio-cron-scheduler`) from `backup.schedule_*`; actor = system — own 30 s loop + `cron` crate; advisory-lock leader (§28)
+- [x] M11.8 Backup page with live status (running → completed) and CSV export (`backup.export`) — polls every 2 s while running
+- [x] M11.9 Restrictive file permissions on dumps — 0600, tested
 
 ---
 
@@ -460,6 +460,8 @@ Blockers first; each names the item that proves it.
 | 2026-11-16 | Data tables: own `components/data_table` kit (signals + `UrlState`) instead of a TanStack port or Rust/UI `data_table` | the reference's behaviour (URL sync, faceted counts, page window, bulk bar) is small; plain filter → sort → paginate over a `Vec` is enough for demo data and maps 1:1 to server-side paging in M5 |
 | 2026-11-16 | URL array filters are comma-separated (`?status=todo,done`), not JSON (`?status=["todo"]`) | readable links; values never contain commas |
 | 2026-11-17 | Demo UI removed at the owner's request: Tasks, Apps, Chats, Help Center, demo settings forms, sign-in-2 / sign-up / forgot / OTP screens, team switcher menu, upgrade/billing menu items, social buttons; unused Rust/UI components and hooks deleted; sidebar = §8 tree (Dashboard + Access Control) | the app shows only real features; forgot password / invites return with M13, the 2FA step with M9 |
+| 2026-11-17 | Backup scheduler: own 30 s loop + `cron` crate instead of `tokio-cron-scheduler`; leader by `pg_try_advisory_lock` | one small dependency; reading the schedule each tick makes settings changes apply without re-registering |
+| 2026-11-17 | Settings dependency rules whose prerequisite module doesn't exist yet (test email M13, off-site test M12, own 2FA M9) refuse the change | safe default: nothing can be switched into a state the app can't honour |
 | 2026-11-17 | Audit growth: monthly range partitions on `at` once `audit_logs` passes ~10 M rows; old partitions detached + dumped to storage, never UPDATE/DELETE | keeps the append-only trigger intact (it is inherited by each partition) and makes retention a cheap DETACH |
 | 2026-11-16 | Users "status" is derived, not stored: deleted → suspended (locked) → inactive → invited (never signed in) → active | gives the reference's four badge states real meaning without new columns |
 | 2026-11-16 | Users page: no Username/Phone columns (not in our schema); Last sign-in instead; Invite button hidden until the email module (M13) | real data only; invites need email |

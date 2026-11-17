@@ -2,8 +2,11 @@
 //! Rule (§3): session → permission check → service → audit → return. No logic here.
 pub mod audit;
 pub mod auth;
+pub mod backups;
 pub mod dashboard;
 pub mod i18n;
+pub mod roles;
+pub mod settings;
 pub mod system;
 pub mod users;
 

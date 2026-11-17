@@ -1,0 +1,112 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT f.key, f.description, f.enabled, f.rollout_percent, f.allowed_role_ids,\n                  f.allowed_user_ids, f.updated_at, u.email::text AS updated_by,\n                  (f.enabled AND f.rollout_percent = 100 AND cardinality(f.allowed_role_ids) = 0\n                   AND f.updated_at < now() - interval '30 days') AS \"stale!\"\n           FROM feature_flags f LEFT JOIN users u ON u.id = f.updated_by\n           WHERE f.org_id IS NULL ORDER BY f.key",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "key"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "enabled",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "enabled"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "rollout_percent",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "rollout_percent"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "allowed_role_ids",
+        "type_info": "UuidArray",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "allowed_role_ids"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "allowed_user_ids",
+        "type_info": "UuidArray",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "allowed_user_ids"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "feature_flags",
+            "name": "updated_at"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "updated_by",
+        "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 8,
+        "name": "stale!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "1e8c5e61de8f0640446bd4aad959d92d394273f2b26743b3294c2ff63a13b776"
+}

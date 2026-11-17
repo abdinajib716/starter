@@ -1821,3 +1821,33 @@ pub async fn list(pool: &PgPool, ctx: &Ctx, q: &AuditQuery) -> Result<AuditPage,
 **Concepts:** [Option combinators](CONCEPTS.md#option), [SQLx macros](CONCEPTS.md#sqlx-macros), [iterators](CONCEPTS.md#iterator)
 
 **Try it:** open `/audit`, press Older, then sign in from a second browser so a new row is added, and press Older again. Expected: no row appears twice. With `LIMIT … OFFSET` the new row would push every row down by one and the first row of the next page would repeat.
+
+## 42. Gradual rollout with a stable bucket
+**Feature:** a feature flag can be on for, say, 30 % of users. Each user is put in a bucket 0–99 computed from their id and the flag name, so the same user always gets the same answer and raising the percentage only adds users (§27, M7.7).
+
+**Code:**
+
+`src/server/flags.rs` lines 89–96
+
+```rust
+pub fn bucket(user: Uuid, flag: &str) -> i32 {
+    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+    for b in user.as_bytes().iter().chain(flag.as_bytes()) {
+        h ^= u64::from(*b);
+        h = h.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    (h % 100) as i32
+}
+```
+
+**Line notes:**
+
+1. L89 — the inputs are the user id and the flag key; using the key too means a user who is "in" for one flag isn't automatically "in" for every flag.
+2. L90 — FNV-1a starts from a fixed "offset basis". The algorithm is written out here instead of using Rust's `DefaultHasher`, whose output may change between Rust releases — that would silently reshuffle who has the feature.
+3. L91 — `as_bytes()` gives the 16 raw bytes of the UUID; `.chain(...)` continues with the bytes of the flag name.
+4. L92–93 — for each byte: XOR it in, then multiply by the FNV prime. `wrapping_mul` lets the multiplication overflow on purpose (plain `*` would panic in debug builds).
+5. L95 — `% 100` maps the 64-bit hash to 0–99; `evaluate` then compares it with `rollout_percent`, so `bucket < 30` is true for about 30 % of users.
+
+**Concepts:** [integer overflow and wrapping](CONCEPTS.md#float), [iterators](CONCEPTS.md#iterator), [unit tests](CONCEPTS.md#tests)
+
+**Try it:** run `cargo test --features server bucket_is_stable_and_spread`. Then, in System Setting → Feature Flags, set `dashboard_activity` to 0 % and save: the Activity tab disappears from the dashboard (after the next sign-in or page reload); add your own email under Beta users and it comes back for you only.

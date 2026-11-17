@@ -193,7 +193,6 @@ pub async fn keep_last_super_admin(
 
 /// A role's permissions changed: sign out everyone holding it, so the change applies at once
 /// (sessions carry the permission set). Returns the number of sessions removed.
-#[allow(dead_code)] // used from M5 (users) / M6 (roles) / M7 (settings)
 pub async fn revoke_role_sessions(
     tx: &mut Transaction<'_, Postgres>,
     role_id: Uuid,

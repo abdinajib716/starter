@@ -37,3 +37,13 @@ pub fn toast_error(e: &dioxus::prelude::ServerFnError) {
         crate::i18n::error_text(e),
     );
 }
+
+/// Start a browser download of `url` (same-origin, so the session cookie goes along).
+pub fn download(url: &str, filename: &str) {
+    let url = serde_json::to_string(url).unwrap_or_default();
+    let name = serde_json::to_string(filename).unwrap_or_default();
+    let _ = dioxus::document::eval(&format!(
+        "(() => {{ const a = document.createElement('a'); a.href = {url}; a.download = {name};
+            document.body.appendChild(a); a.click(); a.remove(); }})()"
+    ));
+}

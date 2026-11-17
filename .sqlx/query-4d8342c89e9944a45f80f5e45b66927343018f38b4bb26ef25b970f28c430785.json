@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM feature_flags WHERE NOT (key = ANY($1))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4d8342c89e9944a45f80f5e45b66927343018f38b4bb26ef25b970f28c430785"
+}
