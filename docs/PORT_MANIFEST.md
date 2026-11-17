@@ -38,23 +38,23 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `public/images/favicon_light.png` | asset | public/images/favicon_light.png | done | our logo, dark-scheme variant |
 | `public/images/favicon_light.svg` | asset | public/images/favicon_light.svg | done | our logo, dark-scheme variant |
 | `public/images/shadcn-admin.png` | asset | — | n/a | README screenshot |
-| `src/assets/brand-icons/icon-discord.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
-| `src/assets/brand-icons/icon-docker.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
-| `src/assets/brand-icons/icon-facebook.tsx` | asset | src/components/icons/brand.rs | done | `BrandIcon` |
-| `src/assets/brand-icons/icon-figma.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
-| `src/assets/brand-icons/icon-github.tsx` | asset | src/components/icons/brand.rs | done | `BrandIcon` |
-| `src/assets/brand-icons/icon-gitlab.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
-| `src/assets/brand-icons/icon-gmail.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
-| `src/assets/brand-icons/icon-medium.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
-| `src/assets/brand-icons/icon-notion.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
-| `src/assets/brand-icons/icon-skype.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
-| `src/assets/brand-icons/icon-slack.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
-| `src/assets/brand-icons/icon-stripe.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
-| `src/assets/brand-icons/icon-telegram.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
-| `src/assets/brand-icons/icon-trello.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
-| `src/assets/brand-icons/icon-whatsapp.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
-| `src/assets/brand-icons/icon-zoom.tsx` | asset | src/components/icons/brand.rs | done | generated path data |
-| `src/assets/brand-icons/index.ts` | asset | src/components/icons/brand.rs | done | `Brand` enum |
+| `src/assets/brand-icons/icon-discord.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-docker.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-facebook.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-figma.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-github.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-gitlab.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-gmail.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-medium.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-notion.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-skype.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-slack.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-stripe.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-telegram.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-trello.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-whatsapp.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/icon-zoom.tsx` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
+| `src/assets/brand-icons/index.ts` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/icons/brand.rs) |
 | `src/assets/clerk-full-logo.tsx` | asset | — | n/a | Clerk branding (§5: Clerk removed) |
 | `src/assets/clerk-logo.tsx` | asset | — | n/a | Clerk branding (§5: Clerk removed) |
 | `src/assets/custom/icon-dir.tsx` | asset | src/components/icons/custom.rs | done | Custom::Dir (generated from the reference SVG) |
@@ -83,7 +83,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/data-table/view-options.tsx` | component | src/components/data_table/view_options.rs | done |  |
 | `src/components/date-picker.tsx` | component | src/components/ui_extra/form.rs | done | `ui_extra::form::DatePicker` (month/year dropdowns, future disabled) |
 | `src/components/layout/app-sidebar.tsx` | layout | src/components/layout/sidebar.rs | done | variant/collapsible from layout state; mobile copy via `mobile` slot |
-| `src/components/layout/app-title.tsx` | layout | src/components/layout/app_title.rs | done | alternative header, unused like the reference (TeamSwitcher is used) |
+| `src/components/layout/app-title.tsx` | layout | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/layout/app_title.rs) |
 | `src/components/layout/authenticated-layout.tsx` | layout | src/components/layout/app_shell.rs | done | guard + search state + SidebarProvider/Inset |
 | `src/components/layout/data/sidebar-data.ts` | data | src/components/layout/nav_config.rs | done | reference tree minus Clerk; permission filter; demo items marked for flags (M7) |
 | `src/components/layout/header.tsx` | layout | src/components/layout/header.rs | done | sticky + blur when `fixed` |
@@ -93,12 +93,12 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/layout/team-switcher.tsx` | layout | src/components/layout/team_switcher.rs | done | single tenant: app name + org; multi-tenant list in M16 |
 | `src/components/layout/top-nav.tsx` | layout | — | n/a | removed at the owner's request (2026-11-17): only used by the dashboard, all its links were disabled demo items |
 | `src/components/layout/types.ts` | data | src/components/layout/nav_config.rs | done | typed NavGroup/NavItem/NavLink |
-| `src/components/learn-more.tsx` | component | src/components/learn_more.rs | done | popover help; reference uses it only on Clerk pages |
+| `src/components/learn-more.tsx` | component | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/learn_more.rs) |
 | `src/components/long-text.tsx` | component | src/components/long_text.rs | done | tooltip ≥ sm, popover < sm, only when overflowing |
 | `src/components/navigation-progress.tsx` | component | src/components/layout/navigation_progress.rs | done | react-top-loading-bar markup + timing measured on the demo; app shell + auth layout |
 | `src/components/password-input.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
 | `src/components/password-input.tsx` | component | src/components/password_input.rs | done |  |
-| `src/components/profile-dropdown.tsx` | component | src/components/profile_dropdown.rs | done | real user |
+| `src/components/profile-dropdown.tsx` | component | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/components/profile_dropdown.rs) |
 | `src/components/search.tsx` | component | src/components/layout/search.rs | done |  |
 | `src/components/select-dropdown.tsx` | component | src/components/ui_extra/form.rs | done | SelectBox (no isPending caller in the reference) |
 | `src/components/sign-out-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
@@ -118,52 +118,52 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/components/ui/dialog.tsx` | ui-primitive | src/components/ui_extra/dialog.rs | done | `ui_extra::dialog::Modal` |
 | `src/components/ui/dropdown-menu.tsx` | ui-primitive | src/components/ui_extra/menu.rs | done | `ui_extra::menu` (fixed-position, no inline script); Rust/UI version kept vendored |
 | `src/components/ui/form.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form (FormItem/Label/Description/Message) |
-| `src/components/ui/input-otp.tsx` | ui-primitive | src/pages/auth/otp.rs (OtpInput) | done | single transparent input over 6 slots |
+| `src/components/ui/input-otp.tsx` | ui-primitive | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/auth/otp.rs) |
 | `src/components/ui/input.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::TextInput (controlled) |
-| `src/components/ui/label.tsx` | ui-primitive | src/ui/label.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/label.tsx` | ui-primitive | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/ui/label.rs) |
 | `src/components/ui/popover.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::menu (popover content) |
 | `src/components/ui/radio-group.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::Radio |
-| `src/components/ui/scroll-area.tsx` | ui-primitive | src/ui/scroll_area.rs | done | added from Rust/UI 4f5a516 in P1; visual parity checked in P11 |
+| `src/components/ui/scroll-area.tsx` | ui-primitive | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/ui/scroll_area.rs) |
 | `src/components/ui/select.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::SelectBox |
-| `src/components/ui/separator.tsx` | ui-primitive | src/ui/separator.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/separator.tsx` | ui-primitive | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/ui/separator.rs) |
 | `src/components/ui/sheet.tsx` | ui-primitive | src/components/ui_extra/sheet.rs | done | `ui_extra::sheet::SideSheet` (signal-controlled) |
 | `src/components/ui/sidebar.tsx` | ui-primitive | src/components/ui_extra/sidebar.rs | done | faithful port (Rust/UI sidenav lacks icon mode, mobile sheet, cookie, Ctrl+B) |
 | `src/components/ui/skeleton.tsx` | ui-primitive | src/ui/skeleton.rs | done | bg-accent + style like the reference; page-shaped fallbacks in src/components/skeletons.rs; SidebarMenuSkeleton in ui_extra/sidebar.rs |
 | `src/components/ui/sonner.tsx` | ui-primitive | src/ui/toast.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/switch.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::Switch (Rust/UI one has no change handler) |
-| `src/components/ui/table.tsx` | ui-primitive | src/ui/table.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
+| `src/components/ui/table.tsx` | ui-primitive | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/ui/table.rs) |
 | `src/components/ui/tabs.tsx` | ui-primitive | src/ui/tabs.rs | done | Rust/UI equivalent vendored; visual parity checked in P11 |
 | `src/components/ui/textarea.tsx` | ui-primitive | src/components/ui_extra/form.rs | done | ui_extra::form::TextArea (Rust/UI one cannot bind state) |
-| `src/components/ui/tooltip.tsx` | ui-primitive | src/ui/tooltip.rs | done | sidebar tooltip in `ui_extra::sidebar` (fixed, collapsed only); general tooltip = Rust/UI |
-| `src/config/fonts.ts` | config | src/state/font.rs + self-hosted fonts in assets/fonts/ | done | inter/manrope/system; cookie `font`; pre-paint class |
+| `src/components/ui/tooltip.tsx` | ui-primitive | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/ui/tooltip.rs) |
+| `src/config/fonts.ts` | config | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/state/font.rs) |
 | `src/context/direction-provider.tsx` | context | src/state/prefs.rs (Dir) | done | cookie `dir` + html dir before paint; RTL checked against the demo (dashboard, tasks, settings) |
 | `src/context/font-provider.tsx` | context | src/state/prefs.rs | done | `Ui.font` / `set_font` |
 | `src/context/layout-provider.tsx` | context | src/state/prefs.rs | done | Ui.variant / Ui.collapsible (cookies) |
 | `src/context/search-provider.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
 | `src/context/search-provider.tsx` | context | src/state/search.rs + app_shell.rs | done | SearchOpen + Ctrl/Cmd+K |
 | `src/context/theme-provider.tsx` | context | src/state/prefs.rs | done | Ui.theme + apply_theme |
-| `src/features/apps/data/apps.tsx` | data | src/pages/apps.rs (APPS) | done | demo data (§5) |
-| `src/features/apps/index.tsx` | feature | src/pages/apps.rs | done | filter/type/sort in URL (?:..query); demo flag `demo.apps` in M7 |
+| `src/features/apps/data/apps.tsx` | data | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/apps.rs) |
+| `src/features/apps/index.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/apps.rs) |
 | `src/features/auth/auth-layout.tsx` | feature | src/pages/auth/mod.rs (AuthLayout) | done |  |
 | `src/features/auth/forgot-password/components/forgot-password-form.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/auth/forgot-password/components/forgot-password-form.tsx` | feature | src/pages/auth/forgot_password.rs | done |  |
-| `src/features/auth/forgot-password/index.tsx` | feature | src/pages/auth/forgot_password.rs | done | reset email in M13; honest toast |
+| `src/features/auth/forgot-password/components/forgot-password-form.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/auth/forgot_password.rs) |
+| `src/features/auth/forgot-password/index.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/auth/forgot_password.rs) |
 | `src/features/auth/otp/components/otp-form.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/auth/otp/components/otp-form.tsx` | feature | src/pages/auth/otp.rs (OtpInput) | done |  |
-| `src/features/auth/otp/index.tsx` | feature | src/pages/auth/otp.rs | done | verification in M9 (2FA) |
-| `src/features/auth/sign-in/assets/dashboard-dark.png` | asset | assets/auth/dashboard-dark.png | done |  |
-| `src/features/auth/sign-in/assets/dashboard-light.png` | asset | assets/auth/dashboard-light.png | done |  |
+| `src/features/auth/otp/components/otp-form.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/auth/otp.rs) |
+| `src/features/auth/otp/index.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/auth/otp.rs) |
+| `src/features/auth/sign-in/assets/dashboard-dark.png` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (assets/auth/dashboard-dark.png) |
+| `src/features/auth/sign-in/assets/dashboard-light.png` | asset | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (assets/auth/dashboard-light.png) |
 | `src/features/auth/sign-in/components/user-auth-form.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
 | `src/features/auth/sign-in/components/user-auth-form.tsx` | feature | src/pages/auth/sign_in.rs (UserAuthForm) | done | reference checks + server login, toasts |
 | `src/features/auth/sign-in/index.tsx` | feature | src/pages/auth/sign_in.rs | done | wired to our login (M1), redirect param |
 | `src/features/auth/sign-in/sign-in-2.tsx` | feature | src/pages/auth/sign_in.rs (SignIn2) | done |  |
 | `src/features/auth/sign-up/components/sign-up-form.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/auth/sign-up/components/sign-up-form.tsx` | feature | src/pages/auth/sign_up.rs | done |  |
-| `src/features/auth/sign-up/index.tsx` | feature | src/pages/auth/sign_up.rs | done | self sign-up off: submit explains (setting `auth.self_signup`, M7) |
-| `src/features/chats/components/new-chat.tsx` | feature | src/pages/chats/mod.rs (NewChat) | done | `ui_extra::dialog::Modal` |
-| `src/features/chats/data/chat-types.ts` | data | src/pages/chats/mod.rs | done | serde structs |
-| `src/features/chats/data/convo.json` | data | src/pages/chats/convo.json | done | embedded demo data |
-| `src/features/chats/index.tsx` | feature | src/pages/chats/mod.rs | done | initials instead of remote photos (CSP); demo flag `demo.chats` in M7 |
+| `src/features/auth/sign-up/components/sign-up-form.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/auth/sign_up.rs) |
+| `src/features/auth/sign-up/index.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/auth/sign_up.rs) |
+| `src/features/chats/components/new-chat.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/chats/mod.rs) |
+| `src/features/chats/data/chat-types.ts` | data | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/chats/mod.rs) |
+| `src/features/chats/data/convo.json` | data | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/chats/convo.json) |
+| `src/features/chats/index.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/chats/mod.rs) |
 | `src/features/dashboard/components/analytics-chart.tsx` | feature | src/components/ui_extra/chart.rs | done | SVG monotone area chart |
 | `src/features/dashboard/components/analytics.tsx` | feature | src/pages/dashboard/activity.rs | done | Activity tab on real data (M10): failed sign-ins, backups, audit by module, users by role, new users per week |
 | `src/features/dashboard/components/overview.tsx` | feature | src/pages/dashboard/overview.rs | done | Overview tab on real data (M10): KPIs + sign-ins 14 days |
@@ -174,36 +174,36 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/features/errors/maintenance-error.tsx` | feature | src/pages/errors/mod.rs | done | `ErrorView` + `ErrorKind` |
 | `src/features/errors/not-found-error.tsx` | feature | src/pages/errors/mod.rs | done | `ErrorView` + `ErrorKind` |
 | `src/features/errors/unauthorized-error.tsx` | feature | src/pages/errors/mod.rs | done | `ErrorView` + `ErrorKind` |
-| `src/features/settings/account/account-form.tsx` | feature | src/pages/settings/account.rs | done | demo form as in the reference (submit → toast); real data M9 |
-| `src/features/settings/account/index.tsx` | feature | src/pages/settings/account.rs | done | demo form as in the reference (submit → toast); real data M9 |
-| `src/features/settings/appearance/appearance-form.tsx` | feature | src/pages/settings/appearance.rs | done | demo form as in the reference (submit → toast); real data M9 |
-| `src/features/settings/appearance/index.tsx` | feature | src/pages/settings/appearance.rs | done | demo form as in the reference (submit → toast); real data M9 |
-| `src/features/settings/components/content-section.tsx` | feature | src/pages/settings/mod.rs (ContentSection) | done | demo form as in the reference (submit → toast); real data M9 |
-| `src/features/settings/components/sidebar-nav.tsx` | feature | src/pages/settings/mod.rs (SidebarNav) | done | demo form as in the reference (submit → toast); real data M9 |
-| `src/features/settings/display/display-form.tsx` | feature | src/pages/settings/display.rs | done | demo form as in the reference (submit → toast); real data M9 |
-| `src/features/settings/display/index.tsx` | feature | src/pages/settings/display.rs | done | demo form as in the reference (submit → toast); real data M9 |
-| `src/features/settings/index.tsx` | feature | src/pages/settings/mod.rs | done | demo form as in the reference (submit → toast); real data M9 |
-| `src/features/settings/notifications/index.tsx` | feature | src/pages/settings/notifications.rs | done | demo form as in the reference (submit → toast); real data M9 |
-| `src/features/settings/notifications/notifications-form.tsx` | feature | src/pages/settings/notifications.rs | done | demo form as in the reference (submit → toast); real data M9 |
-| `src/features/settings/profile/index.tsx` | feature | src/pages/settings/profile.rs | done | demo form as in the reference (submit → toast); real data M9 |
-| `src/features/settings/profile/profile-form.tsx` | feature | src/pages/settings/profile.rs | done | demo form as in the reference (submit → toast); real data M9 |
-| `src/features/tasks/components/data-table-bulk-actions.tsx` | feature | src/pages/tasks/actions.rs | done | demo page behind flag `demo.tasks` (M7) |
-| `src/features/tasks/components/data-table-row-actions.tsx` | feature | src/pages/tasks/actions.rs | done | demo page behind flag `demo.tasks` (M7) |
-| `src/features/tasks/components/tasks-columns.tsx` | feature | src/pages/tasks/table.rs | done | demo page behind flag `demo.tasks` (M7) |
-| `src/features/tasks/components/tasks-dialogs.tsx` | feature | src/pages/tasks/dialogs.rs | done | demo page behind flag `demo.tasks` (M7) |
+| `src/features/settings/account/account-form.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/settings/account.rs) |
+| `src/features/settings/account/index.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/settings/account.rs) |
+| `src/features/settings/appearance/appearance-form.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/settings/appearance.rs) |
+| `src/features/settings/appearance/index.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/settings/appearance.rs) |
+| `src/features/settings/components/content-section.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/settings/mod.rs) |
+| `src/features/settings/components/sidebar-nav.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/settings/mod.rs) |
+| `src/features/settings/display/display-form.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/settings/display.rs) |
+| `src/features/settings/display/index.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/settings/display.rs) |
+| `src/features/settings/index.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/settings/mod.rs) |
+| `src/features/settings/notifications/index.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/settings/notifications.rs) |
+| `src/features/settings/notifications/notifications-form.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/settings/notifications.rs) |
+| `src/features/settings/profile/index.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/settings/profile.rs) |
+| `src/features/settings/profile/profile-form.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/settings/profile.rs) |
+| `src/features/tasks/components/data-table-bulk-actions.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/tasks/actions.rs) |
+| `src/features/tasks/components/data-table-row-actions.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/tasks/actions.rs) |
+| `src/features/tasks/components/tasks-columns.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/tasks/table.rs) |
+| `src/features/tasks/components/tasks-dialogs.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/tasks/dialogs.rs) |
 | `src/features/tasks/components/tasks-import-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/tasks/components/tasks-import-dialog.tsx` | feature | src/pages/tasks/dialogs.rs | done | demo page behind flag `demo.tasks` (M7) |
+| `src/features/tasks/components/tasks-import-dialog.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/tasks/dialogs.rs) |
 | `src/features/tasks/components/tasks-multi-delete-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/tasks/components/tasks-multi-delete-dialog.tsx` | feature | src/pages/tasks/actions.rs | done | demo page behind flag `demo.tasks` (M7) |
+| `src/features/tasks/components/tasks-multi-delete-dialog.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/tasks/actions.rs) |
 | `src/features/tasks/components/tasks-mutate-drawer.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/tasks/components/tasks-mutate-drawer.tsx` | feature | src/pages/tasks/dialogs.rs | done | demo page behind flag `demo.tasks` (M7) |
-| `src/features/tasks/components/tasks-primary-buttons.tsx` | feature | src/pages/tasks/mod.rs | done | demo page behind flag `demo.tasks` (M7) |
-| `src/features/tasks/components/tasks-provider.tsx` | feature | src/pages/tasks/mod.rs | done | demo page behind flag `demo.tasks` (M7) |
-| `src/features/tasks/components/tasks-table.tsx` | feature | src/pages/tasks/table.rs | done | demo page behind flag `demo.tasks` (M7) |
-| `src/features/tasks/data/data.tsx` | data | src/pages/tasks/data.rs | done | tasks.json from faker 10.4.0 seed 12345 (same rows as reference) |
-| `src/features/tasks/data/schema.ts` | data | src/pages/tasks/data.rs | done | tasks.json from faker 10.4.0 seed 12345 (same rows as reference) |
-| `src/features/tasks/data/tasks.ts` | data | src/pages/tasks/data.rs | done | tasks.json from faker 10.4.0 seed 12345 (same rows as reference) |
-| `src/features/tasks/index.tsx` | feature | src/pages/tasks/mod.rs | done | demo page behind flag `demo.tasks` (M7) |
+| `src/features/tasks/components/tasks-mutate-drawer.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/tasks/dialogs.rs) |
+| `src/features/tasks/components/tasks-primary-buttons.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/tasks/mod.rs) |
+| `src/features/tasks/components/tasks-provider.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/tasks/mod.rs) |
+| `src/features/tasks/components/tasks-table.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/tasks/table.rs) |
+| `src/features/tasks/data/data.tsx` | data | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/tasks/data.rs) |
+| `src/features/tasks/data/schema.ts` | data | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/tasks/data.rs) |
+| `src/features/tasks/data/tasks.ts` | data | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/tasks/data.rs) |
+| `src/features/tasks/index.tsx` | feature | — | n/a | removed at the owner's request (2026-11-17): demo / unused in the app (src/pages/tasks/mod.rs) |
 | `src/features/users/components/data-table-bulk-actions.tsx` | feature | src/pages/users/actions.rs | done | real data (M5): server-side list, guards, audit |
 | `src/features/users/components/data-table-row-actions.tsx` | feature | src/pages/users/actions.rs | done | real data (M5): server-side list, guards, audit |
 | `src/features/users/components/users-action-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
@@ -213,7 +213,7 @@ SPEC-02 v3 §3. One row per file of `reference/shadcn-admin` (commit `e16c87f`).
 | `src/features/users/components/users-delete-dialog.tsx` | feature | src/pages/users/dialogs.rs | done | real data (M5): server-side list, guards, audit |
 | `src/features/users/components/users-dialogs.tsx` | feature | src/pages/users/dialogs.rs | done | real data (M5): server-side list, guards, audit |
 | `src/features/users/components/users-invite-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
-| `src/features/users/components/users-invite-dialog.tsx` | feature | src/pages/users/dialogs.rs | in-progress | removed until the email module (M13): invites need email; admins set temporary passwords meanwhile |
+| `src/features/users/components/users-invite-dialog.tsx` | feature | — | n/a | returns with the email module (M13): invites need email; admins set temporary passwords meanwhile |
 | `src/features/users/components/users-multi-delete-dialog.test.tsx` | test | — | n/a | DOM test; manual check in P11, end-to-end later (§4.6) |
 | `src/features/users/components/users-multi-delete-dialog.tsx` | feature | src/pages/users/actions.rs | done | real data (M5): server-side list, guards, audit |
 | `src/features/users/components/users-primary-buttons.tsx` | feature | src/pages/users/mod.rs | done | real data (M5): server-side list, guards, audit |

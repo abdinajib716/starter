@@ -113,20 +113,6 @@ pub fn ShellError(error: String) -> Element {
     }
 }
 
-/// `coming-soon.tsx` (Help Center).
-#[component]
-pub fn ComingSoon() -> Element {
-    rsx! {
-        div { class: "h-svh",
-            div { class: "m-auto flex h-full w-full flex-col items-center justify-center gap-2",
-                crate::components::ui_extra::icon::Icon { icon: crate::components::ui_extra::icon::IconType::Telescope, class: "size-[72px]" }
-                h1 { class: "text-4xl leading-tight font-bold", {t!("coming-soon-title")} }
-                p { class: "text-center text-muted-foreground", {t!("coming-soon-desc-1")} br {} {t!("coming-soon-desc-2")} }
-            }
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::ErrorKind;

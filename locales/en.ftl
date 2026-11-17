@@ -1,27 +1,11 @@
 # English — source of truth (§26). Keys: <area>-<name>.
 app-name = Starter
 
-home-title = Rust/UI is working
-home-welcome = Welcome, { $name }
-home-subtitle = Dioxus 0.7 + Tailwind v4 theme
-home-clicks = { $count ->
-    [one] Clicked once
-   *[other] Clicked { $count } times
-}
-action-increment = Increment
-action-reset = Reset
-action-delete = Delete
-toast-delete = Delete clicked (toast works)
-status-loading = loading…
-lang-label = Language
 
-nav-logout = Log out
 nav-profile = Profile
 
 login-title = Sign in
-login-subtitle = Use your work email and password.
 login-submit = Sign in
-login-submitting = Signing in…
 field-email = Email
 field-password = Password
 
@@ -35,9 +19,6 @@ field-confirm-password = Confirm new password
 password-hint = At least 10 characters. Common passwords are rejected.
 password-mismatch = The new passwords do not match.
 
-notfound-title = Page not found
-notfound-back = Back to home
-
 err-generic = Something went wrong. Please try again.
 err-internal = Something went wrong on the server. Please try again.
 err-auth-invalid-credentials = Incorrect email or password.
@@ -50,40 +31,14 @@ err-password-too-common = This password is too common. Choose another one.
 
 # ---- App shell (SPEC-02, shadcn-admin) ----
 app-plan = Admin Dashboard
-teams-label = Teams
 skip-to-main = Skip to Main
 action-cancel = Cancel
 
 nav-group-general = General
-nav-group-pages = Pages
-nav-group-other = Other
 nav-dashboard = Dashboard
-nav-tasks = Tasks
-nav-apps = Apps
-nav-chats = Chats
-nav-users = Users
-nav-auth = Auth
-nav-sign-in = Sign In
-nav-sign-in-2 = Sign In (2 Col)
-nav-sign-up = Sign Up
-nav-forgot-password = Forgot Password
-nav-otp = OTP
-nav-errors = Errors
-nav-unauthorized = Unauthorized
-nav-forbidden = Forbidden
-nav-not-found = Not Found
-nav-internal-error = Internal Server Error
-nav-maintenance = Maintenance Error
-nav-settings = Settings
-nav-account = Account
+nav-users = User
 nav-appearance = Appearance
-nav-notifications = Notifications
-nav-display = Display
-nav-help-center = Help Center
 
-menu-upgrade = Upgrade to Pro
-menu-billing = Billing
-menu-new-team = New Team
 menu-sign-out = Sign out
 signout-title = Sign out
 signout-desc = Are you sure you want to sign out? You will need to sign in again to access your account.
@@ -137,152 +92,24 @@ err500-desc-2 = Please try again later.
 err503-title = Website is under maintenance!
 err503-desc-1 = The site is not available at the moment.
 err503-desc-2 = We'll be back online shortly.
-coming-soon-title = Coming Soon!
-coming-soon-desc-1 = This page has not been created yet.
-coming-soon-desc-2 = Stay tuned though!
 
 # ---- Settings (shadcn-admin demo forms) ----
-settings-desc = Manage your account settings and set e-mail preferences.
-settings-profile-desc = This is how others will see you on the site.
-settings-account-desc = Update your account settings. Set your preferred language and timezone.
-settings-appearance-desc = Customize the appearance of the app. Automatically switch between day and night themes.
-settings-notifications-desc = Configure how you receive notifications.
-settings-display-desc = Turn items on or off to control what's displayed in the app.
-submitted-title = You submitted the following values:
-
-f-username = Username
-f-username-desc = This is your public display name. It can be your real name or a pseudonym. You can only change this once every 30 days.
-f-email-placeholder = Select a verified email to display
-f-email-desc-1 = You can manage verified email addresses in your
-f-email-desc-link = email settings
-f-bio = Bio
-f-bio-placeholder = Tell us a little bit about yourself
-f-bio-desc-1 = You can
-f-bio-desc-2 = other users and organizations to link to them.
-f-urls = URLs
-f-urls-desc = Add links to your website, blog, or social media profiles.
-f-add-url = Add URL
-f-update-profile = Update profile
-
-f-name = Name
-f-name-placeholder = Your name
-f-name-desc = This is the name that will be displayed on your profile and in emails.
-f-dob = Date of birth
-f-dob-placeholder = Pick a date
-f-dob-desc = Your date of birth is used to calculate your age.
-f-language = Language
-f-language-placeholder = Select language
-f-language-search = Search language...
-f-language-empty = No language found.
-f-language-desc = This is the language that will be used in the dashboard.
-f-update-account = Update account
 
 f-font = Font
 f-font-desc = Set the font you want to use in the dashboard.
-f-theme-desc = Select the theme for the dashboard.
-f-update-preferences = Update preferences
-
-f-notify-about = Notify me about...
-f-notify-all = All new messages
-f-notify-mentions = Direct messages and mentions
-f-notify-none = Nothing
-f-email-notifications = Email Notifications
-f-comm-emails = Communication emails
-f-comm-emails-desc = Receive emails about your account activity.
-f-marketing-emails = Marketing emails
-f-marketing-emails-desc = Receive emails about new products, features, and more.
-f-social-emails = Social emails
-f-social-emails-desc = Receive emails for friend requests, follows, and more.
-f-security-emails = Security emails
-f-security-emails-desc = Receive emails about your account activity and security.
-f-mobile = Use different settings for my mobile devices
-f-mobile-desc-1 = You can manage your mobile notifications in the
-f-mobile-desc-link = mobile settings
-f-mobile-desc-2 = page.
-f-update-notifications = Update notifications
-
-f-display-sidebar = Sidebar
-f-display-sidebar-desc = Select the items you want to display in the sidebar.
-f-update-display = Update display
-
-v-username-required = Please enter your username.
-v-username-min = Username must be at least 2 characters.
-v-username-max = Username must not be longer than 30 characters.
-v-email-select = Please select an email to display.
-v-bio-min = Too small: expected string to have >=4 characters
-v-bio-max = Too big: expected string to have <=160 characters
-v-url = Please enter a valid URL.
-v-name-required = Please enter your name.
-v-name-min = Name must be at least 2 characters.
-v-name-max = Name must not be longer than 30 characters.
-v-dob = Please select your date of birth.
-v-language = Please select a language.
-v-notify-type = Please select a notification type.
-v-display-items = You have to select at least one item.
 
 # ---- Auth screens ----
 auth-sign-in-desc-1 = Enter your email and password below to log into
-auth-sign-in-desc-2 = your account. Don't have an account?
-auth-forgot = Forgot password?
-auth-continue-with = Or continue with
-auth-terms-lead-sign-in = By clicking sign in, you agree to our
-auth-terms-lead-sign-up = By creating an account, you agree to our
-auth-terms = Terms of Service
-auth-and = and
-auth-privacy = Privacy Policy
 auth-welcome = Welcome back, { $email }!
-auth-signup-title = Create an account
-auth-signup-desc = Enter your email and password to create an account.
-auth-have-account = Already have an account?
-auth-confirm-password = Confirm Password
-auth-create-account = Create Account
-auth-signup-disabled = Self sign-up is turned off. Ask an administrator to invite you.
-auth-forgot-desc-1 = Enter your registered email and
-auth-forgot-desc-2 = we will send you a link to reset your password.
-auth-continue = Continue
-auth-reset-unavailable = Password reset by email is not enabled yet. An administrator can reset your password.
-auth-no-account = Don't have an account?
-auth-sign-up-lower = Sign up
-auth-otp-title = Two-factor Authentication
-auth-otp-desc-1 = Please enter the authentication code.
-auth-otp-desc-2 = We have sent the authentication code to your email.
-auth-otp-label = One-Time Password
-auth-verify = Verify
-auth-otp-resend-lead = Haven't received it?
-auth-otp-resend = Resend a new code.
 pw-show = Show password
 pw-hide = Hide password
 v-email-enter = Please enter your email.
 v-email-invalid = Invalid email address
 v-password-enter = Please enter your password.
 v-password-min7 = Password must be at least 7 characters long.
-v-password-confirm = Please confirm your password.
 v-password-match = Passwords don't match.
 
 # ---- Apps / Chats (demo pages) ----
-apps-title = App Integrations
-apps-desc = Here's a list of your apps for the integration!
-apps-filter = Filter apps...
-apps-all = All Apps
-apps-connected = Connected
-apps-not-connected = Not Connected
-apps-connect = Connect
-apps-sort = Sort
-apps-asc = Ascending
-apps-desc-sort = Descending
-chats-inbox = Inbox
-chats-search = Search chat...
-chats-your-messages = Your messages
-chats-start = Send a message to start a chat.
-chats-send-message = Send message
-chats-text-box = Chat Text Box
-chats-type = Type your messages...
-chats-send = Send
-chats-new-message = New message
-chats-to = To:
-chats-search-people = Search people...
-chats-no-people = No people found.
-chats-chat = Chat
 
 ## data table (components/data-table/*)
 dt-page-of = Page { $page } of { $total }
@@ -322,66 +149,7 @@ action-close = Close
 action-save-changes = Save changes
 
 ## tasks (features/tasks/*)
-tasks-title = Tasks
-tasks-desc = Here's a list of your tasks for this month!
-tasks-import = Import
-tasks-create = Create
-tasks-search = Filter by title or ID...
-tasks-col-task = Task
-tasks-col-title = Title
-tasks-col-status = Status
-tasks-col-priority = Priority
-tasks-label = Label
-tasks-labels = Labels
-tasks-make-copy = Make a copy
-tasks-favorite = Favorite
-tasks-entity = task
-tasks-entity-plural = tasks
-task-label-bug = Bug
-task-label-feature = Feature
-task-label-documentation = Documentation
-task-status-backlog = Backlog
-task-status-todo = Todo
-task-status-in-progress = In Progress
-task-status-done = Done
-task-status-canceled = Canceled
-task-priority-low = Low
-task-priority-medium = Medium
-task-priority-high = High
-task-priority-critical = Critical
-tasks-bulk-status = Update status
-tasks-bulk-priority = Update priority
-tasks-bulk-export = Export tasks
-tasks-bulk-delete = Delete selected tasks
-tasks-updating-status = Updating status...
-tasks-status-updated = Status updated to "{ $status }" for { $count } { $entity }.
-tasks-updating-priority = Updating priority...
-tasks-priority-updated = Priority updated to "{ $priority }" for { $count } { $entity }.
-tasks-exporting = Exporting tasks...
-tasks-exported = Exported { $count } { $entity } to CSV.
-tasks-deleting = Deleting tasks...
-tasks-deleted = Deleted { $count } { $entity }
-tasks-delete-n = Delete { $count } { $entity }
-tasks-delete-title = Delete this task: { $id } ?
-tasks-delete-desc-1 = You are about to delete a task with the ID
-tasks-deleted-title = The following task has been deleted:
-tasks-create-title = Create Task
-tasks-update-title = Update Task
-tasks-create-desc = Add a new task by providing necessary info.
-tasks-update-desc = Update the task by providing necessary info.
 tasks-save-hint = Click save when you're done.
-tasks-title-ph = Enter a title
-tasks-select-ph = Select dropdown
-tasks-import-title = Import Tasks
-tasks-import-desc = Import tasks quickly from a CSV file.
-tasks-file = File
-tasks-imported-title = You have imported the following file:
-v-task-title = Title is required.
-v-task-status = Please select a status.
-v-task-label = Please select a label.
-v-task-priority = Please choose a priority.
-v-file-required = Please upload a file.
-v-file-csv = Please upload csv format.
 
 ## users (features/users/*)
 users-title = User List
@@ -416,8 +184,6 @@ users-select-role = Select a role
 users-delete-title = Delete User
 users-delete-sure = Are you sure you want to delete
 users-delete-role = This removes the user with the role of
-v-email-invalid = Invalid email address
-v-password-match = Passwords don't match.
 
 ## appearance drawer cards
 config-reset-theme = Reset theme preference to default
@@ -431,7 +197,6 @@ config-select-layout = Select layout style
 config-select-dir = Select site direction
 config-select-option = Select { $option }
 sidebar-toggle = Toggle Sidebar
-learn-more = Learn more
 
 ## users on real data (M5)
 users-export = Export
@@ -551,8 +316,7 @@ audit-role-delete = Deleted a role
 audit-settings-update = Changed settings
 audit-flag-update = Changed a feature flag
 ## audit log page (M4)
-nav-group-admin = Administration
-nav-audit = Audit log
+nav-audit = Audit
 audit-title = Audit log
 audit-desc = Every sign-in and change, who made it and when.
 audit-search = Search action, user or ID...
@@ -575,3 +339,16 @@ audit-no-changes = No field changes recorded for this entry.
 audit-field = Field
 audit-before = Before
 audit-after = After
+
+## sidebar (§8)
+nav-access-control = Access Control
+nav-system-settings = System Setting
+nav-roles = Role
+nav-permissions = Permission
+nav-backup = Backup
+profile-desc = Your account, password and appearance.
+profile-card-title = Profile
+profile-card-desc = Your name as other users see it.
+profile-email-note = Ask an administrator to change your email address.
+profile-saved = Profile saved.
+profile-appearance-desc = Theme and font for this browser.

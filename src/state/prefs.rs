@@ -132,6 +132,14 @@ impl Font {
             Self::System => "system",
         }
     }
+    /// Font names are proper nouns: not translated.
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Inter => "Inter",
+            Self::Manrope => "Manrope",
+            Self::System => "System",
+        }
+    }
     pub fn parse(s: &str) -> Self {
         match s {
             "manrope" => Self::Manrope,

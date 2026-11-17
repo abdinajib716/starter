@@ -34,10 +34,7 @@ pub fn ProfileDropdown() -> Element {
             }
             MenuSeparator {}
             MenuGroup {
-                Link { to: "/settings", class: ITEM, {t!("nav-profile")} MenuShortcut { "⇧⌘P" } }
-                Link { to: "/settings", class: ITEM, {t!("menu-billing")} MenuShortcut { "⌘B" } }
-                Link { to: "/settings", class: ITEM, {t!("nav-settings")} MenuShortcut { "⌘S" } }
-                MenuItem { {t!("menu-new-team")} }
+                Link { to: "/profile", class: ITEM, {t!("nav-profile")} }
             }
             MenuSeparator {}
             MenuItem { destructive: true, onclick: move |_| sign_out.set(true),

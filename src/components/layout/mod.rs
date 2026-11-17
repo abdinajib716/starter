@@ -1,6 +1,5 @@
 //! App shell, ported from shadcn-admin `src/components/layout/*` (SPEC-02 P2–P3).
 mod app_shell;
-mod app_title;
 mod config_drawer;
 mod header;
 #[allow(dead_code)]

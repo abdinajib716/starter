@@ -1,7 +1,6 @@
-//! Menu tree (shadcn-admin `layout/data/sidebar-data.ts` + `types.ts`). Titles are i18n
-//! keys. Items with `permission` are hidden from users without it (§8); Clerk entries
-//! are removed (SPEC-02 §5). `demo` items become feature flags (`demo.*`, default off)
-//! in M7; until flags exist they are shown so the port can be compared with the demo.
+//! Menu tree (§8 sidebar, shadcn-admin `sidebar-data.ts` shape). Titles are i18n keys; every
+//! item needs its permission and a group without visible items is hidden. The reference's
+//! demo entries (Tasks, Apps, Chats, Pages, Help Center) were removed at the owner's request.
 use crate::components::ui_extra::icon::IconType;
 use crate::domain::UserInfo;
 
@@ -12,7 +11,6 @@ pub struct NavLink {
     pub icon: Option<IconType>,
     pub badge: Option<&'static str>,
     pub permission: Option<&'static str>,
-    pub demo: Option<&'static str>,
 }
 
 #[derive(Clone, PartialEq)]
@@ -39,113 +37,52 @@ const fn link(title: &'static str, url: &'static str, icon: Option<IconType>) ->
         icon,
         badge: None,
         permission: None,
-        demo: None,
     }
 }
 
 pub fn nav_groups() -> Vec<NavGroup> {
     use IconType as I;
-    vec![
-        NavGroup {
-            title: "nav-group-general",
-            items: vec![
-                NavItem::Link(NavLink {
-                    permission: Some("dashboard.view"),
-                    ..link("nav-dashboard", "/", Some(I::LayoutDashboard))
-                }),
-                NavItem::Link(NavLink {
-                    demo: Some("demo.tasks"),
-                    ..link("nav-tasks", "/tasks", Some(I::ListTodo))
-                }),
-                NavItem::Link(NavLink {
-                    demo: Some("demo.apps"),
-                    ..link("nav-apps", "/apps", Some(I::Package))
-                }),
-                NavItem::Link(NavLink {
-                    badge: Some("3"),
-                    demo: Some("demo.chats"),
-                    ..link("nav-chats", "/chats", Some(I::MessagesSquare))
-                }),
-                NavItem::Link(NavLink {
-                    permission: Some("users.view"),
-                    ..link("nav-users", "/users", Some(I::Users))
-                }),
-            ],
-        },
-        // Our administration pages (not in the reference): each needs its permission (§8).
-        NavGroup {
-            title: "nav-group-admin",
-            items: vec![NavItem::Link(NavLink {
-                permission: Some("audit.view"),
-                ..link("nav-audit", "/audit", Some(I::ScrollText))
-            })],
-        },
-        NavGroup {
-            title: "nav-group-pages",
-            items: vec![
-                NavItem::Collapsible {
-                    title: "nav-auth",
-                    icon: Some(I::ShieldCheck),
-                    badge: None,
-                    items: vec![
-                        link("nav-sign-in", "/sign-in", None),
-                        link("nav-sign-in-2", "/sign-in-2", None),
-                        link("nav-sign-up", "/sign-up", None),
-                        link("nav-forgot-password", "/forgot-password", None),
-                        link("nav-otp", "/otp", None),
-                    ],
-                },
-                NavItem::Collapsible {
-                    title: "nav-errors",
-                    icon: Some(I::Bug),
-                    badge: None,
-                    items: vec![
-                        link("nav-unauthorized", "/errors/unauthorized", Some(I::Lock)),
-                        link("nav-forbidden", "/errors/forbidden", Some(I::UserX)),
-                        link("nav-not-found", "/errors/not-found", Some(I::FileX)),
-                        link(
-                            "nav-internal-error",
-                            "/errors/internal-server-error",
-                            Some(I::ServerOff),
-                        ),
-                        link(
-                            "nav-maintenance",
-                            "/errors/maintenance-error",
-                            Some(I::Construction),
-                        ),
-                    ],
-                },
-            ],
-        },
-        NavGroup {
-            title: "nav-group-other",
-            items: vec![
-                NavItem::Collapsible {
-                    title: "nav-settings",
-                    icon: Some(I::Settings),
-                    badge: None,
-                    items: vec![
-                        link("nav-profile", "/settings", Some(I::UserCog)),
-                        link("nav-account", "/settings/account", Some(I::Wrench)),
-                        link("nav-appearance", "/settings/appearance", Some(I::Palette)),
-                        link(
-                            "nav-notifications",
-                            "/settings/notifications",
-                            Some(I::Bell),
-                        ),
-                        link("nav-display", "/settings/display", Some(I::Monitor)),
-                    ],
-                },
-                NavItem::Link(NavLink {
-                    demo: Some("demo.help_center"),
-                    ..link("nav-help-center", "/help-center", Some(I::CircleHelp))
-                }),
-            ],
-        },
-    ]
+    let link_p = |title, url, icon, permission| NavLink {
+        permission: Some(permission),
+        ..link(title, url, Some(icon))
+    };
+    vec![NavGroup {
+        title: "nav-group-general",
+        items: vec![
+            NavItem::Link(link_p(
+                "nav-dashboard",
+                "/",
+                I::LayoutDashboard,
+                "dashboard.view",
+            )),
+            // §8: "Access Control" shows when the user may open any of its children.
+            NavItem::Collapsible {
+                title: "nav-access-control",
+                icon: Some(I::ShieldCheck),
+                badge: None,
+                items: vec![
+                    link_p(
+                        "nav-system-settings",
+                        "/system-settings",
+                        I::Settings,
+                        "settings.view",
+                    ),
+                    link_p("nav-users", "/users", I::Users, "users.view"),
+                    link_p("nav-roles", "/roles", I::UserCog, "roles.view"),
+                    link_p(
+                        "nav-permissions",
+                        "/permissions",
+                        I::KeyRound,
+                        "permissions.view",
+                    ),
+                    link_p("nav-audit", "/audit", I::ScrollText, "audit.view"),
+                    link_p("nav-backup", "/backups", I::DatabaseBackup, "backup.view"),
+                ],
+            },
+        ],
+    }]
 }
 
-/// Permission filter (§8): hides links the user may not open, and empty collapsibles/groups.
 pub fn visible_groups(user: &UserInfo) -> Vec<NavGroup> {
     let allowed = |l: &NavLink| l.permission.is_none_or(|p| user.can(p));
     nav_groups()
@@ -210,12 +147,39 @@ mod tests {
     }
 
     #[test]
+    fn access_control_follows_permissions() {
+        let titles = |p: &[&str]| {
+            visible_groups(&user(p))
+                .into_iter()
+                .flat_map(|g| g.items)
+                .map(|i| match i {
+                    NavItem::Link(l) => l.title,
+                    NavItem::Collapsible { title, items, .. } => {
+                        if items.len() == 1 {
+                            items[0].title
+                        } else {
+                            title
+                        }
+                    }
+                })
+                .collect::<Vec<_>>()
+        };
+        assert!(titles(&[]).is_empty(), "nothing without permissions");
+        assert_eq!(titles(&["dashboard.view"]), ["nav-dashboard"]);
+        assert_eq!(
+            titles(&["audit.view"]),
+            ["nav-audit"],
+            "group shows with one child"
+        );
+    }
+
+    #[test]
     fn users_link_needs_permission() {
         let has = |u: &UserInfo| {
             visible_groups(u)
                 .iter()
                 .flat_map(|g| g.items.clone())
-                .any(|i| matches!(i, NavItem::Link(l) if l.url == "/users"))
+                .any(|i| matches!(i, NavItem::Collapsible { items, .. } if items.iter().any(|l| l.url == "/users")))
         };
         assert!(!has(&user(&[])));
         assert!(has(&user(&["users.view"])));

@@ -459,6 +459,7 @@ Blockers first; each names the item that proves it.
 | 2026-11-15 | Password minimum length uses the blueprint's existing key `security.password_min_length`, not a new `security.min_password_length` | Avoid two keys for one setting |
 | 2026-11-16 | Data tables: own `components/data_table` kit (signals + `UrlState`) instead of a TanStack port or Rust/UI `data_table` | the reference's behaviour (URL sync, faceted counts, page window, bulk bar) is small; plain filter → sort → paginate over a `Vec` is enough for demo data and maps 1:1 to server-side paging in M5 |
 | 2026-11-16 | URL array filters are comma-separated (`?status=todo,done`), not JSON (`?status=["todo"]`) | readable links; values never contain commas |
+| 2026-11-17 | Demo UI removed at the owner's request: Tasks, Apps, Chats, Help Center, demo settings forms, sign-in-2 / sign-up / forgot / OTP screens, team switcher menu, upgrade/billing menu items, social buttons; unused Rust/UI components and hooks deleted; sidebar = §8 tree (Dashboard + Access Control) | the app shows only real features; forgot password / invites return with M13, the 2FA step with M9 |
 | 2026-11-17 | Audit growth: monthly range partitions on `at` once `audit_logs` passes ~10 M rows; old partitions detached + dumped to storage, never UPDATE/DELETE | keeps the append-only trigger intact (it is inherited by each partition) and makes retention a cheap DETACH |
 | 2026-11-16 | Users "status" is derived, not stored: deleted → suspended (locked) → inactive → invited (never signed in) → active | gives the reference's four badge states real meaning without new columns |
 | 2026-11-16 | Users page: no Username/Phone columns (not in our schema); Last sign-in instead; Invite button hidden until the email module (M13) | real data only; invites need email |
@@ -466,5 +467,5 @@ Blockers first; each names the item that proves it.
 
 ## Rust/UI components installed
 
-`alert alert_dialog avatar badge breadcrumb button card charts checkbox collapsible command data_table date_picker date_picker_state dialog dropdown_menu empty field form input input_group input_otp label pagination popover progress radio_button radio_button_group scroll_area select separator sheet sidenav skeleton spinner switch table tabs textarea theme_toggle toast tooltip` (42)
-Hooks: `use_can_scroll_vertical use_form use_pagination use_random`
+`alert avatar badge button card collapsible skeleton tabs toast` (9, the rest removed 2026-11-17 as unused; shadcn-style replacements live in `components/ui_extra`)
+Hooks: none (removed)

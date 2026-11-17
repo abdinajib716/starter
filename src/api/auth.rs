@@ -56,3 +56,14 @@ pub async fn change_password(current: String, new: String) -> Result<(), ServerF
     auth::change_password(&st.pool, &ctx, user, current, new).await?;
     Ok(())
 }
+
+/// Session required (own account): change the display name (§9.1).
+#[post("/api/profile/update")]
+pub async fn update_profile(full_name: String) -> Result<(), ServerFnError> {
+    use crate::server::{ctx, services::auth, state};
+    let ctx = ctx::Ctx::current().await?;
+    let st = state::get()?;
+    let user = ctx.require_user()?;
+    auth::update_profile(&st.pool, &ctx, user, full_name).await?;
+    Ok(())
+}

@@ -121,6 +121,41 @@ macro_rules! ta {
 
 #[cfg(test)]
 mod tests {
+    /// A broken `.ftl` file panics the app at the first render; catch it here instead.
+    /// Each line is a comment, a `key = …` message, or part of a `{ $x -> … }` select.
+    #[test]
+    fn locale_files_are_well_formed() {
+        for (name, text) in [
+            ("en", include_str!("../locales/en.ftl")),
+            ("so", include_str!("../locales/so.ftl")),
+        ] {
+            let mut in_select = false;
+            let mut keys = std::collections::HashSet::new();
+            for (i, line) in text.lines().enumerate() {
+                let ok = if in_select {
+                    if line.trim() == "}" {
+                        in_select = false;
+                    }
+                    true
+                } else if line.is_empty() || line.starts_with('#') {
+                    true
+                } else if let Some((key, value)) = line.split_once(" = ") {
+                    in_select = value.trim_end().ends_with("->");
+                    assert!(
+                        keys.insert(key.trim().to_string()),
+                        "{name}.ftl:{}: duplicate key {key}",
+                        i + 1
+                    );
+                    key.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
+                } else {
+                    false
+                };
+                assert!(ok, "{name}.ftl:{}: unexpected line {line:?}", i + 1);
+            }
+            assert!(!in_select, "{name}.ftl: unclosed select expression");
+        }
+    }
+
     use super::*;
 
     const ENABLED: &[&str] = &["en", "so"];

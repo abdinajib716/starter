@@ -7,14 +7,11 @@ mod app;
 mod components;
 mod domain;
 mod i18n;
-// Rust/UI library code (copied verbatim); not every component/hook is used yet.
-#[allow(dead_code, unused_imports, clippy::all)]
-#[rustfmt::skip]
-mod hooks;
 mod pages;
 #[cfg(feature = "server")]
 mod server;
 mod state;
+// Rust/UI library code (copied verbatim, only the components in use).
 #[allow(dead_code, unused_imports, clippy::all)]
 #[rustfmt::skip]
 mod ui;

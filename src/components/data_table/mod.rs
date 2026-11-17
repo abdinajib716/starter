@@ -189,12 +189,6 @@ impl TableState {
         self.page.set(0);
     }
 
-    /// Value passes the column filter (empty filter = everything).
-    pub fn matches(&self, column: &str, value: &str) -> bool {
-        let f = self.column_filter(column);
-        f.is_empty() || f.iter().any(|v| v == value)
-    }
-
     pub fn visible(&self, column: &str) -> bool {
         !(self.hidden)().contains(column)
     }
@@ -206,17 +200,6 @@ impl TableState {
             self.page.set(last);
         }
     }
-}
-
-/// Slice of `rows` for the current page and the page count (at least 1).
-pub fn paginate<T: Clone>(rows: &[T], state: &TableState) -> (Vec<T>, usize) {
-    let size = (state.page_size)().max(1);
-    let pages = rows.len().div_ceil(size).max(1);
-    let page = (state.page)().min(pages - 1);
-    (
-        rows.iter().skip(page * size).take(size).cloned().collect(),
-        pages,
-    )
 }
 
 /// shadcn `table.tsx` classes.

@@ -71,10 +71,8 @@ fn is_passthrough(path: &str) -> bool {
 
 /// Public pages (§12, §30.4). Everything else needs a session.
 fn is_public_page(path: &str) -> bool {
-    matches!(
-        path,
-        "/sign-in" | "/sign-in-2" | "/sign-up" | "/forgot-password" | "/otp" | "/login"
-    ) || path.starts_with("/auth/")
+    matches!(path, "/sign-in" | "/login")
+        || path.starts_with("/auth/")
         || matches!(path, "/401" | "/403" | "/404" | "/500" | "/503")
 }
 

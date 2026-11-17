@@ -234,6 +234,42 @@ pub async fn change_password(
     Ok(())
 }
 
+/// Own name (§9.1 `update_profile`); session only, audited with before/after.
+pub async fn update_profile(
+    pool: &PgPool,
+    ctx: &Ctx,
+    user: &CurrentUser,
+    full_name: String,
+) -> Result<(), crate::server::error::AppError> {
+    use crate::server::error::AppError;
+    let name = full_name.trim();
+    if name.is_empty() {
+        return Err(AppError::Validation("users.name_required"));
+    }
+    if name.chars().count() > crate::domain::users::NAME_MAX {
+        return Err(AppError::Validation("users.name_too_long"));
+    }
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "UPDATE users SET full_name = $2, updated_at = now() WHERE id = $1",
+        user.id,
+        name
+    )
+    .execute(&mut *tx)
+    .await?;
+    audit::record(
+        &mut tx,
+        Entry {
+            before: Some(serde_json::json!({ "full_name": user.full_name })),
+            after: Some(serde_json::json!({ "full_name": name })),
+            ..user_entry(ctx, user, "profile.update")
+        },
+    )
+    .await?;
+    tx.commit().await?;
+    Ok(())
+}
+
 fn user_entry<'a>(ctx: &'a Ctx, user: &'a CurrentUser, action: &'a str) -> Entry<'a> {
     Entry {
         org_id: Some(ctx.org_id),

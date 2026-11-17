@@ -47,13 +47,7 @@ pub fn NavUser(user: UserInfo) -> Element {
                     }
                     MenuSeparator {}
                     MenuGroup {
-                        MenuItem { Icon { icon: IconType::Sparkles } {t!("menu-upgrade")} }
-                    }
-                    MenuSeparator {}
-                    MenuGroup {
-                        Link { to: "/settings/account", class: ITEM, Icon { icon: IconType::BadgeCheck } {t!("nav-account")} }
-                        Link { to: "/settings", class: ITEM, Icon { icon: IconType::CreditCard } {t!("menu-billing")} }
-                        Link { to: "/settings/notifications", class: ITEM, Icon { icon: IconType::Bell } {t!("nav-notifications")} }
+                        Link { to: "/profile", class: ITEM, Icon { icon: IconType::BadgeCheck } {t!("nav-profile")} }
                     }
                     MenuSeparator {}
                     MenuItem { destructive: true, onclick: move |_| sign_out.set(true),

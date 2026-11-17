@@ -175,6 +175,15 @@ mod tests {
     }
 
     #[test]
+    fn email_shape() {
+        use super::valid_email;
+        assert!(valid_email("a@b.co"));
+        assert!(!valid_email("a@b"));
+        assert!(!valid_email("@b.co"));
+        assert!(!valid_email("a b@c.de"));
+    }
+
+    #[test]
     fn coded_errors_map_to_their_key() {
         assert_eq!(
             i18n_key(&coded(401, "auth.invalid_credentials")),

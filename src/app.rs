@@ -1,24 +1,16 @@
 //! Root component, route table and document head.
 // The `Routable` derive generates an unreachable call (Dioxus 0.7.10); an attribute on the
 // enum does not reach the generated impl, so the lint is allowed for this module.
-// Nested layouts need `#[end_layout]` twice, which clippy reports as duplicated attributes.
-#![allow(unreachable_code, clippy::duplicated_attributes)]
+#![allow(unreachable_code)]
 use dioxus::prelude::*;
 use dioxus_i18n::prelude::use_init_i18n;
 
 use crate::components::layout::AppShell;
 use crate::i18n;
-use crate::pages::auth::{ForgotPassword, Login, Otp, SignIn, SignIn2, SignUp};
-use crate::pages::errors::{
-    ComingSoon, Error401, Error403, Error404, Error500, Error503, ShellError,
-};
-use crate::pages::settings::{
-    SettingsAccount, SettingsAppearance, SettingsDisplay, SettingsLayout, SettingsNotifications,
-    SettingsProfile,
-};
+use crate::pages::auth::{Login, SignIn};
+use crate::pages::errors::{Error401, Error403, Error404, Error500, Error503, ShellError};
 use crate::pages::{
-    apps::Apps, audit::Audit, chats::Chats, dashboard::Dashboard, not_found::NotFound,
-    profile::Profile, tasks::Tasks, users::Users,
+    audit::Audit, dashboard::Dashboard, not_found::NotFound, profile::Profile, users::Users,
 };
 use crate::state::{Ui, UiPrefs};
 use crate::ui::toast::ToastToaster;
@@ -32,14 +24,6 @@ use crate::util::query::Query;
 pub enum Route {
     #[route("/sign-in?:redirect")]
     SignIn { redirect: String },
-    #[route("/sign-in-2")]
-    SignIn2 {},
-    #[route("/sign-up")]
-    SignUp {},
-    #[route("/forgot-password")]
-    ForgotPassword {},
-    #[route("/otp")]
-    Otp {},
     /// Old login URL, kept as a redirect to `/sign-in`.
     #[route("/login?:next")]
     Login { next: String },
@@ -58,34 +42,12 @@ pub enum Route {
         Dashboard {},
         #[route("/profile")]
         Profile {},
-        #[route("/apps?:..query")]
-        Apps { query: Query },
-        #[route("/chats")]
-        Chats {},
-        #[route("/tasks?:..query")]
-        Tasks { query: Query },
         #[route("/users?:..query")]
         Users { query: Query },
         #[route("/audit?:..query")]
         Audit { query: Query },
-        #[route("/help-center")]
-        ComingSoon {},
         #[route("/errors/:error")]
         ShellError { error: String },
-        #[nest("/settings")]
-            #[layout(SettingsLayout)]
-                #[route("/")]
-                SettingsProfile {},
-                #[route("/account")]
-                SettingsAccount {},
-                #[route("/appearance")]
-                SettingsAppearance {},
-                #[route("/notifications")]
-                SettingsNotifications {},
-                #[route("/display")]
-                SettingsDisplay {},
-            #[end_layout]
-        #[end_nest]
     #[end_layout]
     #[route("/:..segments")]
     NotFound { segments: Vec<String> },
