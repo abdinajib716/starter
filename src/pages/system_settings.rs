@@ -569,7 +569,7 @@ fn FlagCard(
                         CardDescription { "{flag.description}" }
                         if flag.stale { span { class: "inline-flex rounded-md border border-amber-300 bg-amber-100/40 px-2 py-0.5 text-xs text-amber-900 dark:text-amber-200", {t!("flags-stale")} } }
                     }
-                    Switch { checked: enabled, disabled: !can_update }
+                    Switch { checked: enabled, disabled: !can_update, label: flag.key.clone() }
                 }
             }
             CardContent { class: "grid gap-4 md:grid-cols-3",

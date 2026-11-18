@@ -123,19 +123,16 @@ impl Modules {
             .to_string()
     }
 
-    #[allow(dead_code)] // callers arrive with their modules (M9, M13, M15, M8)
     pub fn require_email(&self) -> Result<(), AppError> {
         self.email_enabled()
             .then_some(())
             .ok_or(AppError::Disabled("email.disabled"))
     }
-    #[allow(dead_code)] // callers arrive with their modules (M9, M13, M15, M8)
     pub fn require_public_api(&self) -> Result<(), AppError> {
         self.public_api()
             .then_some(())
             .ok_or(AppError::Disabled("api.disabled"))
     }
-    #[allow(dead_code)] // callers arrive with their modules (M9, M13, M15, M8)
     pub fn require_notifications(&self) -> Result<(), AppError> {
         self.notifications()
             .then_some(())

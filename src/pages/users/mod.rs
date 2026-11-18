@@ -76,7 +76,7 @@ pub fn Users(query: Query) -> Element {
                     h2 { class: "text-2xl font-bold tracking-tight", {t!("users-title")} }
                     p { class: "text-muted-foreground", {t!("users-desc")} }
                 }
-                // `users-primary-buttons.tsx` (+ export; invite needs the email module, M13)
+                // `users-primary-buttons.tsx` (+ export; "invite by email" is a checkbox in the add dialog)
                 div { class: "flex gap-2",
                     PermissionGate { perm: "users.export",
                         crate::components::export_menu::ExportMenu {

@@ -19,7 +19,7 @@ const TAB_CONTENT: &str = "space-y-4 text-base group-data-[orientation=Horizonta
 const TAB_TRIGGER: &str = "px-2 py-1 text-foreground";
 /// shadcn cards use `gap-6` (Rust/UI default `gap-4`).
 pub(crate) const CARD: &str = "gap-6";
-/// Reload interval while the page is open (live updates arrive with SSE in M8).
+/// Fallback reload interval; changes arrive live over SSE (M8).
 const REFRESH_MS: u32 = 30_000;
 
 #[component]

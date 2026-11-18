@@ -50,7 +50,7 @@ pub async fn create_kind(
 }
 
 /// Resolve a cookie token to the signed-in user. Expired sessions, inactive or deleted
-/// users and non-`web` sessions (e.g. `pending_2fa`, M9) yield `None`.
+/// users and sessions of another kind (e.g. `pending_2fa`) yield `None`.
 pub async fn load(pool: &PgPool, raw: &str, hours: i64) -> sqlx::Result<Option<CurrentUser>> {
     load_kind(pool, raw, "web", Some(hours)).await
 }

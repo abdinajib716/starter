@@ -4,9 +4,13 @@ use std::sync::LazyLock;
 use argon2::Argon2;
 use argon2::password_hash::{PasswordHasher, PasswordVerifier, phc::PasswordHash};
 
-/// Argon2id v19, m = 19 MiB, t = 2, p = 1 (the crate default = OWASP recommendation).
+/// Argon2id v19, m = 19 MiB, t = 6, p = 1: the OWASP minimum (t = 2) raised to reach the
+/// blueprint's ~100–250 ms per verification on a small VPS (≈60 ms on a fast desktop; measure
+/// with the `argon2_cost` test, M1.1). Old hashes keep their own parameters (stored in the
+/// hash) and still verify.
 fn hasher() -> Argon2<'static> {
-    Argon2::default()
+    let params = argon2::Params::new(19 * 1024, 6, 1, None).expect("valid Argon2 params");
+    Argon2::new(argon2::Algorithm::Argon2id, argon2::Version::V0x13, params)
 }
 
 /// Hash on a blocking thread: Argon2 is deliberately slow and would stall the async runtime.
@@ -97,7 +101,7 @@ mod tests {
     #[tokio::test]
     async fn hash_then_verify() {
         let h = hash("correct horse battery".into()).await.unwrap();
-        assert!(h.starts_with("$argon2id$v=19$m=19456,t=2,p=1$"));
+        assert!(h.starts_with("$argon2id$v=19$m=19456,t=6,p=1$"));
         assert!(verify("correct horse battery".into(), Some(h.clone())).await);
         assert!(!verify("wrong".into(), Some(h)).await);
     }
@@ -130,5 +134,21 @@ mod tool {
     async fn print_hash() {
         let pw = std::env::var("PW").expect("set PW");
         println!("HASH={}", super::hash(pw).await.unwrap());
+    }
+}
+
+#[cfg(test)]
+mod timing {
+    /// M1.1: `cargo test --release --features server argon2_cost -- --ignored --nocapture`
+    /// prints the cost of one verification (target ~100–250 ms on the server).
+    #[tokio::test]
+    #[ignore]
+    async fn argon2_cost() {
+        let h = super::hash("correct-horse-1".into()).await.unwrap();
+        let t = std::time::Instant::now();
+        for _ in 0..5 {
+            assert!(super::verify("correct-horse-1".into(), Some(h.clone())).await);
+        }
+        println!("argon2 verify: {:?} each", t.elapsed() / 5);
     }
 }

@@ -280,6 +280,7 @@ pub async fn verify_email(pool: &PgPool, ctx: &Ctx, raw: &str) -> Result<(), App
 /// `email.send_test`: queue the test template to an address and send it now (M13.7).
 pub async fn send_test(pool: &PgPool, ctx: &Ctx, to: String) -> Result<(), AppError> {
     let actor = ctx.require("email.send_test")?;
+    Modules::get().require_email()?;
     if !crate::domain::valid_email(&to) {
         return Err(AppError::Validation("users.email_invalid"));
     }

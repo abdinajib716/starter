@@ -13,11 +13,7 @@ use crate::server::modules::Modules;
 use crate::server::notify::{self, KINDS, Target};
 
 fn enabled() -> Result<(), AppError> {
-    if Modules::get().notifications() {
-        Ok(())
-    } else {
-        Err(AppError::Disabled("notifications.disabled"))
-    }
+    Modules::get().require_notifications()
 }
 
 fn params(v: Value) -> HashMap<String, String> {

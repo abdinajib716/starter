@@ -115,6 +115,9 @@ pub fn Switch(
     checked: Signal<bool>,
     #[props(default)] disabled: bool,
     #[props(into, optional)] id: Option<String>,
+    /// Accessible name when no `<label for>` points at the switch.
+    #[props(into, optional)]
+    label: Option<String>,
 ) -> Element {
     let mut checked = checked;
     let state = if checked() { "checked" } else { "unchecked" };
@@ -122,6 +125,7 @@ pub fn Switch(
         button {
             r#type: "button",
             role: "switch",
+            "aria-label": label,
             id,
             disabled,
             "aria-checked": "{checked()}",

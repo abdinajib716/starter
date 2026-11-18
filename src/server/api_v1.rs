@@ -675,9 +675,7 @@ pub async fn create_token(
     days: Option<i64>,
 ) -> Result<crate::domain::api::NewToken, AppError> {
     let user = ctx.require("api_keys.create")?;
-    if !Modules::get().public_api() {
-        return Err(AppError::Disabled("api.disabled"));
-    }
+    Modules::get().require_public_api()?;
     let name = name.trim().to_string();
     if name.is_empty() || name.chars().count() > 60 {
         return Err(AppError::Validation("api.token_name"));

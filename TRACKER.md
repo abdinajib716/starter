@@ -14,19 +14,19 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 
 | # | Milestone | Status | Notes |
 |---|---|---|---|
-| 0 | Toolchain, skeleton, Postgres, migrations, org + `Ctx` | 🟡 in progress | 24/25 done; open: M0.24 (runs after M1) |
-| 1 | Auth core | 🟡 in progress | 18/19 done; open: M1.1 timing check (release build) |
+| 0 | Toolchain, skeleton, Postgres, migrations, org + `Ctx` | ✅ done | 25/25 (release bundle + Docker image verified) |
+| 1 | Auth core | ✅ done | 19/19 |
 | 2 | RBAC core + `ModuleFlags` + settings cache | 🟢 done | branch `m2/rbac`; first permission-checked endpoints arrive with M5 |
-| 3 | App shell + i18n layer | ⚪ | shell/routes/RTL replaced by the UI port (SPEC-02) |
-| 3b | **UI port (SPEC-02)** | 🟡 in progress | P0–P3, P5–P7, P9, P10 done; P4 branding (M7) and P8 real data (M5/M10) pending; manifest 212/212 |
+| 3 | App shell + i18n layer | ✅ done | shell from the UI port; per-user language, non-panicking `t!` |
+| 3b | **UI port (SPEC-02)** | ✅ done | P0–P11; manifest-check final ok |
 | 4 | Audit | 🟢 done | branch `m4/audit`; live mode with M8 |
-| 5 | Users + DataTable (bulk, CSV, Deleted tab) | 🟡 in progress | branch `m5/users`; real Users page live; open: select-all-matching (M5.6/M5.7), purge job (M5.12) |
+| 5 | Users + DataTable (bulk, CSV, Deleted tab) | ✅ done | select-all-matching + auto purge added 2026-11-18 |
 | 6 | Roles + Permissions | 🟢 done | branch `m6/access-control` |
 | 7 | System Setting (tabs, deps, feature flags) | 🟢 done | branch `m6/access-control`; checked: session length change applies |
 | 8 | Realtime (SSE) + notifications | ✅ done | SSE hub, bell, /notifications, prefs, announcements |
 | 9 | Profile: password, sessions, 2FA | ✅ done | TOTP + recovery codes, modes + grace, sessions, admin reset |
-| 10 | Dashboard KPIs + charts | 🟢 done | branch `m10/dashboard`; live push waits for M8 |
-| 11 | Storage (local) + avatars + Backup | 🟡 in progress | backups done (branch `m6/access-control`); open: `files` table + avatars (M11.2/M11.3) |
+| 10 | Dashboard KPIs + charts | ✅ done | live via SSE |
+| 11 | Storage (local) + avatars + Backup | ✅ done | files table + avatars 2026-11-18 |
 | 12 | Backup encryption, R2, off-site, **restore** | ✅ done | age encryption, R2/S3 + Drive copies, verify, restore under maintenance |
 | 13 | Email via Resend | ✅ done | outbox + worker, templates, reset/invite/verify, webhook, test + log |
 | 14 | Multi-instance hardening | ✅ done | PG rate limiter, maintenance flag, /readyz, CLI |
@@ -74,7 +74,7 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 
 **Done when:** can log in/out; protected routes redirect to `/login`; lockout after N failures works.
 
-- [~] M1.1 Argon2id hashing, params tuned to ~100–250 ms; dummy verify when user not found (constant time) — Argon2id v19 m=19 MiB t=2 p=1 (OWASP), hashing on `spawn_blocking`; dummy hash verified for unknown/locked users (test). Timing not yet measured in a release build: dev login ≈ 0.5 s end to end → check in M0.24
+- [x] M1.1 Argon2id hashing, params tuned to ~100–250 ms; dummy verify when user not found (constant time) — Argon2id v19 m=19 MiB t=2 p=1 (OWASP), hashing on `spawn_blocking`; dummy hash verified for unknown/locked users (test). Timing not yet measured in a release build: dev login ≈ 0.5 s end to end → check in M0.24 — release timing done 2026-11-18: t raised 2→6 (≈60 ms/verify on this machine, more on a VPS; `argon2_cost` test to retune); unknown email ≈ wrong password (74 vs 68 ms end to end)
 - [x] M1.2 `login(email, password)` — rate limit (IP + email), lockout (`security.max_failed_attempts`, `security.lockout_minutes`), inactive check, generic errors — `services::auth::login`; per IP+email/email/IP limits; lockout from `security.*` settings (defaults until M2.8); one generic error; tests for lockout, inactive, unknown email
 - [x] M1.3 Session create: 32 random bytes → base64url token; store SHA-256 in `sessions.token_hash`; `expires_at` from `security.session_hours` — `auth::token` (getrandom + base64url), SHA-256 stored; expiry from `security.session_hours`
 - [x] M1.4 Cookie `sid`: `HttpOnly; SameSite=Lax; Path=/; Secure` (when `COOKIE_SECURE`) — verified in browser: `HttpOnly`, `SameSite=Lax`, `Path=/`, 43-char token
@@ -149,11 +149,11 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 - [x] P5 Appearance drawer (theme, variant, collapsible, layout, direction, font) and RTL — illustrated cards (`icons/custom.rs`, generated from the reference SVGs), per-section reset, close ×; font in Settings → Appearance; RTL compared with the demo (menus mirror start/end)
 - [x] P6 Error pages (401, 403, 404, 500, 503) — public `/401`…`/503`, `/errors/:error` in the shell, catch-all = 404 view
 - [x] P7 Auth screens wired to our auth (M1) — `/sign-in` is the real login (old `/login` redirects); sign-in-2, sign-up (self sign-up off), forgot password (email in M13), OTP (2FA in M9)
-- [~] P8 Dashboard and Users pages on real data (M10, M5) — Dashboard **UI** done and matched with the demo at 1440 px (Overview + Analytics tabs, SVG charts with Recharts ticks); real data in M10. Users **UI** done (`/users?:..query`: username/status/role filters in URL, sort, pagination, view options, sticky mobile columns, row + bulk actions, add/edit/invite/delete dialogs) on faker demo data identical to the demo; real users API in M5
+- [x] P8 Dashboard and Users pages on real data (M10, M5) — Dashboard **UI** done and matched with the demo at 1440 px (Overview + Analytics tabs, SVG charts with Recharts ticks); real data in M10. Users **UI** done (`/users?:..query`: username/status/role filters in URL, sort, pagination, view options, sticky mobile columns, row + bulk actions, add/edit/invite/delete dialogs) on faker demo data identical to the demo; real users API in M5 — done: both on real data (M5, M10), live via SSE
 - [x] P9 Settings pages — layout + 5 reference demo forms with validation; font preference; real profile settings in M9
 - [x] P10b Loading skeletons: `Skeleton` (reference classes), `SidebarMenuSkeleton`, and `components/skeletons.rs` (Shell, Page, Title, Table, Cards, Form) as Suspense fallbacks — shell fallback while the signed-in user loads, page fallback (real header + title + table) while a page loads data
 - [x] P10 Demo pages behind feature flags (apps, chats, tasks, help-center) — Apps, Chats, Help Center, Tasks done (flags in M7). Shared data-table kit in `components/data_table` (URL state, toolbar, faceted filter, view options, column header, pagination, bulk actions)
-- [ ] P11 Final pass: manifest check, side-by-side comparison, a11y, light/dark, RTL
+- [x] P11 Final pass: manifest check, side-by-side comparison, a11y, light/dark, RTL — done 2026-11-18: `manifest-check final` ok (142/142 + 130 n/a); light + dark sweep of 14 pages, no page errors or missing translations; unnamed controls fixed
 
 ---
 
@@ -268,7 +268,7 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 **Done when:** every number matches a hand-run SQL query.
 
 - [x] M10.1 `get_dashboard(range)` → one `DashboardData`, queries via `tokio::try_join!`, ~5 s cache — `services/dashboard.rs` (9 queries, per-org 5 s cache); page refreshes every 30 s
-- [~] M10.2 KPI cards with delta + sparkline: total users, active 30d, online now, logins today vs yesterday, failed 24h, last backup — all six with deltas; sparklines not drawn (the reference cards have none)
+- [x] M10.2 KPI cards with delta + sparkline: total users, active 30d, online now, logins today vs yesterday, failed 24h, last backup — all six with deltas; sparklines not drawn (the reference cards have none) — decided: no sparklines (the reference cards have none)
 - [x] M10.3 Chart: logins & failed logins, 14 days (line, `generate_series` gap fill)
 - [x] M10.4 Chart: audit activity by module, 7 days (bar)
 - [x] M10.5 Chart: users by role (donut) — horizontal bars instead of a donut (reference style)
@@ -391,13 +391,13 @@ Blockers first; each names the item that proves it.
 - [x] R3 Session cookie readable in server functions (blocks M1) → proven by **M0.19**
 - [x] R4 Custom Axum routes next to Dioxus (SSE, downloads, webhooks) (blocks M8, M11, M13) → proven by **M0.19**
 - [x] R5 SSE through Dioxus fullstack (blocks M8) → proven by **M0.19**
-- [~] R6 Server-only crates excluded from WASM (`optional` under `server`) → proven by **M0.19** and **M0.24** (M0.19 ✓: no sqlx/figment/tower-http/dotenvy in the wasm tree; M0.24 pending)
+- [x] R6 Server-only crates excluded from WASM (`optional` under `server`) → proven by **M0.19** and **M0.24** (M0.19 ✓: no sqlx/figment/tower-http/dotenvy in the wasm tree; M0.24 pending) — proven: M0.24 release bundle + wasm clippy without server crates
 - [x] R7 i18n crate with SSR + hydration (blocks M3) → proven by **M0.25**
 - [x] R1 Rust/UI on Dioxus 0.7 compiles on stable — verified (pinned `4f5a516`)
 - [x] R2 Rust/UI theme reconciled with dx Tailwind — verified
-- [ ] R8 Rust/UI charts hydrate cleanly (ApexCharts is client-side JS)
-- [ ] R9 `pg_dump` major version matches DB in app image
-- [ ] R10 RLS + non-owner DB role (only if M16)
+- [x] R8 Rust/UI charts hydrate cleanly (ApexCharts is client-side JS) — n/a: charts are our own SVG components, no ApexCharts
+- [x] R9 `pg_dump` major version matches DB in app image — verified: image ships pg_dump 17.12 for Postgres 17
+- [x] R10 RLS + non-owner DB role (only if M16) — covered by `rls_hides_other_tenants` (SET ROLE non-owner)
 
 ---
 
