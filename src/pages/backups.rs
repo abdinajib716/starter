@@ -19,7 +19,7 @@ use crate::components::ui_extra::menu::{Align, ITEM, Menu, MenuSeparator, MenuSh
 use crate::domain::backups::{BackupRow, human_size};
 use crate::pages::dashboard::overview::when;
 use crate::pages::errors::{ErrorKind, ErrorView};
-use crate::ui::button::{Button, ButtonVariant};
+use crate::ui::button::Button;
 use crate::ui::toast::ToastType;
 use crate::util::{toast, toast_error};
 
@@ -81,10 +81,8 @@ pub fn Backups() -> Element {
                 }
                 div { class: "flex gap-2",
                     PermissionGate { perm: "backup.export",
-                        Button { variant: ButtonVariant::Outline, class: "space-x-1",
-                            onclick: move |_| crate::util::download("/api/export/backups.csv", "backups.csv"),
-                            span { {t!("users-export")} }
-                            Icon { icon: IconType::Download, class: "size-[18px]" }
+                        crate::components::export_menu::ExportMenu {
+                            on_export: move |f: crate::components::export_menu::Format| crate::util::download(&format!("/api/export/backups.{}", f.ext()), &format!("backups.{}", f.ext())),
                         }
                     }
                     PermissionGate { perm: "backup.create",

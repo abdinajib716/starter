@@ -12,5 +12,12 @@ services:
       test: ["CMD-SHELL", "pg_isready -U starter"]
       interval: 5s
       retries: 10
+  # PDF rendering (headless Chrome over CDP). The app connects to CHROME_URL; only localhost.
+  chrome:
+    image: chromedp/headless-shell:latest
+    container_name: starter-chrome
+    ports: ["127.0.0.1:9223:9222"]
+    shm_size: "512m"
+    restart: unless-stopped
 volumes:
   starter_pgdata:

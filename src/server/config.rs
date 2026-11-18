@@ -38,10 +38,16 @@ pub struct Config {
     /// Public origin, e.g. `https://app.example.com` (no path). Used by the CSRF origin check
     /// and, from M13, for links in emails (§20).
     pub app_url: Option<String>,
+    /// Headless Chrome DevTools endpoint for PDF export (`docker compose up -d chrome`).
+    #[serde(default = "default_chrome_url")]
+    pub chrome_url: String,
 }
 
 fn default_backup_dir() -> PathBuf {
     "./data/backups".into()
+}
+fn default_chrome_url() -> String {
+    "http://127.0.0.1:9223".into()
 }
 fn default_db_max_connections() -> u32 {
     10
@@ -59,6 +65,7 @@ const KEYS: &[&str] = &[
     "DB_MAX_CONNECTIONS",
     "CLIENT_IP_HEADER",
     "APP_URL",
+    "CHROME_URL",
 ];
 
 impl Config {

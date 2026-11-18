@@ -18,7 +18,7 @@ use crate::components::layout::{
 use crate::components::permission_gate::PermissionGate;
 use crate::components::ui_extra::icon::{Icon, IconType};
 use crate::domain::users::{RoleOption, UserRow};
-use crate::ui::button::{Button, ButtonVariant};
+use crate::ui::button::Button;
 use crate::util::query::Query;
 
 /// `users-provider.tsx`.
@@ -79,10 +79,8 @@ pub fn Users(query: Query) -> Element {
                 // `users-primary-buttons.tsx` (+ export; invite needs the email module, M13)
                 div { class: "flex gap-2",
                     PermissionGate { perm: "users.export",
-                        Button { variant: ButtonVariant::Outline, class: "space-x-1",
-                            onclick: move |_| table::download_csv(&query_for_export(), None),
-                            span { {t!("users-export")} }
-                            Icon { icon: IconType::Download, class: "size-[18px]" }
+                        crate::components::export_menu::ExportMenu {
+                            on_export: move |f| table::download_export(f, &query_for_export(), None),
                         }
                     }
                     PermissionGate { perm: "users.create",

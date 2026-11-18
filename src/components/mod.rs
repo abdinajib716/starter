@@ -2,6 +2,7 @@
 //! `ui/` stays at the crate root so the copied Rust/UI files keep their upstream
 //! `crate::ui::…` paths unchanged.
 pub mod data_table;
+pub mod export_menu;
 pub mod feature_gate;
 pub mod icons;
 pub mod layout;

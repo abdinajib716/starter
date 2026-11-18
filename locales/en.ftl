@@ -526,3 +526,7 @@ audit-backup-download = Downloaded a backup
 audit-export-roles = Exported roles
 audit-export-backups = Exported the backup list
 audit-profile-update = Updated own profile
+export-csv = CSV (spreadsheet)
+export-pdf = PDF (print)
+export-pdf-preparing = Preparing PDF…
+err-pdf-unavailable = The PDF service isn't reachable. Start it with: docker compose up -d chrome

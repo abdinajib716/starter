@@ -77,8 +77,13 @@ fn to_user_query(state: &TableState, deleted: bool) -> UserQuery {
     }
 }
 
-/// Download `/api/export/users.csv` with the list's filters (and optionally only `ids`).
-pub fn download_csv(query: &Query, ids: Option<Vec<Uuid>>) {
+/// Download `/api/export/users.{csv,pdf}` with the list's filters (and optionally only `ids`).
+pub fn download_export(
+    format: crate::components::export_menu::Format,
+    query: &Query,
+    ids: Option<Vec<Uuid>>,
+) {
+    let ext = format.ext();
     let p = |k: &str| query.get(k).unwrap_or("").to_string();
     let mut q = Query::default()
         .with("q", Some(p("filter")))
@@ -99,10 +104,10 @@ pub fn download_csv(query: &Query, ids: Option<Vec<Uuid>>) {
             ),
         );
     }
-    let url = serde_json::to_string(&format!("/api/export/users.csv?{q}")).unwrap_or_default();
-    let _ = document::eval(&format!(
-        "(() => {{ const a = document.createElement('a'); a.href = {url}; a.download = 'users.csv'; document.body.appendChild(a); a.click(); a.remove(); }})()"
-    ));
+    crate::util::download(
+        &format!("/api/export/users.{ext}?{q}"),
+        &format!("users.{ext}"),
+    );
 }
 
 #[component]

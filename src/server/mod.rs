@@ -8,6 +8,7 @@ pub mod error;
 pub mod export;
 pub mod flags;
 pub mod modules;
+pub mod pdf;
 pub mod rbac;
 pub mod request;
 pub mod routes;
@@ -43,6 +44,13 @@ pub async fn router() -> anyhow::Result<Router> {
         .route(
             "/api/backups/{id}/download",
             get(services::backups::download_route),
+        )
+        .route("/api/export/users.pdf", get(services::reports::users_pdf))
+        .route("/api/export/audit.pdf", get(services::reports::audit_pdf))
+        .route("/api/export/roles.pdf", get(services::reports::roles_pdf))
+        .route(
+            "/api/export/backups.pdf",
+            get(services::reports::backups_pdf),
         )
         .layer(axum::middleware::from_fn(auth::guard::pages))
         .layer(axum::middleware::from_fn(ctx::ctx_layer))

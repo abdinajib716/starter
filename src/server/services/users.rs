@@ -692,6 +692,27 @@ pub async fn bulk(
     Ok(res)
 }
 
+/// Rows for a PDF report: the list's filters (and optional `ids`), newest first, at most `max`.
+pub async fn report_rows(
+    pool: &PgPool,
+    org: Uuid,
+    q: &UserQuery,
+    ids: &[Uuid],
+    max: i64,
+) -> Result<Vec<UserRow>, AppError> {
+    let mut b = QueryBuilder::new("");
+    push_base(&mut b, org, q);
+    b.push("SELECT * FROM base");
+    push_filters(&mut b, q, false, false);
+    if !ids.is_empty() {
+        b.push(" AND id = ANY(").push_bind(ids.to_vec()).push(")");
+    }
+    b.push(" ORDER BY lower(full_name), id LIMIT ")
+        .push_bind(max);
+    let rows: Vec<Row> = b.build_query_as().fetch_all(pool).await?;
+    Ok(rows.into_iter().map(UserRow::from).collect())
+}
+
 // ---------- CSV export (§25.2) ----------
 
 /// `GET /api/export/users.csv?q=&status=a,b&role=<uuid>,..&deleted=1&sort=email&desc=1&ids=..`

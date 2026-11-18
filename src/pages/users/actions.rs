@@ -211,7 +211,7 @@ pub fn UsersBulkActions(state: TableState, ids: Vec<Uuid>, deleted: bool) -> Ele
             }
             if can_export {
                 button { r#type: "button", class: ICON_BTN, "aria-label": t!("users-bulk-export"), title: t!("users-bulk-export"),
-                    onclick: move |_| super::table::download_csv(&super::query_for_export(), Some(export_ids.clone())),
+                    onclick: move |_| super::table::download_export(crate::components::export_menu::Format::Csv, &super::query_for_export(), Some(export_ids.clone())),
                     Icon { icon: IconType::Download }
                     span { class: "sr-only", {t!("users-bulk-export")} }
                 }

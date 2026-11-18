@@ -59,10 +59,7 @@ pub fn Audit(query: Query) -> Element {
                     p { class: "text-muted-foreground", {t!("audit-desc")} }
                 }
                 PermissionGate { perm: "audit.export",
-                    Button { variant: ButtonVariant::Outline, class: "space-x-1", onclick: move |_| download_csv(),
-                        span { {t!("users-export")} }
-                        Icon { icon: IconType::Download, class: "size-[18px]" }
-                    }
+                    crate::components::export_menu::ExportMenu { on_export: move |f: crate::components::export_menu::Format| download(f.ext()) }
                 }
             }
             AuditTable { query }
@@ -70,15 +67,15 @@ pub fn Audit(query: Query) -> Element {
     }
 }
 
-/// `/api/export/audit.csv` with the filters currently in the URL.
-fn download_csv() {
-    let _ = document::eval(
-        "(() => { const p = new URLSearchParams(location.search);
+/// `/api/export/audit.{csv,pdf}` with the filters currently in the URL.
+fn download(ext: &str) {
+    let _ = document::eval(&format!(
+        "(() => {{ const p = new URLSearchParams(location.search);
            const q = new URLSearchParams();
-           for (const [a, b] of [['filter','q'],['module','module'],['result','result'],['from','from'],['to','to']]) { if (p.get(a)) q.set(b, p.get(a)); }
-           const el = document.createElement('a'); el.href = '/api/export/audit.csv?' + q; el.download = 'audit.csv';
-           document.body.appendChild(el); el.click(); el.remove(); })()",
-    );
+           for (const [a, b] of [['filter','q'],['module','module'],['result','result'],['from','from'],['to','to']]) {{ if (p.get(a)) q.set(b, p.get(a)); }}
+           const el = document.createElement('a'); el.href = '/api/export/audit.{ext}?' + q; el.download = 'audit.{ext}';
+           document.body.appendChild(el); el.click(); el.remove(); }})()"
+    ));
 }
 
 #[component]

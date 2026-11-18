@@ -1885,3 +1885,61 @@ pub fn datetime(t: OffsetDateTime, tz: &str) -> String {
 **Concepts:** [Option combinators](CONCEPTS.md#option), [SSR and hydration](CONCEPTS.md#hydration), [conversions](CONCEPTS.md#conversion)
 
 **Try it:** set System Setting → General → Time zone to `Africa/Mogadishu` and open the Audit page. Expected: the column says `Time (EAT)` and every time is 3 hours later than before. Then set your own zone on `/profile` (e.g. `America/New_York`): only you see the new times.
+
+## 44. HTML to PDF in ~200 ms: one Chrome, a new tab per report
+**Feature:** every list (users, audit log, roles, backups) exports to PDF. The server builds a print-ready HTML page and headless Chrome prints it, over a WebSocket that stays open between exports.
+
+**Code:**
+
+`src/server/pdf.rs` lines 177–211
+
+```rust
+/// Render `html` to PDF bytes.
+pub async fn render(base: &str, html: &str, opt: &PrintOptions) -> anyhow::Result<Vec<u8>> {
+    let _permit = LIMIT.acquire().await?;
+    let cdp = client(base).await?;
+    let target = cdp
+        .call("Target.createTarget", json!({ "url": "about:blank" }), None)
+        .await?;
+    let target_id = target["targetId"]
+        .as_str()
+        .ok_or_else(|| anyhow!("no targetId"))?
+        .to_string();
+    let result = async {
+        let att = cdp
+            .call(
+                "Target.attachToTarget",
+                json!({ "targetId": target_id, "flatten": true }),
+                None,
+            )
+            .await?;
+        let session = att["sessionId"]
+            .as_str()
+            .ok_or_else(|| anyhow!("no sessionId"))?
+            .to_string();
+        let s = Some(session.as_str());
+        let tree = cdp.call("Page.getFrameTree", json!({}), s).await?;
+        let frame = tree["frameTree"]["frame"]["id"]
+            .as_str()
+            .ok_or_else(|| anyhow!("no frame"))?
+            .to_string();
+        cdp.call(
+            "Page.setDocumentContent",
+            json!({ "frameId": frame, "html": html }),
+            s,
+        )
+        .await?;
+```
+
+**Line notes:**
+
+1. L179 — a semaphore caps parallel renders (4); a burst of exports queues instead of opening dozens of tabs.
+2. L180 — `client()` returns the open DevTools connection, or reconnects if Chrome restarted. Opening a connection is the slow part, so it is done once, not per PDF.
+3. L181–187 — `Target.createTarget` opens a blank tab: much cheaper than starting a browser process (what `chrome --print-to-pdf` would do every time).
+4. L189–199 — `attachToTarget` with `flatten: true` returns a `sessionId`; tab commands carry it on the same WebSocket, so no second connection is needed.
+5. L201–205 — the tab's main frame id, required by the next call.
+6. L206–211 — `Page.setDocumentContent` puts the HTML straight into the tab: no URL to fetch, no file on disk, nothing for Chrome to download (the report uses system fonts and inline CSS).
+
+**Concepts:** [async and Future](CONCEPTS.md#async), [Arc and Clone](CONCEPTS.md#arc), [Result and ?](CONCEPTS.md#result)
+
+**Try it:** start the service with `docker compose up -d chrome`, then run `cargo test --features server renders_a_pdf -- --ignored --nocapture`. Expected: passes in well under a second. Then stop it with `docker compose stop chrome` and press Export → PDF on the Users page: the toast says the PDF service isn't reachable instead of the page hanging.

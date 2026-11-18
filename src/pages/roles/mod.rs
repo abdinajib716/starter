@@ -21,7 +21,7 @@ use crate::components::ui_extra::icon::{Icon, IconType};
 use crate::components::ui_extra::menu::{Align, ITEM, Menu, MenuSeparator, MenuShortcut};
 use crate::domain::roles::RoleSummary;
 use crate::pages::errors::{ErrorKind, ErrorView};
-use crate::ui::button::{Button, ButtonVariant};
+use crate::ui::button::Button;
 use crate::ui::toast::ToastType;
 use crate::util::{toast, toast_error};
 
@@ -74,10 +74,8 @@ pub fn Roles() -> Element {
                 }
                 div { class: "flex gap-2",
                     PermissionGate { perm: "roles.export",
-                        Button { variant: ButtonVariant::Outline, class: "space-x-1",
-                            onclick: move |_| crate::util::download("/api/export/roles.csv", "roles.csv"),
-                            span { {t!("users-export")} }
-                            Icon { icon: IconType::Download, class: "size-[18px]" }
+                        crate::components::export_menu::ExportMenu {
+                            on_export: move |f: crate::components::export_menu::Format| crate::util::download(&format!("/api/export/roles.{}", f.ext()), &format!("roles.{}", f.ext())),
                         }
                     }
                     PermissionGate { perm: "roles.create",

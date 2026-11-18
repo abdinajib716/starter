@@ -121,6 +121,20 @@ pub async fn list(pool: &PgPool, ctx: &Ctx, q: &AuditQuery) -> Result<AuditPage,
     })
 }
 
+/// Rows for a PDF report: the page's filters, newest first, at most `max`.
+pub async fn report_rows(
+    pool: &PgPool,
+    org: uuid::Uuid,
+    q: &AuditQuery,
+    max: i64,
+) -> Result<Vec<AuditRow>, AppError> {
+    let mut b = QueryBuilder::new(COLUMNS);
+    push_where(&mut b, org, q);
+    b.push(" ORDER BY at DESC, id DESC LIMIT ").push_bind(max);
+    let rows: Vec<Row> = b.build_query_as().fetch_all(pool).await?;
+    Ok(rows.into_iter().map(AuditRow::from).collect())
+}
+
 pub fn query_from_params(p: &HashMap<String, String>) -> AuditQuery {
     let date = |k: &str| {
         p.get(k).and_then(|v| {
