@@ -3,7 +3,12 @@ use std::collections::HashSet;
 
 use dioxus::fullstack::FullstackContext;
 use dioxus::prelude::ServerFnError;
-use dioxus::server::axum::{Extension, extract::Request, middleware::Next, response::Response};
+use dioxus::server::axum::{
+    Extension,
+    extract::Request,
+    middleware::Next,
+    response::{IntoResponse, Response},
+};
 use uuid::Uuid;
 
 use super::auth::{cookie, session};
@@ -16,7 +21,6 @@ use super::state::AppState;
 pub struct CurrentUser {
     pub id: Uuid,
     pub session_id: Uuid,
-    #[allow(dead_code)] // M16 (multi-tenant checks)
     pub org_id: Uuid,
     pub email: String,
     pub full_name: String,
@@ -101,6 +105,28 @@ pub async fn ctx_layer(
         .map(str::to_owned);
     let meta = RequestMeta::from_headers(&state.config, headers);
 
+    // Multi mode (§18): the organization comes from the subdomain.
+    let org_id = match state.config.tenancy_mode {
+        crate::domain::TenancyMode::Single => state.default_org_id,
+        crate::domain::TenancyMode::Multi => {
+            let host = headers
+                .get("x-forwarded-host")
+                .or_else(|| headers.get(dioxus::server::axum::http::header::HOST))
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or("");
+            match resolve_org(&state, host).await {
+                Some(id) => id,
+                None => {
+                    return (
+                        dioxus::server::axum::http::StatusCode::NOT_FOUND,
+                        "unknown organization",
+                    )
+                        .into_response();
+                }
+            }
+        }
+    };
+
     let mut user = None;
     if !is_asset(req.uri().path())
         && let Some(raw) = cookie::read(headers, state.config.session_cookie_name())
@@ -110,18 +136,67 @@ pub async fn ctx_layer(
             .unwrap_or_default()
             .session_hours;
         match session::load(&state.pool, raw, hours).await {
-            Ok(u) => user = u,
+            // A session only counts on its own organization's host.
+            Ok(u) => user = u.filter(|u| u.org_id == org_id),
             Err(e) => tracing::error!(error = %e, "session lookup failed"),
         }
     }
 
     req.extensions_mut().insert(Ctx {
-        org_id: state.default_org_id,
+        org_id,
         user,
         request_id,
         meta,
     });
-    next.run(req).await
+    if state.config.tenancy_mode == crate::domain::TenancyMode::Multi {
+        super::db::ORG.scope(org_id, next.run(req)).await
+    } else {
+        next.run(req).await
+    }
+}
+
+/// `acme.app.example.com` → the active organization with slug `acme`; the bare base domain
+/// (or a host outside it) → the default organization. Cached for a minute.
+pub async fn resolve_org(state: &AppState, host: &str) -> Option<Uuid> {
+    use std::collections::HashMap;
+    use std::sync::Mutex;
+    use std::time::{Duration, Instant};
+    type SlugCache = Option<HashMap<String, (Option<Uuid>, Instant)>>;
+    static CACHE: Mutex<SlugCache> = Mutex::new(None);
+    let host = host.split(':').next().unwrap_or("").to_ascii_lowercase();
+    let slug = state
+        .config
+        .app_base_domain
+        .as_deref()
+        .and_then(|base| host.strip_suffix(&format!(".{}", base.to_ascii_lowercase())))
+        .filter(|s| !s.is_empty() && !s.contains('.'))
+        .map(str::to_owned);
+    let Some(slug) = slug else {
+        return Some(state.default_org_id);
+    };
+    if let Some((id, at)) = CACHE
+        .lock()
+        .ok()?
+        .get_or_insert_with(HashMap::new)
+        .get(&slug)
+        .copied()
+        && at.elapsed() < Duration::from_secs(60)
+    {
+        return id;
+    }
+    let id = sqlx::query_scalar!(
+        "SELECT id FROM organizations WHERE slug = $1::text::citext AND is_active",
+        slug
+    )
+    .fetch_optional(&state.pool)
+    .await
+    .ok()
+    .flatten();
+    if let Ok(mut c) = CACHE.lock() {
+        c.get_or_insert_with(HashMap::new)
+            .insert(slug, (id, Instant::now()));
+    }
+    id
 }
 
 impl CurrentUser {

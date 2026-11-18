@@ -756,3 +756,33 @@ err-api-token-scopes = Pick at least one scope you hold.
 err-api-too-many-tokens = You have the maximum number of tokens. Revoke one first.
 audit-api-token-create = Created an API token
 audit-api-token-revoke = Revoked an API token
+
+# ---- M16: organizations ----
+nav-organizations = Organizations
+orgs-title = Organizations
+orgs-desc = Each organization has its own users, roles and audit log, at its own address (<slug>.<your domain>).
+orgs-new = New organization
+orgs-new-desc = Creates the organization, an Administrator role and its first administrator (who changes the password at first sign-in).
+orgs-name = Name
+orgs-slug = Address (slug)
+orgs-users = Users
+orgs-created = Created
+orgs-platform = Platform
+orgs-off = Off
+orgs-switch-off = Switch off
+orgs-switch-on = Switch on
+orgs-saved = Saved.
+orgs-admin-name = First administrator's name
+orgs-admin-email = First administrator's email
+orgs-admin-password = Temporary password
+orgs-max-users = User limit (empty = none)
+orgs-create = Create organization
+orgs-created-ok = Organization created.
+err-orgs-name = Give the organization a name (max 100 characters).
+err-orgs-slug = The address may use lowercase letters, digits and dashes (2–40), and not www, api, app, admin, static, assets or mail.
+err-orgs-slug-taken = That address is already used.
+err-orgs-admin = Enter the first administrator's name and a valid email.
+err-orgs-default-active = The platform organization can't be switched off.
+err-orgs-user-limit = This organization has reached its user limit.
+audit-organization-create = Created an organization
+audit-organization-update = Changed an organization

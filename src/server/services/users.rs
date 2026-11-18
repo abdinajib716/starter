@@ -350,6 +350,7 @@ pub async fn create(pool: &PgPool, ctx: &Ctx, input: UserInput) -> Result<Uuid, 
 
     let mut tx = pool.begin().await?;
     rbac::can_assign_role(&mut tx, actor, input.role_id).await?;
+    super::orgs::check_user_limit(&mut tx, ctx.org_id).await?;
     let id = sqlx::query_scalar!(
         r#"INSERT INTO users (org_id, email, full_name, password_hash, role_id, must_change_pw)
            VALUES ($1, $2::text::citext, $3, $4, $5, true) RETURNING id"#,

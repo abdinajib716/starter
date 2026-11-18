@@ -154,6 +154,8 @@ impl Modules {
             notifications: self.notifications(),
             i18n: self.i18n(),
             locales: self.locales().0,
+            multi_tenant: crate::server::state::get()
+                .is_ok_and(|s| s.config.tenancy_mode == crate::domain::TenancyMode::Multi),
         }
     }
 }

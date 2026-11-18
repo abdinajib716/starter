@@ -6,6 +6,7 @@ pub mod dashboard;
 pub mod errors;
 pub mod not_found;
 pub mod notifications;
+pub mod organizations;
 pub mod permissions;
 pub mod profile;
 pub mod profile_prefs;

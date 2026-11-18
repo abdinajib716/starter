@@ -7,6 +7,7 @@ pub mod audit;
 pub mod backups;
 pub mod dashboard;
 pub mod notifications;
+pub mod orgs;
 pub mod roles;
 pub mod security;
 pub mod settings;
@@ -86,6 +87,8 @@ pub struct ModuleFlags {
     pub public_api: bool,
     pub notifications: bool,
     pub i18n: bool,
+    /// `TENANCY_MODE=multi` (§18).
+    pub multi_tenant: bool,
     /// Languages users may choose (Profile → Language).
     pub locales: Vec<String>,
 }

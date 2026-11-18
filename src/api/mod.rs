@@ -7,6 +7,7 @@ pub mod backups;
 pub mod dashboard;
 pub mod i18n;
 pub mod notifications;
+pub mod orgs;
 pub mod roles;
 pub mod security;
 pub mod settings;

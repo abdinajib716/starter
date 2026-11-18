@@ -17,6 +17,7 @@ use crate::pages::{
     dashboard::Dashboard,
     not_found::NotFound,
     notifications::Notifications,
+    organizations::Organizations,
     permissions::Permissions,
     profile::Profile,
     roles::Roles,
@@ -65,6 +66,8 @@ pub enum Route {
         Dashboard {},
         #[route("/profile?:tab")]
         Profile { tab: String },
+        #[route("/organizations")]
+        Organizations {},
         #[route("/notifications")]
         Notifications {},
         #[route("/users?:..query")]

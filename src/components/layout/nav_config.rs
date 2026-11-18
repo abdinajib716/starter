@@ -77,6 +77,12 @@ pub fn nav_groups() -> Vec<NavGroup> {
                     ),
                     link_p("nav-audit", "/audit", I::ScrollText, "audit.view"),
                     link_p("nav-backup", "/backups", I::DatabaseBackup, "backup.view"),
+                    link_p(
+                        "nav-organizations",
+                        "/organizations",
+                        I::Building2,
+                        "organizations.view",
+                    ),
                 ],
             },
         ],
@@ -84,7 +90,11 @@ pub fn nav_groups() -> Vec<NavGroup> {
 }
 
 pub fn visible_groups(user: &UserInfo) -> Vec<NavGroup> {
-    let allowed = |l: &NavLink| l.permission.is_none_or(|p| user.can(p));
+    let allowed = |l: &NavLink| {
+        l.permission.is_none_or(|p| user.can(p))
+            // Organizations exist as a page only in multi-tenant mode (§18).
+            && (l.permission != Some("organizations.view") || user.modules.multi_tenant)
+    };
     nav_groups()
         .into_iter()
         .filter_map(|g| {

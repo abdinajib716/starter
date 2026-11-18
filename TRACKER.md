@@ -31,7 +31,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 13 | Email via Resend | ✅ done | outbox + worker, templates, reset/invite/verify, webhook, test + log |
 | 14 | Multi-instance hardening | ✅ done | PG rate limiter, maintenance flag, /readyz, CLI |
 | 15 | Public API v1 *(optional)* | ✅ done | tokens, mobile auth, problem+json, cursors, idempotency, CORS, OpenAPI |
-| 16 | Multi-tenant mode *(optional)* | ⚪ | only if a project needs it |
+| 16 | Multi-tenant mode *(optional)* | ✅ done | subdomain tenants, RLS, organizations page, limits |
 | 17 | CI/CD + VPS deploy (+ GDrive driver) | ⚪ | |
 
 Legend: ⚪ not started · 🟡 in progress · 🟢 done
@@ -359,12 +359,12 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 **Done when:** leak tests pass for every service (two orgs, zero cross-reads/writes).
 
-- [ ] M16.1 `TENANCY_MODE=multi` switch; tenant resolver from `Host` → `organizations.slug`
-- [ ] M16.2 RLS policies on tenant tables; app connects as non-owner role; `set_config('app.org_id')` per transaction
-- [ ] M16.3 Platform Admin vs Org Admin; `/access-control/organizations` page (`organizations.view/manage`)
-- [ ] M16.4 CI grep: no tenant query without `org_id`
-- [ ] M16.5 Leak tests incl. bulk, export, SSE, notifications, backups listing
-- [ ] M16.6 Optional migration `org_limits` (max_users, storage_mb) if selling plans (§18; never numbered in the blueprint)
+- [x] M16.1 `TENANCY_MODE=multi` switch; tenant resolver from `Host` → `organizations.slug` — done 2026-11-18 (`ctx::resolve_org`, RLS migration + pool hook, `/organizations`, leak + RLS tests, `max_users`)
+- [x] M16.2 RLS policies on tenant tables; app connects as non-owner role; `set_config('app.org_id')` per transaction — done 2026-11-18 (`ctx::resolve_org`, RLS migration + pool hook, `/organizations`, leak + RLS tests, `max_users`)
+- [x] M16.3 Platform Admin vs Org Admin; `/access-control/organizations` page (`organizations.view/manage`) — done 2026-11-18 (`ctx::resolve_org`, RLS migration + pool hook, `/organizations`, leak + RLS tests, `max_users`)
+- [x] M16.4 CI grep: no tenant query without `org_id` — done: `scripts/check_org_scope.py` + reviewed baseline (51 by-id / system statements)
+- [x] M16.5 Leak tests incl. bulk, export, SSE, notifications, backups listing — done 2026-11-18 (`ctx::resolve_org`, RLS migration + pool hook, `/organizations`, leak + RLS tests, `max_users`)
+- [x] M16.6 Optional migration `org_limits` (max_users, storage_mb) if selling plans (§18; never numbered in the blueprint) — done 2026-11-18 (`ctx::resolve_org`, RLS migration + pool hook, `/organizations`, leak + RLS tests, `max_users`)
 
 ---
 

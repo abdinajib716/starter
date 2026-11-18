@@ -1,0 +1,51 @@
+src/server/api_v1.rs 5d9788c98c0c r#"SELECT count(*) AS "n!" FROM api_tokens WHERE user_id = $1 AND revoked_at IS NULL AND (expires_at IS NULL O
+src/server/api_v1.rs fa608bb5b1fe "UPDATE api_tokens SET last_used_at = now() WHERE token_hash = $1 AND revoked_at IS NULL RETURNING scopes"
+src/server/cli.rs 94307984be1c "SELECT id FROM users WHERE email = $1::text::citext AND deleted_at IS NULL"
+src/server/email.rs 04321c8edf27 "UPDATE email_outbox SET attempts = $2, last_error = $3, status = CASE WHEN $4 THEN 'failed' ELSE 'pending' EN
+src/server/email.rs 4e8703c789fc "UPDATE email_outbox SET status = 'sent', sent_at = now(), provider_id = $2, attempts = attempts + 1, last_err
+src/server/email.rs e263d5128d18 r#"UPDATE email_outbox SET status = $2 WHERE provider_id = $1 RETURNING to_email::text AS "t!""#
+src/server/rbac.rs 20d0e85f4570 r#"SELECT u.id FROM users u JOIN roles r ON r.id = u.role_id WHERE r.is_system AND r.name = $1 AND u.is_active
+src/server/rbac.rs 210a4e8fe331 "DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE role_id = $1)"
+src/server/rbac.rs 45f3660152ef r#"SELECT r.is_system, r.name, COALESCE(array_agg(rp.permission_key) FILTER (WHERE rp.permission_key IS NOT NU
+src/server/services/account.rs 00f2d3244ee9 "UPDATE users SET must_change_pw = false WHERE id = $1"
+src/server/services/account.rs 314d60250279 r#"SELECT EXISTS (SELECT 1 FROM email_outbox WHERE template = 'test' AND status IN ('sent','delivered') AND cr
+src/server/services/account.rs 9b3d8c049f6b "UPDATE users SET email_verified_at = now() WHERE id = $1"
+src/server/services/account.rs b055c94208a7 "UPDATE users SET password_hash = $2, must_change_pw = false, failed_attempts = 0, locked_until = NULL, update
+src/server/services/auth.rs 08c9626b27ae "UPDATE users SET locale = $2, updated_at = now() WHERE id = $1"
+src/server/services/auth.rs 31eb2765c283 "SELECT password_hash FROM users WHERE id = $1"
+src/server/services/auth.rs 52ca67744d53 r#"SELECT EXISTS (SELECT 1 FROM audit_logs WHERE actor_id = $1 AND action = 'auth.login' AND after->>'device' 
+src/server/services/auth.rs 8ab43b72c75b "UPDATE users SET password_hash = $2, must_change_pw = false, updated_at = now() WHERE id = $1"
+src/server/services/auth.rs cff9ec61cac0 "UPDATE users SET failed_attempts = 0, locked_until = NULL, last_login_at = now() WHERE id = $1"
+src/server/services/auth.rs d6b65d79fe75 "UPDATE users SET full_name = $2, timezone = $3, updated_at = now() WHERE id = $1"
+src/server/services/auth.rs d7991dc1b2cc r#"SELECT EXISTS (SELECT 1 FROM audit_logs WHERE actor_id = $1 AND action = 'auth.login') AS "e!""#
+src/server/services/auth.rs fd429b0a85d0 r#"UPDATE users SET failed_attempts = CASE WHEN $2 THEN 0 ELSE $3 END, locked_until = CASE WHEN $2 THEN now() 
+src/server/services/backups.rs 31eb2765c283 "SELECT password_hash FROM users WHERE id = $1"
+src/server/services/backups.rs 4d0e50ed2800 r#"SELECT id AS "id!" FROM users WHERE id = $1"#
+src/server/services/backups.rs a4c193778246 r#"SELECT user_id AS "u!" FROM notifications WHERE kind = $1 AND created_at > now() - interval '5 seconds'"#
+src/server/services/backups.rs e600ed8a1be9 r#"SELECT b.id, b.filename, b.size_bytes, b.sha256, b.status, b.kind, b.error, u.email::text AS created_by, b.
+src/server/services/backups.rs ff87c9239528 r#"INSERT INTO backups (id, filename, size_bytes, sha256, status, kind, error, created_by, created_at, finishe
+src/server/services/files.rs 36e07af960bd "SELECT f.id, f.driver, f.storage_key FROM users u JOIN files f ON f.id::text = u.avatar_key WHERE u.id = $1"
+src/server/services/files.rs 3934d18cdfbe "DELETE FROM files WHERE id = $1"
+src/server/services/files.rs a76807aa2dc3 "UPDATE users SET avatar_key = NULL WHERE id = $1"
+src/server/services/files.rs dea8ca3b70f3 "UPDATE users SET avatar_key = $2, updated_at = now() WHERE id = $1"
+src/server/services/notifications.rs 162f6f8ad207 "DELETE FROM notifications WHERE created_at < now() - make_interval(days => $1)"
+src/server/services/notifications.rs 700b62dc1ba7 "UPDATE notifications SET read_at = now() WHERE user_id = $1 AND read_at IS NULL AND ($2::bigint[] IS NULL OR 
+src/server/services/notifications.rs 89545ae762c4 r#"SELECT id, kind, params, link, read_at IS NOT NULL AS "read!", created_at FROM notifications WHERE user_id 
+src/server/services/notifications.rs cbd26391f8b0 r#"SELECT count(*) FILTER (WHERE read_at IS NULL) AS "unread!", count(*) AS "total!" FROM notifications WHERE 
+src/server/services/roles.rs 0dfbdd0a57ba "DELETE FROM roles WHERE id = $1"
+src/server/services/roles.rs 9733776086ab r#"SELECT EXISTS (SELECT 1 FROM users WHERE role_id = $1) AS "e!""#
+src/server/services/roles.rs cee103bbcd8a "UPDATE roles SET name = $2, description = $3, require_2fa = $4, updated_at = now() WHERE id = $1"
+src/server/services/security.rs 31eb2765c283 "SELECT password_hash FROM users WHERE id = $1"
+src/server/services/security.rs 9994c251ae8a r#"SELECT s.id, s.user_id, s.mfa_attempts, u.email::text AS "email!", u.must_change_pw FROM sessions s JOIN us
+src/server/services/security.rs d4e0d99de172 "UPDATE users SET locked_until = now() + make_interval(mins => $2) WHERE id = $1"
+src/server/services/system_settings.rs 00006aadba18 r#"SELECT email::text AS "e!" FROM users WHERE id = ANY($1) ORDER BY 1"#
+src/server/services/system_settings.rs ad3616a3874c r#"SELECT s.key, s.value, s.updated_at, u.email::text AS updated_by FROM settings s LEFT JOIN users u ON u.id 
+src/server/services/users.rs 265ffdb22d25 r#"SELECT timezone, failed_attempts, locked_until, updated_at, (SELECT count(*) FROM sessions s WHERE s.user_i
+src/server/services/users.rs 29ae2c676c61 "DELETE FROM users WHERE id = $1 AND deleted_at IS NOT NULL"
+src/server/services/users.rs 332236d39217 r#"UPDATE users SET full_name = $2, email = $3::text::citext, role_id = $4, updated_at = now() WHERE id = $1"#
+src/server/services/users.rs 78edf4e6245d "UPDATE users SET password_hash = $2, must_change_pw = true, failed_attempts = 0, locked_until = NULL, updated
+src/server/services/users.rs 99d472e26bd5 "UPDATE users SET is_active = true, failed_attempts = 0, locked_until = NULL, updated_at = now() WHERE id = $1
+src/server/services/users.rs aa2d8deee1ac "UPDATE users SET deleted_at = now(), deleted_by = $2, is_active = false, updated_at = now() WHERE id = $1"
+src/server/services/users.rs bce9b07372bb "UPDATE users SET is_active = false, updated_at = now() WHERE id = $1"
+src/server/services/users.rs c3fe797b5875 "DELETE FROM users WHERE id = $1"
+src/server/services/users.rs de82bda8994a "UPDATE users SET deleted_at = NULL, deleted_by = NULL, is_active = false, must_change_pw = true, updated_at =

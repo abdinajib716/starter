@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE org_id = $1)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5b176b9ebda5b77aa9a243148b315b2250c805ff8f7cc7946743428da5d3f173"
+}

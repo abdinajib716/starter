@@ -210,12 +210,18 @@ pub async fn revoke_role_sessions(
     .rows_affected())
 }
 
+/// A plain user holding `perms`, for tests in other modules.
+#[cfg(test)]
+pub fn tests_user(perms: &[&str]) -> CurrentUser {
+    tests::user(perms)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::server::request::RequestMeta;
 
-    fn user(perms: &[&str]) -> CurrentUser {
+    pub(super) fn user(perms: &[&str]) -> CurrentUser {
         CurrentUser {
             id: Uuid::new_v4(),
             session_id: Uuid::new_v4(),

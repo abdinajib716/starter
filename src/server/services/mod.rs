@@ -6,6 +6,7 @@ pub mod backups;
 pub mod dashboard;
 pub mod files;
 pub mod notifications;
+pub mod orgs;
 pub mod reports;
 pub mod roles;
 pub mod security;

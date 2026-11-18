@@ -31,6 +31,9 @@ pub struct Config {
     pub files_dir: PathBuf,
     pub seed_admin_email: Option<String>,
     pub seed_admin_password: Option<String>,
+    /// Multi mode: tenants are `<slug>.<APP_BASE_DOMAIN>` (e.g. `acme.app.example.com`).
+    #[serde(default)]
+    pub app_base_domain: Option<String>,
     #[serde(default)]
     pub tenancy_mode: TenancyMode,
     #[serde(default = "default_db_max_connections")]
