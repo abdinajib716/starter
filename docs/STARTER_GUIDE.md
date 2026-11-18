@@ -50,9 +50,10 @@ you do not rewrite login, users, roles, audit, settings, exports, backups or the
 | Errors | One `AppError` → stable codes → translated messages | `src/server/error.rs`, `locales/en.ftl` (`err-*`) |
 | Multi-tenant groundwork | `organizations` table, `org_id` on users/roles/audit, request `Ctx { org_id, user }` | `src/server/ctx.rs` |
 
-Not built yet (see §9): 2FA, own sessions page, notifications + live updates, email, backup
-restore/encryption/off-site, avatars, language switching per user, multi-instance hardening,
-public API, multi-tenant mode, CI/CD + deploy.
+**Also count as built** (finished in the starter, not in your system — see §9): 2FA, own
+sessions page, notifications + live updates, email, backup restore/encryption/off-site, avatars,
+language switching per user, multi-instance hardening, public API, multi-tenant mode, CI/CD +
+deploy. Plan your system as if these exist; when they land, your modules plug into them (§9).
 
 ---
 
@@ -216,27 +217,35 @@ Do not plan or estimate these: they exist and are tested.
   soft delete + restore, data tables, filters in URL, dialogs, toasts, loading skeletons.
 - Dashboard frame (add your KPIs only), sidebar, header, theme/dark mode, RTL, fonts, time zones.
 - Settings framework, feature flags, module switches, backups + schedule.
+- Everything in §9: 2FA, sessions page, notifications + live updates, email (reset, invites,
+  verification), backup restore/encryption/off-site, avatars and file uploads, per-user
+  language, rate limit + maintenance mode, public API, multi-tenant mode, CI/CD + deploy.
 
 Plan only: **your domain tables, their permissions, pages, KPIs, reports, and any settings or
 flags they need** (§6).
 
 ---
 
-## 9. Not built yet (roadmap in `TRACKER.md`)
+## 9. Starter features finishing in the starter — count them as built
 
-| Milestone | Adds | Needed when |
+These belong to the starter, not to your system. Never build them inside your system's modules;
+they are finished in the starter (tracked in `TRACKER.md`) and your code only calls them.
+Until a milestone lands, its file paths below do not exist yet, so leave a `// TODO(M8)` at the
+call site instead of writing your own version.
+
+| Milestone | Provides | How your modules will use it |
 |---|---|---|
-| M9 | Own sessions page, 2FA (TOTP + recovery codes), 2FA modes | Security requirements / admins with high privileges |
-| M8 | Notifications bell, live dashboard/audit updates (SSE) | Users must see changes without reloading |
-| M13 | Email (Resend): forgot password, invites, verification | Self-service password reset / inviting users |
-| M12 | Backup restore, encryption, off-site copies (R2 / Drive) | Before production go-live |
-| M11 (rest) | Avatars (files table, upload) | Profile pictures |
-| M3 (rest) | Per-user language choice (Somali/English switch) | More than one language in use |
-| M5 (rest) | "Select all matching" across pages; auto-purge old deleted users | Very large user lists |
-| M14 | Rate limit + maintenance mode in Postgres, `/readyz` | Running more than one app server |
-| M15 | Public API v1 (tokens, OpenAPI) | Mobile app / integrations |
-| M16 | Multi-tenant mode (subdomains, RLS) | Selling to several organizations on one install |
-| M17 | Production Docker, CI, VPS deploy with rollback | Before production go-live |
+| M9 | Own sessions page, 2FA (TOTP + recovery codes), 2FA required per role | Nothing to do; set "require 2FA" on sensitive roles |
+| M8 | Notifications bell, live updates (SSE) | `notify(user_ids, kind, payload)` after a change; pages refresh live |
+| M13 | Email (Resend) with outbox: forgot password, invites, verification | `email::queue(tx, to, template, data)` inside your transaction |
+| M12 | Backup restore, encryption, off-site copies (R2 / Drive) | Nothing to do; your tables are in every backup |
+| M11 | Files table + uploads, avatars | `files::upload(...)` returns a file id to store on your row |
+| M3 | Per-user language (Somali / English) | Keep every text in `locales/*.ftl` — already required |
+| M5 | "Select all matching" across pages, auto-purge of deleted rows | Same `TableState` / bulk pattern picks it up |
+| M14 | Rate limit + maintenance mode in Postgres, `/readyz` | Nothing to do; works across several app servers |
+| M15 | Public API v1 (tokens, OpenAPI) | Expose a module by adding its routes under `/api/v1` |
+| M16 | Multi-tenant mode (subdomains, row-level security) | Works if every table has `org_id` and every query filters on it (§4 rule 3) |
+| M17 | Production Docker, CI, VPS deploy with rollback | Your migrations and code ship with the same pipeline |
 
 ---
 
@@ -246,6 +255,8 @@ flags they need** (§6).
 > fullstack, SQLx/Postgres, Rust/UI, Tailwind). Read `docs/STARTER_GUIDE.md` and `TRACKER.md`
 > first. Auth, users, roles, permissions, audit, settings, feature flags, exports (CSV/PDF),
 > backups, dashboard frame and the UI kit already exist — reuse them, do not rebuild.
+> 2FA, sessions, notifications, email, uploads, API, multi-tenant and deploy belong to the
+> starter (guide §9) — never build them inside our modules; only call them.
 > For each new feature follow §6 of the guide: migration with `org_id` → permissions in
 > `rbac.rs` → DTOs in `domain/` → service with transaction + `audit::record` + tests →
 > thin server functions with `ctx.require` → page copied from `pages/users` → sidebar entry →
