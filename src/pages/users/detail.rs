@@ -1,8 +1,8 @@
 //! User details (`/users/:id`): account facts, sessions and the latest audit entries by or
 //! about the user, with Edit / Activate / Deactivate / Delete actions (same dialogs and rules
 //! as the list).
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 use uuid::Uuid;
 
 use super::table::{status_class, status_key};

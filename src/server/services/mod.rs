@@ -4,6 +4,7 @@ pub mod audit_log;
 pub mod auth;
 pub mod backups;
 pub mod dashboard;
+pub mod files;
 pub mod notifications;
 pub mod reports;
 pub mod roles;

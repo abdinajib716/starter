@@ -1,6 +1,6 @@
 //! Overview tab: users and sign-in KPIs, sign-ins over 14 days, recent activity.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use super::{Kpi, KpiIcon, Panel, action_label, delta, num, short_date};
 use crate::components::ui_extra::chart::{AreaChart, Series};

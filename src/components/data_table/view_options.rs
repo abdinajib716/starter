@@ -1,5 +1,5 @@
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use super::TableState;
 use crate::components::ui_extra::icon::{Icon, IconType};

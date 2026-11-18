@@ -67,6 +67,7 @@ fn same_origin(origin: &str, app_url: &str) -> bool {
 /// Paths that are never page navigations or never need a session.
 fn is_passthrough(path: &str) -> bool {
     path.starts_with("/api/")
+        || path.starts_with("/files/")
         || matches!(path, "/healthz" | "/readyz")
         || crate::server::ctx::is_asset(path)
 }

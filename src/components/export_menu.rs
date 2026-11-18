@@ -1,6 +1,6 @@
 //! Export button with a format menu (CSV for data, PDF for printing / sharing).
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use crate::components::ui_extra::icon::{Icon, IconType};
 use crate::components::ui_extra::menu::{Align, ITEM, Menu};

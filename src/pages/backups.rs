@@ -1,8 +1,8 @@
 //! Backup page (§9.6.1, M11.8): list with live status (polls while a backup runs), create,
 //! download, delete, CSV export. Schedule and retention live in System Setting →
 //! Storage & Backup. Restore arrives with M12.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 use tw_merge::tw_merge;
 use uuid::Uuid;
 

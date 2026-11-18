@@ -1,7 +1,7 @@
 //! Activity tab: security and backup KPIs, audit activity by module, users by role, new
 //! users per week.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use super::overview::when;
 use super::{BarList, Kpi, KpiIcon, Panel, delta, num, short_date};

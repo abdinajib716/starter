@@ -53,7 +53,7 @@ pub fn SideSheet(
                     class: "absolute end-4 top-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden [&_svg]:size-4",
                     onclick: move |_| open.set(false),
                     super::icon::Icon { icon: super::icon::IconType::X }
-                    span { class: "sr-only", {dioxus_i18n::t!("action-close")} }
+                    span { class: "sr-only", {crate::t!("action-close")} }
                 }
             }
         }

@@ -26,6 +26,9 @@ pub struct Config {
     pub cookie_secure: bool,
     #[serde(default = "default_backup_dir")]
     pub backup_dir: PathBuf,
+    /// Uploaded files with the `local` driver (`FILES_DIR`, default `./data/files`).
+    #[serde(default = "default_files_dir")]
+    pub files_dir: PathBuf,
     pub seed_admin_email: Option<String>,
     pub seed_admin_password: Option<String>,
     #[serde(default)]
@@ -41,6 +44,10 @@ pub struct Config {
     /// Headless Chrome DevTools endpoint for PDF export (`docker compose up -d chrome`).
     #[serde(default = "default_chrome_url")]
     pub chrome_url: String,
+}
+
+fn default_files_dir() -> PathBuf {
+    PathBuf::from("./data/files")
 }
 
 fn default_backup_dir() -> PathBuf {

@@ -1,7 +1,7 @@
 //! Profile → Notifications (per-kind preferences, §23) and Language (M3.8).
+use crate::t;
 use dioxus::prelude::*;
 use dioxus_i18n::prelude::i18n;
-use dioxus_i18n::t;
 
 use crate::api::i18n::set_my_locale;
 use crate::api::notifications::{notification_prefs, set_notification_pref};

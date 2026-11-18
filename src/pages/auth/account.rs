@@ -1,7 +1,7 @@
 //! Email-link screens (§20, M13.5): forgot password, reset password, accept invite, verify
 //! email. Public routes under `/auth/`.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 use tw_merge::tw_merge;
 
 use super::AuthLayout;

@@ -8,8 +8,8 @@ mod table;
 
 pub use detail::UserDetailPage;
 
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use crate::api::users::user_role_options;
 use crate::components::layout::{

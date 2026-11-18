@@ -81,6 +81,7 @@ pub async fn current_user() -> Result<Option<UserInfo>, ServerFnError> {
                 .unwrap_or_else(crate::server::modules::Modules::app_timezone),
             twofa,
             locale: u.locale.clone(),
+            avatar_url: u.avatar.as_ref().map(|a| format!("/files/avatars/{a}")),
             own_timezone: u.timezone,
         }
     }))
@@ -106,4 +107,29 @@ pub async fn update_profile(full_name: String, timezone: String) -> Result<(), S
     let user = ctx.require_user()?;
     auth::update_profile(&st.pool, &ctx, user, full_name, timezone).await?;
     Ok(())
+}
+
+/// Session required (own account, M11.3): new avatar from image bytes (base64), ≤ 1 MB.
+#[post("/api/profile/avatar")]
+pub async fn upload_avatar(base64_data: String) -> Result<String, ServerFnError> {
+    use base64::Engine;
+    let ctx = crate::server::ctx::Ctx::current().await?;
+    ctx.require_user()?;
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(base64_data.trim())
+        .map_err(|_| crate::domain::errors::coded(400, "files.not_an_image"))?;
+    let id =
+        crate::server::services::files::set_avatar(&crate::server::state::get()?.pool, &ctx, bytes)
+            .await?;
+    Ok(format!("/files/avatars/{id}"))
+}
+
+#[post("/api/profile/avatar/remove")]
+pub async fn remove_avatar() -> Result<(), ServerFnError> {
+    let ctx = crate::server::ctx::Ctx::current().await?;
+    ctx.require_user()?;
+    Ok(
+        crate::server::services::files::remove_avatar(&crate::server::state::get()?.pool, &ctx)
+            .await?,
+    )
 }

@@ -1,7 +1,7 @@
 //! Body of the "type DELETE to confirm" multi-delete dialogs (`*-multi-delete-dialog.tsx`)
 //! and the bulk-action icon button style.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 /// Outline `size-8` icon button used in the bulk-actions toolbar.
 pub const ICON_BTN: &str = "inline-flex size-8 items-center justify-center rounded-md border bg-background shadow-xs transition-all hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 [&_svg]:size-4";

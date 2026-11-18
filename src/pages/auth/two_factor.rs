@@ -1,6 +1,6 @@
 //! `/auth/2fa` (§21, M9.9): the second sign-in step after a correct password.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 use tw_merge::tw_merge;
 
 use super::AuthLayout;

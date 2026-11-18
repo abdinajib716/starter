@@ -113,9 +113,9 @@ fn TwoFaBanner() -> Element {
         .unwrap_or_default();
     rsx! {
         div { id: "twofa-banner", role: "alert", class: "flex flex-wrap items-center justify-center gap-2 border-b border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm",
-            if u.twofa.blocked { {dioxus_i18n::t!("twofa-required-now")} }
+            if u.twofa.blocked { {crate::t!("twofa-required-now")} }
             else { {crate::ta!("twofa-required-by", date: date)} }
-            Link { to: Route::Profile { tab: "security".into() }, class: "font-medium underline underline-offset-4", {dioxus_i18n::t!("twofa-set-up")} }
+            Link { to: Route::Profile { tab: "security".into() }, class: "font-medium underline underline-offset-4", {crate::t!("twofa-set-up")} }
         }
     }
 }

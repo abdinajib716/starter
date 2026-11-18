@@ -4,8 +4,8 @@
 //! server validates types, ranges and the dependency rules; refusals come back as toasts.
 use std::collections::HashMap;
 
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use crate::api::roles::list_roles;
 use crate::api::settings::{list_flags, list_settings, update_flag, update_settings};

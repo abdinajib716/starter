@@ -190,10 +190,10 @@ pub fn SidebarTrigger(
             variant,
             size: ButtonSize::Icon,
             class,
-            aria_label: dioxus_i18n::t!("sidebar-toggle"),
+            aria_label: crate::t!("sidebar-toggle"),
             onclick: move |_| ctx.toggle(),
             Icon { icon: IconType::PanelLeft }
-            span { class: "sr-only", {dioxus_i18n::t!("sidebar-toggle")} }
+            span { class: "sr-only", {crate::t!("sidebar-toggle")} }
         }
     }
 }
@@ -204,7 +204,7 @@ pub fn SidebarRail() -> Element {
     rsx! {
         button {
             "data-sidebar": "rail",
-            "aria-label": dioxus_i18n::t!("sidebar-toggle"),
+            "aria-label": crate::t!("sidebar-toggle"),
             tabindex: "-1",
             title: "Toggle Sidebar",
             onclick: move |_| ctx.toggle(),

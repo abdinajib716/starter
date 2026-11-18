@@ -1,7 +1,7 @@
 //! `users-dialogs.tsx`, `users-action-dialog.tsx`, `users-delete-dialog.tsx` on real data,
 //! plus the purge dialog of the Deleted tab (§25.3).
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 use uuid::Uuid;
 
 use super::{UserDialog, UsersCtx};

@@ -1,5 +1,5 @@
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use crate::api::auth::logout;
 use crate::app::Route;

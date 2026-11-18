@@ -1,6 +1,6 @@
 //! Header bell (§23, M8.9): unread badge + the latest 10; live through `Live::notifications`.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use super::live::use_live;
 use super::{use_current_user, use_tz};

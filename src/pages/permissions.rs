@@ -1,8 +1,8 @@
 //! Permission page (§9.4): the read-only catalog. Permissions are defined in code
 //! (`server::rbac::PERMISSIONS`); this shows each module's keys, what they allow and which
 //! roles hold them. Assign them on the Role page.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 use tw_merge::tw_merge;
 
 use crate::api::roles::list_permissions;

@@ -1,8 +1,8 @@
 //! `/profile` (§9.1, M9.1): tabs Profile (name, time zone, password, appearance) · Security
 //! (2FA, sessions) · Notifications (preferences) · Language · API tokens (when the public API
 //! is on).
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use crate::api::auth::{change_password, update_profile};
 use crate::components::layout::{
@@ -120,6 +120,7 @@ fn NameCard() -> Element {
                 CardDescription { {t!("profile-card-desc")} }
             }
             CardContent {
+                AvatarField {}
                 form { class: "flex flex-col gap-4", onsubmit,
                     FormItem {
                         FormLabel { html_for: "profile-name", {t!("users-col-name")} }
@@ -270,6 +271,64 @@ fn ProfileTabs(tab: String, api: bool) -> Element {
                     class: if tab == key { "inline-flex h-[calc(100%-1px)] items-center rounded-md bg-background px-3 py-1 text-sm font-medium text-foreground shadow-sm dark:bg-input/30" } else { "inline-flex h-[calc(100%-1px)] items-center rounded-md px-3 py-1 text-sm font-medium hover:text-foreground" },
                     "{label}"
                 }
+            }
+        }
+    }
+}
+
+/// Avatar (M11.3): pick an image (≤ 1 MB); the server re-encodes it to a 256 px WebP.
+#[component]
+fn AvatarField() -> Element {
+    use crate::ui::avatar::{Avatar, AvatarFallback, AvatarImage};
+    let mut user = use_context::<UserResource>();
+    let me = use_current_user();
+    let initials = me.as_ref().map(|u| u.initials()).unwrap_or_default();
+    let src = me.as_ref().and_then(|u| u.avatar_url.clone());
+    let has = src.is_some();
+    let mut busy = use_signal(|| false);
+    let pick = move |_| async move {
+        busy.set(true);
+        // Read the chosen file in the browser as base64 (no upload widget needed).
+        let mut ev = document::eval(
+            "const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/png,image/jpeg,image/webp,image/gif';
+             i.onchange = () => { const f = i.files[0]; if (!f) { dioxus.send(''); return; }
+               if (f.size > 1048576) { dioxus.send('!big'); return; }
+               const r = new FileReader(); r.onload = () => dioxus.send(String(r.result).split(',')[1] || ''); r.readAsDataURL(f); };
+             i.addEventListener('cancel', () => dioxus.send('')); i.click();",
+        );
+        match ev.recv::<String>().await {
+            Ok(b) if b == "!big" => toast(ToastType::Error, t!("err-files-too-large")),
+            Ok(b) if !b.is_empty() => match crate::api::auth::upload_avatar(b).await {
+                Ok(_) => {
+                    toast(ToastType::Success, t!("avatar-saved"));
+                    user.restart();
+                }
+                Err(e) => toast_error(&e),
+            },
+            _ => {}
+        }
+        busy.set(false);
+    };
+    rsx! {
+        div { class: "mb-6 flex items-center gap-4",
+            Avatar { class: "size-16",
+                if let Some(src) = src { AvatarImage { src } }
+                AvatarFallback { class: "text-lg text-foreground", "{initials}" }
+            }
+            div { class: "flex flex-wrap gap-2",
+                Button { id: "avatar-upload", variant: crate::ui::button::ButtonVariant::Outline, disabled: busy(), onclick: pick, {t!("avatar-change")} }
+                if has {
+                    Button { variant: crate::ui::button::ButtonVariant::Ghost, disabled: busy(),
+                        onclick: move |_| async move {
+                            match crate::api::auth::remove_avatar().await {
+                                Ok(()) => user.restart(),
+                                Err(e) => toast_error(&e),
+                            }
+                        },
+                        {t!("avatar-remove")}
+                    }
+                }
+                p { class: "basis-full text-xs text-muted-foreground", {t!("avatar-hint")} }
             }
         }
     }

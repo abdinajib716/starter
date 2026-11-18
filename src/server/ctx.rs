@@ -29,6 +29,8 @@ pub struct CurrentUser {
     pub locale: Option<String>,
     /// Own time zone; `None` = the organization default (`app.timezone`).
     pub timezone: Option<String>,
+    /// `files.id` of the avatar.
+    pub avatar: Option<String>,
     /// A confirmed TOTP exists (§21).
     pub twofa_enrolled: bool,
     pub role_require_2fa: bool,

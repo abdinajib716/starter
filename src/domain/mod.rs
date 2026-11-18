@@ -108,6 +108,8 @@ pub struct UserInfo {
     pub own_timezone: Option<String>,
     /// Second-factor state for the banner / forced enrolment (§21).
     pub twofa: security::TwoFaInfo,
+    /// `/files/avatars/<id>` when an avatar is set.
+    pub avatar_url: Option<String>,
     /// Own language choice (`None` = organization default / browser).
     pub locale: Option<String>,
 }

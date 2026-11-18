@@ -1,5 +1,5 @@
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 /// `skip-to-main.tsx`: first focusable element, jumps to `#content`.
 #[component]

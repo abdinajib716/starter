@@ -3,8 +3,8 @@
 //! does not hold are disabled (no escalation, §8); system roles open read-only.
 use std::collections::BTreeSet;
 
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 use uuid::Uuid;
 
 use super::RolesCtx;

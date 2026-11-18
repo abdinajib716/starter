@@ -1,6 +1,6 @@
 //! `nav-group.tsx`: links, collapsible sections, and dropdowns when the sidebar is icons-only.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 use tw_merge::tw_merge;
 
 use super::nav_config::{NavGroup, NavItem, NavLink, is_active};

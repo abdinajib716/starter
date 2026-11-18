@@ -41,6 +41,7 @@ pub async fn router() -> anyhow::Result<Router> {
         .route("/healthz", get(routes::healthz))
         .route("/readyz", get(routes::readyz))
         .route("/api/stream", get(realtime::stream_route))
+        .route("/files/avatars/{id}", get(services::files::avatar_route))
         .route(
             "/api/webhooks/resend",
             axum::routing::post(routes::resend_webhook),

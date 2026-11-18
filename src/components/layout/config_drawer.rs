@@ -1,7 +1,7 @@
 //! `config-drawer.tsx`: theme, sidebar variant, layout, direction, each as a radio group of
 //! illustrated cards (`assets/custom/*`) with a per-section reset.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use crate::components::icons::custom::{Custom, CustomIcon};
 use crate::components::ui_extra::icon::{Icon, IconType};

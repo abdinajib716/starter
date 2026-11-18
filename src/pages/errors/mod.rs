@@ -1,6 +1,6 @@
 //! `features/errors/*` + `routes/(errors)/*` + `routes/_authenticated/errors/$error.tsx`.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 use tw_merge::tw_merge;
 
 use crate::app::Route;

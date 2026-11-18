@@ -1,6 +1,6 @@
 //! Profile → Security (§21, §22): two-factor authentication and signed-in devices.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use crate::api::security::{
     my_sessions, revoke_my_session, twofa_begin, twofa_confirm, twofa_disable, twofa_regenerate,

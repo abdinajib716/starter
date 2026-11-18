@@ -284,6 +284,7 @@ mod tests {
                 must_change_pw: false,
                 locale: None,
                 timezone: None,
+                avatar: None,
                 twofa_enrolled: false,
                 role_require_2fa: false,
                 twofa_since: time::OffsetDateTime::UNIX_EPOCH,

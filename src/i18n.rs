@@ -26,7 +26,7 @@ pub fn config(locale: &str) -> I18nConfig {
 /// Never panics: an unknown code falls back to `err-generic`.
 pub fn error_text(err: &dioxus::prelude::ServerFnError) -> String {
     let key = crate::domain::errors::i18n_key(err);
-    dioxus_i18n::te!(&key).unwrap_or_else(|_| dioxus_i18n::t!("err-generic"))
+    dioxus_i18n::te!(&key).unwrap_or_else(|_| crate::t!("err-generic"))
 }
 
 /// Right-to-left scripts; drives `dir="rtl"` (§26 rule 7). No RTL locale ships today,
@@ -128,7 +128,18 @@ pub fn strip_isolation(s: String) -> String {
 /// `t!` with arguments, without Fluent's isolation marks.
 #[macro_export]
 macro_rules! ta {
-    ($($arg:tt)*) => { $crate::i18n::strip_isolation(dioxus_i18n::t!($($arg)*)) };
+    ($($arg:tt)*) => { $crate::i18n::strip_isolation($crate::t!($($arg)*)) };
+}
+
+/// `t!` that never panics (M3.8): a key missing even in `en` logs once and renders the key.
+#[macro_export]
+macro_rules! t {
+    ($key:expr $(, $($rest:tt)*)?) => {
+        match dioxus_i18n::te!($key $(, $($rest)*)?) {
+            Ok(s) => s,
+            Err(_) => $crate::i18n::missing(&$key),
+        }
+    };
 }
 
 /// Translate a key chosen at run time with string arguments (notifications, audit labels).
@@ -139,6 +150,22 @@ pub fn tr(key: &str, args: &std::collections::HashMap<String, String>) -> String
         a.set(k.clone(), v.clone());
     }
     strip_isolation(dioxus_i18n::prelude::i18n().translate_with_args(key, Some(&a)))
+}
+
+/// Missing translation: warn once per key, show the key.
+pub fn missing(key: &str) -> String {
+    use std::sync::Mutex;
+    static SEEN: Mutex<Vec<String>> = Mutex::new(Vec::new());
+    if let Ok(mut seen) = SEEN.lock()
+        && !seen.iter().any(|k| k == key)
+    {
+        seen.push(key.to_string());
+        #[cfg(feature = "server")]
+        tracing::warn!(key, "missing translation");
+        #[cfg(not(feature = "server"))]
+        web_sys::console::warn_1(&format!("missing translation: {key}").into());
+    }
+    key.to_string()
 }
 
 #[cfg(test)]

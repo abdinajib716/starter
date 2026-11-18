@@ -719,3 +719,17 @@ err-backup-offsite-not-configured = Off-site storage isn't configured (see the s
 err-backup-offsite-test-failed = Couldn't write to the off-site storage. Check the credentials and bucket or folder.
 err-system-maintenance = The system is under maintenance. Try again in a minute.
 audit-backup-restore = Restored a backup
+
+# ---- M11: avatars ----
+avatar-change = Change photo
+avatar-remove = Remove
+avatar-hint = PNG, JPEG, WebP or GIF, up to 1 MB. Cropped to a square.
+avatar-saved = Photo updated.
+err-files-too-large = The file is larger than 1 MB.
+err-files-not-an-image = That file isn't a PNG, JPEG, WebP or GIF image.
+audit-profile-avatar = Changed profile photo
+audit-profile-avatar-removed = Removed profile photo
+dt-page-selected = All { $count } rows on this page are selected.
+dt-select-all-matching = Select all { $count } matching
+dt-all-matching-selected = All { $count } matching rows are selected.
+audit-user-purge-auto = Permanently deleted (retention)

@@ -1,8 +1,8 @@
 //! Audit log page (§9.5, M4.4): search, module / result filters, date range (all in the URL),
 //! keyset paging (Newer / Older), expandable rows with the before/after diff, CSV export.
 //! Same table look as the reference data tables.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 use tw_merge::tw_merge;
 
 use crate::api::audit::list_audit;

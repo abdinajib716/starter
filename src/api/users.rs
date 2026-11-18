@@ -78,3 +78,28 @@ pub async fn get_user(id: Uuid) -> Result<UserDetail, ServerFnError> {
     ctx.require("users.view")?;
     Ok(crate::server::services::users::detail(pool, &ctx, id).await?)
 }
+
+/// Bulk action on every user the filters match (all pages, M5.6 `Selection::Filter`).
+#[post("/api/users/bulk-matching")]
+pub async fn bulk_users_matching(
+    action: BulkUserAction,
+    query: UserQuery,
+) -> Result<BulkResult, ServerFnError> {
+    let ctx = crate::server::ctx::Ctx::current().await?;
+    ctx.require("users.view")?;
+    let st = crate::server::state::get()?;
+    Ok(crate::server::services::users::bulk_matching(&st.pool, &ctx, action, &query).await?)
+}
+
+/// How many users the filters match (for the "select all N matching" banner).
+#[post("/api/users/matching-count")]
+pub async fn count_users_matching(query: UserQuery) -> Result<u64, ServerFnError> {
+    let ctx = crate::server::ctx::Ctx::current().await?;
+    ctx.require("users.view")?;
+    let st = crate::server::state::get()?;
+    Ok(
+        crate::server::services::users::matching_ids(&st.pool, &ctx, &query)
+            .await?
+            .len() as u64,
+    )
+}

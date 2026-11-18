@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT driver, storage_key FROM files WHERE id = $1 AND org_id = $2 AND kind = 'avatar'",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "driver",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "files",
+            "name": "driver"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "storage_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "files",
+            "name": "storage_key"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "0dad5632ffceca6e149fca2c79b444e841e6dd2d65777959ffd67a92b1225e2c"
+}

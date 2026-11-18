@@ -55,7 +55,7 @@ pub async fn load(pool: &PgPool, raw: &str, hours: i64) -> sqlx::Result<Option<C
     let row = sqlx::query!(
         r#"SELECT s.id AS session_id, s.last_seen_at < now() - interval '1 minute' AS "stale!",
                   u.id AS user_id, u.org_id, u.email::text AS "email!", u.full_name,
-                  u.must_change_pw, u.locale, u.timezone,
+                  u.must_change_pw, u.locale, u.timezone, u.avatar_key,
                   r.id AS role_id, r.name AS role_name, r.is_system, r.require_2fa,
                   EXISTS (SELECT 1 FROM user_totp t
                           WHERE t.user_id = u.id AND t.confirmed_at IS NOT NULL) AS "enrolled!",
@@ -107,6 +107,7 @@ pub async fn load(pool: &PgPool, raw: &str, hours: i64) -> sqlx::Result<Option<C
         must_change_pw: r.must_change_pw,
         locale: r.locale,
         timezone: r.timezone,
+        avatar: r.avatar_key,
         twofa_enrolled: r.enrolled,
         role_require_2fa: r.require_2fa,
         twofa_since: r.twofa_since,

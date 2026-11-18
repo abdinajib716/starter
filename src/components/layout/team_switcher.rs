@@ -1,5 +1,5 @@
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use super::use_current_user;
 use crate::app::Route;

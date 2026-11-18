@@ -1,6 +1,6 @@
 //! `password-input.tsx`: password field with a show/hide toggle.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 use tw_merge::tw_merge;
 
 use crate::components::ui_extra::icon::{Icon, IconType};

@@ -1,5 +1,5 @@
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use super::sign_out_dialog::SignOutDialog;
 use crate::components::ui_extra::icon::{Icon, IconType};
@@ -10,7 +10,7 @@ use crate::components::ui_extra::sidebar::{
     MenuButtonSize, SidebarCtx, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 };
 use crate::domain::UserInfo;
-use crate::ui::avatar::{Avatar, AvatarFallback};
+use crate::ui::avatar::{Avatar, AvatarFallback, AvatarImage};
 
 /// `nav-user.tsx`: the signed-in user at the bottom of the sidebar.
 #[component]
@@ -19,7 +19,10 @@ pub fn NavUser(user: UserInfo) -> Element {
     let mut sign_out = use_signal(|| false);
     let initials = user.initials();
     let card = rsx! {
-        Avatar { class: "h-8 w-8 rounded-lg", AvatarFallback { class: "rounded-lg text-foreground", "{initials}" } }
+        Avatar { class: "h-8 w-8 rounded-lg",
+            if let Some(src) = user.avatar_url.clone() { AvatarImage { src, class: "rounded-lg" } }
+            AvatarFallback { class: "rounded-lg text-foreground", "{initials}" }
+        }
         div { class: "grid flex-1 text-start text-sm leading-tight",
             span { class: "truncate font-semibold", "{user.full_name}" }
             span { class: "truncate text-xs", "{user.email}" }

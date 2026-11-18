@@ -644,6 +644,93 @@ pub async fn purge(
 
 /// Bulk (§25.1): capped by `bulk.max_items`; every item re-checks its own guards; failures are
 /// reported per id with their code instead of aborting the batch; one summary audit row.
+/// Ids of every user matching the list's filters (all pages), for "select all matching"
+/// (`Selection::Filter`, M5.6). Capped by `bulk.max_items` + 1 so the caller can refuse.
+pub async fn matching_ids(pool: &PgPool, ctx: &Ctx, q: &UserQuery) -> Result<Vec<Uuid>, AppError> {
+    ctx.require("users.view")?;
+    let max = settings::value(pool, "bulk.max_items")
+        .await
+        .as_i64()
+        .unwrap_or(1000);
+    let mut b = QueryBuilder::new("");
+    push_base(&mut b, ctx.org_id, q);
+    b.push("SELECT id FROM base");
+    push_filters(&mut b, q, false, false);
+    b.push(" ORDER BY id LIMIT ").push_bind(max + 1);
+    Ok(b.build_query_scalar::<Uuid>().fetch_all(pool).await?)
+}
+
+/// Bulk action on everything the filter matches.
+pub async fn bulk_matching(
+    pool: &PgPool,
+    ctx: &Ctx,
+    action: BulkUserAction,
+    q: &UserQuery,
+) -> Result<BulkResult, AppError> {
+    let ids = matching_ids(pool, ctx, q).await?;
+    bulk(pool, ctx, action, ids).await
+}
+
+/// M5.12: permanently remove users soft-deleted more than `users.deleted_retention_days` ago
+/// (0 = keep forever). Same cleanup as a manual purge; one system audit row per user.
+pub async fn purge_expired(pool: &PgPool) -> anyhow::Result<u64> {
+    let days = settings::value(pool, "users.deleted_retention_days")
+        .await
+        .as_i64()
+        .unwrap_or(0);
+    if days <= 0 {
+        return Ok(0);
+    }
+    let rows = sqlx::query!(
+        r#"SELECT id, org_id, email::text AS "email!" FROM users
+           WHERE deleted_at < now() - make_interval(days => $1)"#,
+        i32::try_from(days).unwrap_or(i32::MAX)
+    )
+    .fetch_all(pool)
+    .await?;
+    let mut n = 0;
+    for r in rows {
+        let mut tx = pool.begin().await?;
+        sqlx::query!(
+            "UPDATE settings SET updated_by = NULL WHERE updated_by = $1",
+            r.id
+        )
+        .execute(&mut *tx)
+        .await?;
+        sqlx::query!(
+            "UPDATE backups SET created_by = NULL WHERE created_by = $1",
+            r.id
+        )
+        .execute(&mut *tx)
+        .await?;
+        let gone = sqlx::query!(
+            "DELETE FROM users WHERE id = $1 AND deleted_at IS NOT NULL",
+            r.id
+        )
+        .execute(&mut *tx)
+        .await?
+        .rows_affected();
+        if gone == 1 {
+            audit::record(
+                &mut tx,
+                Entry {
+                    org_id: Some(r.org_id),
+                    action: "user.purge_auto",
+                    entity_type: Some("user"),
+                    entity_id: Some(r.id.to_string()),
+                    before: Some(serde_json::json!({ "email": r.email })),
+                    success: true,
+                    ..Default::default()
+                },
+            )
+            .await?;
+            n += 1;
+        }
+        tx.commit().await?;
+    }
+    Ok(n)
+}
+
 pub async fn bulk(
     pool: &PgPool,
     ctx: &Ctx,
@@ -876,6 +963,56 @@ async fn export(
 
 #[cfg(test)]
 mod tests {
+    #[sqlx::test(migrations = "./migrations")]
+    async fn bulk_matching_uses_the_filter_not_the_page(pool: PgPool) {
+        let (ctx, _) = crate::server::services::auth::tests::setup(&pool, "boss@test.local").await;
+        let mut ctx = ctx;
+        let ok = crate::server::services::auth::login(
+            &pool,
+            &ctx,
+            "boss@test.local",
+            "correct-horse-1".into(),
+        )
+        .await
+        .unwrap();
+        ctx.user = crate::server::auth::session::load(&pool, &ok.token, 12)
+            .await
+            .unwrap();
+        let role = ctx.user.as_ref().unwrap().role_id;
+        for i in 0..25 {
+            sqlx::query!(
+                "INSERT INTO users (org_id, email, full_name, password_hash, role_id) VALUES ($1, $2::text::citext, 'Bulk', 'x', $3)",
+                ctx.org_id, format!("bulk{i}@test.local"), role
+            ).execute(&pool).await.unwrap();
+        }
+        let q = crate::domain::users::UserQuery {
+            q: "bulk".into(),
+            page: 1,
+            page_size: 10,
+            ..Default::default()
+        };
+        assert_eq!(
+            super::matching_ids(&pool, &ctx, &q).await.unwrap().len(),
+            25
+        );
+        let r = super::bulk_matching(
+            &pool,
+            &ctx,
+            crate::domain::users::BulkUserAction::Deactivate,
+            &q,
+        )
+        .await
+        .unwrap();
+        assert_eq!(r.done, 25);
+        let active = sqlx::query_scalar!(
+            r#"SELECT count(*) AS "n!" FROM users WHERE email LIKE 'bulk%' AND is_active"#
+        )
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+        assert_eq!(active, 0);
+    }
+
     use super::*;
     use crate::server::{rbac, request::RequestMeta, seed};
 
@@ -964,6 +1101,7 @@ mod tests {
                 must_change_pw: false,
                 locale: None,
                 timezone: None,
+                avatar: None,
                 twofa_enrolled: false,
                 role_require_2fa: false,
                 twofa_since: time::OffsetDateTime::UNIX_EPOCH,

@@ -126,7 +126,7 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 - [-] M3.5 Avatar dropdown: name + email + role badge → Profile / Logout — **replaced by SPEC-02** (see "UI port" below)
 - [-] M3.6 `/403` and `*` Not Found pages — **replaced by SPEC-02** (see "UI port" below)
 - [-] M3.7 Loading skeletons, empty states (`Empty`), error boundaries pattern — **replaced by SPEC-02** (see "UI port" below)
-- [ ] M3.8 i18n layer wired in, using the crate chosen in M0.25 (no UI strings before M0.25 is decided); `en` source of truth. Base already in place from M0.25 (`src/i18n.rs`, `locales/*.ftl`, `App` init); remaining: own `t!` wrapper that logs a missing key once and returns the key instead of panicking (`dioxus_i18n::t!` panics when even `en` lacks it), move every UI string to keys
+- [x] M3.8 i18n layer wired in, using the crate chosen in M0.25 (no UI strings before M0.25 is decided); `en` source of truth. Base already in place from M0.25 (`src/i18n.rs`, `locales/*.ftl`, `App` init); remaining: own `t!` wrapper that logs a missing key once and returns the key instead of panicking (`dioxus_i18n::t!` panics when even `en` lacks it), move every UI string to keys — done 2026-11-18: crate `t!` never panics (missing key → warning once + key shown)
 - [x] M3.9 Locale resolution: `users.locale` → cookie → `Accept-Language` → default; SSR first paint correct — done 2026-11-18: `users.locale` read from the request Ctx; enabled locales from settings
 - [-] M3.10 RTL: `dir="rtl"` by locale; logical Tailwind utilities (`ms-*`, `ps-*`, `text-start`) — **replaced by SPEC-02** (see "UI port" below)
 - [x] M3.11 `fmt::date()` / `fmt::number()` helpers (UTC stored, user timezone + locale displayed) — `util/time.rs` (jiff, bundled IANA db, same text on server and client); zone = own (`/profile`) else `app.timezone`
@@ -167,7 +167,7 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 - [x] M4.4 Audit page: filter bar (date range, actor, action, success, q), expandable before/after diff — `/audit` (search covers actor/action/id; module + result filters; date range; Newer/Older); browser-checked
 - [x] M4.5 `export_audit_csv` (streamed, `audit.export`, itself audited) — `GET /api/export/audit.csv`, action `export.audit`
 - [x] M4.6 Actions rendered via i18n keys (`audit.action.user.create`) — keys `audit-<module>-<action>`, raw code shown under the label
-- [ ] M4.7 Live mode hook (wired in M8)
+- [x] M4.7 Live mode hook (wired in M8) — live via SSE (M8, 2026-11-18)
 - [x] M4.8 Test: append-only trigger rejects UPDATE/DELETE — `audit_log_rejects_update_and_delete` (done early, with the M0 test setup)
 - [x] M4.9 Growth plan: decide and document one of (a) monthly partitioning of `audit_logs`, (b) archive-to-storage after `audit.retention_days`. The append-only trigger must still hold for the active partition. Record decision. — **(a) monthly partitioning**, introduced when the table passes ~10 M rows (see Decisions)
 
@@ -182,13 +182,13 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 - [x] M5.3 `create_user` / `update_user` (before/after audit) / `set_user_active` / `reset_user_password` / `delete_user` (soft) — `services/users.rs`, one transaction + audit row each
 - [x] M5.4 Sessions killed on deactivate / reset password / role change / delete
 - [x] M5.5 UI: search `Input`, role/status `Select`, `Pagination`, `Dialog` create/edit, `AlertDialog` delete, `Toast` results — the ported Users page on real data; browser-checked (create, search, filter, delete, restore, export)
-- [~] M5.6 Bulk actions: `Selection::{Ids, Filter}`, cap `bulk.max_items`, per-item guards re-applied, skipped-with-reason, per-item + summary audit — Ids done (activate/deactivate/delete/restore); `Filter` selection pending with M5.7's select-all banner
-- [~] M5.7 Bulk UI: row checkboxes, select-all-matching banner, floating action bar, count confirmation — checkboxes, floating bar, type-DELETE confirmation done; select-all-matching banner pending
+- [x] M5.6 Bulk actions: `Selection::{Ids, Filter}`, cap `bulk.max_items`, per-item guards re-applied, skipped-with-reason, per-item + summary audit — Ids done (activate/deactivate/delete/restore); `Filter` selection pending with M5.7's select-all banner — done 2026-11-18: select-all-matching banner + `bulk_users_matching` (filter resolved on the server, capped)
+- [x] M5.7 Bulk UI: row checkboxes, select-all-matching banner, floating action bar, count confirmation — checkboxes, floating bar, type-DELETE confirmation done; select-all-matching banner pending — done 2026-11-18: select-all-matching banner + `bulk_users_matching` (filter resolved on the server, capped)
 - [x] M5.8 CSV export helper `export::csv_response` — streamed, BOM, column whitelist, CSV-injection prefix, `export.max_rows` + `X-Export-Truncated` — `server/export.rs` (mpsc → `Body::from_stream`)
 - [x] M5.9 `GET /api/export/users.csv` (`users.export`) — same filters as the list + `ids=`; audited `export.users`
 - [x] M5.10 Deleted tab (`users.restore`): `restore_user` (email re-check, inactive + `must_change_pw`) — shows who/when deleted; bulk restore
 - [x] M5.11 `purge_user` (`users.purge`, type email to confirm) — blocker fixed by migration `…08_audit_actor_set_null`: the trigger allows exactly `actor_id → NULL` with every other column unchanged; test proves audit rows survive with `actor_email`
-- [ ] M5.12 Optional purge job for `users.deleted_retention_days`
+- [x] M5.12 Optional purge job for `users.deleted_retention_days` — hourly job, `users.deleted_retention_days` (0 = keep)
 - [x] M5.13 Tests: guards, restore email conflict, bulk skip reasons, CSV injection — `services::users::tests` (5 DB tests), `export::tests`, `domain::users::tests`
 
 ---
@@ -273,7 +273,7 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 - [x] M10.4 Chart: audit activity by module, 7 days (bar)
 - [x] M10.5 Chart: users by role (donut) — horizontal bars instead of a donut (reference style)
 - [x] M10.6 Chart: new users per week, 12 weeks (bar)
-- [~] M10.7 Recent activity list (last 10 audit rows, live) — list done (30 s refresh); live push with SSE in M8
+- [x] M10.7 Recent activity list (last 10 audit rows, live) — list done (30 s refresh); live push with SSE in M8 — live via SSE (M8, 2026-11-18)
 - [x] M10.8 Charts via Rust/UI `charts` (ApexCharts runtime) — confirm SSR/hydration behaviour, else custom SVG (§15.6) — custom SVG (`ui_extra/chart.rs`); Rust/UI `charts` + ApexCharts runtime removed
 - [-] M10.9 Dev-only `seed --demo` command — **dropped at the owner's request (2026-11-17): no demo seed data**; the numbers are checked by `dashboard::tests::numbers_match_the_data` (known rows → every field compared)
 
@@ -284,8 +284,8 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 **Done when:** backup create → list → download → delete works; retention trims old files.
 
 - [x] M11.1 `Storage` trait + `local` driver (key validation, no traversal, streaming) — `server/storage.rs`
-- [ ] M11.2 Migration `files`: `files` table
-- [ ] M11.3 Avatar upload: ≤ 1 MB, magic-byte MIME sniff, re-encode to WebP; served via `/files/avatars/:id`
+- [x] M11.2 Migration `files`: `files` table — done 2026-11-18 (`services/files.rs`; WebP 256 px; local or R2/Drive)
+- [x] M11.3 Avatar upload: ≤ 1 MB, magic-byte MIME sniff, re-encode to WebP; served via `/files/avatars/:id` — done 2026-11-18 (`services/files.rs`; WebP 256 px; local or R2/Drive)
 - [x] M11.4 `list_backups`, `create_backup` (`pg_dump --format=custom`, password via env, sha256, status) — `PGPASSWORD`, advisory lock (one at a time across instances); browser-checked: dump starts with `PGDMP`
 - [x] M11.5 `GET /api/backups/:id/download` (lookup by id only, streamed, audited)
 - [x] M11.6 `delete_backup`; retention by `backup.retention_count` — retention runs after every backup

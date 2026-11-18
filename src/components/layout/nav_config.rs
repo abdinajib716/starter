@@ -148,6 +148,7 @@ mod tests {
             own_timezone: None,
             twofa: Default::default(),
             locale: None,
+            avatar_url: None,
         }
     }
 

@@ -544,6 +544,13 @@ pub fn start_jobs(pool: PgPool) {
                 Ok(_) => {}
                 Err(e) => tracing::error!("session purge: {e}"),
             }
+            match crate::server::services::users::purge_expired(&pool).await {
+                Ok(n) if n > 0 => {
+                    tracing::info!(users = n, "purged users past deleted_retention_days")
+                }
+                Ok(_) => {}
+                Err(e) => tracing::error!("user purge job: {e:#}"),
+            }
             if let Err(e) = crate::server::auth::ratelimit::purge(&pool).await {
                 tracing::error!("rate limit purge: {e}");
             }

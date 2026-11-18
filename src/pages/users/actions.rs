@@ -1,8 +1,8 @@
 //! `data-table-row-actions.tsx`, `data-table-bulk-actions.tsx`, `users-multi-delete-dialog.tsx`
 //! on real data. Every action is also checked on the server; the menus only hide what the
 //! signed-in user may not do.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 use uuid::Uuid;
 
 use super::{UserDialog, UsersCtx};
@@ -147,10 +147,21 @@ fn report(r: &BulkResult, done_key: &'static str) {
 }
 
 #[component]
-pub fn UsersBulkActions(state: TableState, ids: Vec<Uuid>, deleted: bool) -> Element {
+pub fn UsersBulkActions(
+    state: TableState,
+    ids: Vec<Uuid>,
+    deleted: bool,
+    /// Set = act on every user the filters match, not only the selected ids.
+    matching: Option<crate::domain::users::UserQuery>,
+    total: u64,
+) -> Element {
     let ctx = use_context::<UsersCtx>();
     let mut selected = state.selected;
-    let count = ids.len();
+    let count = if matching.is_some() {
+        total as usize
+    } else {
+        ids.len()
+    };
     let mut confirm = use_signal(|| false);
     let mut word = use_signal(String::new);
     let ok = word().trim() == "DELETE";
@@ -163,10 +174,16 @@ pub fn UsersBulkActions(state: TableState, ids: Vec<Uuid>, deleted: bool) -> Ele
 
     let run_bulk = {
         let ids = ids.clone();
+        let matching = matching.clone();
         move |action: BulkUserAction, done_key: &'static str| {
             let ids = ids.clone();
+            let matching = matching.clone();
             spawn(async move {
-                match bulk_users(action, ids).await {
+                let r = match matching {
+                    Some(q) => crate::api::users::bulk_users_matching(action, q).await,
+                    None => bulk_users(action, ids).await,
+                };
+                match r {
                     Ok(r) => {
                         report(&r, done_key);
                         selected.write().clear();

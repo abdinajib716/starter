@@ -1,7 +1,7 @@
 //! `/notifications` (§23, M8.9): everything I was notified about, paged; announcements for
 //! holders of `notifications.broadcast`.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use crate::api::notifications::{list_notifications, mark_read, send_announcement};
 use crate::components::layout::{

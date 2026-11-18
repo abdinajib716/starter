@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO files (id, org_id, owner_id, kind, driver, storage_key, mime, size_bytes, sha256)\n         VALUES ($1, $2, $3, 'avatar', $4, $5, 'image/webp', $6, $7)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fa80550267373c9af668278432e49d2104f7a979a38ab0890e87476aa148169d"
+}

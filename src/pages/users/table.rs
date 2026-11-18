@@ -1,7 +1,7 @@
 //! `users-table.tsx` + `users-columns.tsx` on server data: the table state (URL-synced) is
 //! turned into a `UserQuery`; the server filters, sorts, pages and counts facets.
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 use tw_merge::tw_merge;
 use uuid::Uuid;
 
@@ -156,6 +156,7 @@ pub fn UsersTable(query: Query, deleted: bool) -> Element {
         .unwrap_or(1);
     use_effect(use_reactive!(|pages| state.clamp_page(pages)));
 
+    let mut all_matching = use_signal(|| false);
     let Some(page) = data() else {
         return rsx! { TableSkeleton { cols: 5 } };
     };
@@ -166,6 +167,10 @@ pub fn UsersTable(query: Query, deleted: bool) -> Element {
     let all = !page_ids.is_empty() && page_ids.iter().all(|id| sel.contains(id));
     let some = page_ids.iter().any(|id| sel.contains(id));
     let selected_ids: Vec<Uuid> = sel.iter().filter_map(|s| s.parse().ok()).collect();
+    // "Select all N matching" (M5.7): offered when the whole page is selected and more match.
+    let more = all && page.total as usize > page_ids.len();
+    let matching = (all_matching() && more).then(|| to_user_query(&state, deleted));
+    let total = page.total;
 
     let roles = (ctx.roles)();
     let count = |v: Option<u64>| v.unwrap_or(0) as usize;
@@ -233,6 +238,17 @@ pub fn UsersTable(query: Query, deleted: bool) -> Element {
     rsx! {
         div { class: "flex flex-1 flex-col gap-4 max-sm:has-[div[role=toolbar]]:mb-16",
             Toolbar { state, placeholder: t!("users-search"), filters, columns: hideable }
+            if more {
+                div { id: "select-all-banner", class: "flex flex-wrap items-center justify-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm",
+                    if matching.is_some() {
+                        span { {crate::ta!("dt-all-matching-selected", count: total)} }
+                        button { r#type: "button", class: "font-medium underline underline-offset-4", onclick: move |_| { all_matching.set(false); selected.write().clear(); }, {t!("dt-clear-selection")} }
+                    } else {
+                        span { {crate::ta!("dt-page-selected", count: page_ids.len())} }
+                        button { r#type: "button", id: "select-all-matching", class: "font-medium underline underline-offset-4", onclick: move |_| all_matching.set(true), {crate::ta!("dt-select-all-matching", count: total)} }
+                    }
+                }
+            }
             div { class: "overflow-hidden rounded-md border",
                 div { class: "relative w-full overflow-x-auto",
                     table { class: "w-full caption-bottom text-sm",
@@ -287,7 +303,7 @@ pub fn UsersTable(query: Query, deleted: bool) -> Element {
                 }
             }
             Pagination { state, page_count: pages, class: "mt-auto" }
-            UsersBulkActions { state, ids: selected_ids, deleted }
+            UsersBulkActions { state, ids: selected_ids, deleted, matching, total }
         }
     }
 }

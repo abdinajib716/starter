@@ -1,12 +1,12 @@
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use super::sign_out_dialog::SignOutDialog;
 use super::use_current_user;
 use crate::components::ui_extra::menu::{
     Align, ITEM, Menu, MenuGroup, MenuItem, MenuLabel, MenuSeparator, MenuShortcut,
 };
-use crate::ui::avatar::{Avatar, AvatarFallback};
+use crate::ui::avatar::{Avatar, AvatarFallback, AvatarImage};
 use crate::ui::button::{Button, ButtonVariant};
 
 /// `profile-dropdown.tsx`: avatar button in the header.
@@ -24,7 +24,10 @@ pub fn ProfileDropdown() -> Element {
             class: "w-56",
             trigger: rsx! {
                 Button { variant: ButtonVariant::Ghost, class: "relative h-8 w-8 rounded-full p-0",
-                    Avatar { class: "h-8 w-8", AvatarFallback { class: "text-foreground", "{initials}" } }
+                    Avatar { class: "h-8 w-8",
+                        if let Some(src) = user.avatar_url.clone() { AvatarImage { src } }
+                        AvatarFallback { class: "text-foreground", "{initials}" }
+                    }
                 }
             },
             MenuLabel { class: "font-normal",

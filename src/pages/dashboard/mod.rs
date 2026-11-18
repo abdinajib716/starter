@@ -4,8 +4,8 @@
 mod activity;
 pub mod overview;
 
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use crate::api::dashboard::get_dashboard;
 use crate::components::layout::{ConfigDrawer, Header, Main, ProfileDropdown, Search, ThemeSwitch};

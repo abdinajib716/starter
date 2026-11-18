@@ -8,8 +8,8 @@ pub use account::{AcceptInvite, ForgotPassword, ResetPassword, VerifyEmail};
 pub use sign_in::{Login, SignIn};
 pub use two_factor::TwoFactor;
 
+use crate::t;
 use dioxus::prelude::*;
-use dioxus_i18n::t;
 
 use crate::components::ui_extra::icon::{Icon, IconType};
 
