@@ -34,8 +34,10 @@ pub fn Backups() -> Element {
     let mut refresh = use_signal(|| 0u32);
     let mut busy = use_signal(|| false);
     // Load, then poll every 2 s while something is running (live status, M11.8).
+    let live = crate::components::layout::use_live();
     let _load = use_resource(move || async move {
         let _ = refresh();
+        let _ = (live.backups)();
         loop {
             match list_backups().await {
                 Ok(r) => {

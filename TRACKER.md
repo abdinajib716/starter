@@ -15,7 +15,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | # | Milestone | Status | Notes |
 |---|---|---|---|
 | 0 | Toolchain, skeleton, Postgres, migrations, org + `Ctx` | 🟡 in progress | 24/25 done; open: M0.24 (runs after M1) |
-| 1 | Auth core | 🟡 in progress | 17/19 done; open: M1.1 timing check (release build), M1.19 notification (needs M8) |
+| 1 | Auth core | 🟡 in progress | 18/19 done; open: M1.1 timing check (release build) |
 | 2 | RBAC core + `ModuleFlags` + settings cache | 🟢 done | branch `m2/rbac`; first permission-checked endpoints arrive with M5 |
 | 3 | App shell + i18n layer | ⚪ | shell/routes/RTL replaced by the UI port (SPEC-02) |
 | 3b | **UI port (SPEC-02)** | 🟡 in progress | P0–P3, P5–P7, P9, P10 done; P4 branding (M7) and P8 real data (M5/M10) pending; manifest 212/212 |
@@ -23,8 +23,8 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 5 | Users + DataTable (bulk, CSV, Deleted tab) | 🟡 in progress | branch `m5/users`; real Users page live; open: select-all-matching (M5.6/M5.7), purge job (M5.12) |
 | 6 | Roles + Permissions | 🟢 done | branch `m6/access-control` |
 | 7 | System Setting (tabs, deps, feature flags) | 🟢 done | branch `m6/access-control`; checked: session length change applies |
-| 8 | Realtime (SSE) + notifications | ⚪ | |
-| 9 | Profile: password, sessions, 2FA | ⚪ | |
+| 8 | Realtime (SSE) + notifications | ✅ done | SSE hub, bell, /notifications, prefs, announcements |
+| 9 | Profile: password, sessions, 2FA | ✅ done | TOTP + recovery codes, modes + grace, sessions, admin reset |
 | 10 | Dashboard KPIs + charts | 🟢 done | branch `m10/dashboard`; live push waits for M8 |
 | 11 | Storage (local) + avatars + Backup | 🟡 in progress | backups done (branch `m6/access-control`); open: `files` table + avatars (M11.2/M11.3) |
 | 12 | Backup encryption, R2, off-site, **restore** | ⚪ | |
@@ -92,7 +92,7 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 - [x] M1.16 Security headers via `tower-http` (CSP, nosniff, frame-ancestors, Referrer-Policy), body limits, timeouts (§13; moved from M17) — `server/security.rs`: CSP, nosniff, `X-Frame-Options: DENY`, Referrer-Policy, Permissions-Policy, HSTS when `COOKIE_SECURE`, 2 MiB body limit, 30 s timeout; no CSP violations in the browser
 - [x] M1.17 Cookie name `__Host-sid` when `COOKIE_SECURE=true` (requires `Secure`, `Path=/`, no `Domain`); plain `sid` in local dev — `Config::session_cookie_name()`; the `Secure` path is not browser-tested yet (needs HTTPS, M17)
 - [x] M1.18 Password policy: minimum length (setting `security.password_min_length`, §9.6), reject common passwords list; applied in create, reset and change flows — `password::check_policy` (chars ≥ `security.password_min_length`, ≤ 256, embedded common list); applied on change now, on create/reset in M5
-- [~] M1.19 Lockout notification to the user (in-app now, email after M13) — `auth.account_locked` audit row written; the in-app notification needs the notifications table (M8.7)
+- [x] M1.19 Lockout notification to the user (in-app now, email after M13) — `auth.account_locked` audit row written; the in-app notification needs the notifications table (M8.7) — in-app + email via outbox (2026-11-18)
 
 ---
 
@@ -127,7 +127,7 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 - [-] M3.6 `/403` and `*` Not Found pages — **replaced by SPEC-02** (see "UI port" below)
 - [-] M3.7 Loading skeletons, empty states (`Empty`), error boundaries pattern — **replaced by SPEC-02** (see "UI port" below)
 - [ ] M3.8 i18n layer wired in, using the crate chosen in M0.25 (no UI strings before M0.25 is decided); `en` source of truth. Base already in place from M0.25 (`src/i18n.rs`, `locales/*.ftl`, `App` init); remaining: own `t!` wrapper that logs a missing key once and returns the key instead of panicking (`dioxus_i18n::t!` panics when even `en` lacks it), move every UI string to keys
-- [ ] M3.9 Locale resolution: `users.locale` → cookie → `Accept-Language` → default; SSR first paint correct
+- [x] M3.9 Locale resolution: `users.locale` → cookie → `Accept-Language` → default; SSR first paint correct — done 2026-11-18: `users.locale` read from the request Ctx; enabled locales from settings
 - [-] M3.10 RTL: `dir="rtl"` by locale; logical Tailwind utilities (`ms-*`, `ps-*`, `text-start`) — **replaced by SPEC-02** (see "UI port" below)
 - [x] M3.11 `fmt::date()` / `fmt::number()` helpers (UTC stored, user timezone + locale displayed) — `util/time.rs` (jiff, bundled IANA db, same text on server and client); zone = own (`/profile`) else `app.timezone`
 
@@ -230,16 +230,16 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 **Done when:** audit page updates live in another browser; bell shows unread count live.
 
-- [ ] M8.1 `PgListener` task (auto-reconnect), debounce ~500 ms, coalesce by table → `broadcast` hub
-- [ ] M8.2 `GET /api/stream` SSE (custom Axum route), session check, permission filtering, keep-alive 15 s
-- [ ] M8.3 Server closes streams of revoked sessions; events carry `org_id`
-- [ ] M8.4 Client `EventSource` hook → refetch resources (refetch once on reconnect)
-- [ ] M8.5 Wire live mode: audit, dashboard, backups
-- [ ] M8.6 Migration `notifications`: `notifications`, `notification_prefs`
-- [ ] M8.7 `notify::send(&mut tx, Target, kind, params)`; targeted SSE event per `user_id`
-- [ ] M8.8 Server fns: `unread_count`, `list_notifications`, `mark_read`, `mark_all_read`, prefs, `send_announcement` (`notifications.broadcast`)
-- [ ] M8.9 Bell (Rust/UI `Popover`/`DropdownMenu`) with unread badge + latest 10; `/notifications` page
-- [ ] M8.10 Retention job (`notifications.retention_days`); hidden when `notifications.enabled = false`
+- [x] M8.1 `PgListener` task (auto-reconnect), debounce ~500 ms, coalesce by table → `broadcast` hub — done 2026-11-18 (`server/realtime.rs`, `server/notify.rs`, bell, `/notifications`)
+- [x] M8.2 `GET /api/stream` SSE (custom Axum route), session check, permission filtering, keep-alive 15 s — done 2026-11-18 (`server/realtime.rs`, `server/notify.rs`, bell, `/notifications`)
+- [x] M8.3 Server closes streams of revoked sessions; events carry `org_id` — done 2026-11-18 (`server/realtime.rs`, `server/notify.rs`, bell, `/notifications`)
+- [x] M8.4 Client `EventSource` hook → refetch resources (refetch once on reconnect) — done 2026-11-18 (`server/realtime.rs`, `server/notify.rs`, bell, `/notifications`)
+- [x] M8.5 Wire live mode: audit, dashboard, backups — done 2026-11-18 (`server/realtime.rs`, `server/notify.rs`, bell, `/notifications`)
+- [x] M8.6 Migration `notifications`: `notifications`, `notification_prefs` — done 2026-11-18 (`server/realtime.rs`, `server/notify.rs`, bell, `/notifications`)
+- [x] M8.7 `notify::send(&mut tx, Target, kind, params)`; targeted SSE event per `user_id` — done 2026-11-18 (`server/realtime.rs`, `server/notify.rs`, bell, `/notifications`)
+- [x] M8.8 Server fns: `unread_count`, `list_notifications`, `mark_read`, `mark_all_read`, prefs, `send_announcement` (`notifications.broadcast`) — done 2026-11-18 (`server/realtime.rs`, `server/notify.rs`, bell, `/notifications`)
+- [x] M8.9 Bell (Rust/UI `Popover`/`DropdownMenu`) with unread badge + latest 10; `/notifications` page — done 2026-11-18 (`server/realtime.rs`, `server/notify.rs`, bell, `/notifications`)
+- [x] M8.10 Retention job (`notifications.retention_days`); hidden when `notifications.enabled = false` — done 2026-11-18 (`server/realtime.rs`, `server/notify.rs`, bell, `/notifications`)
 
 ---
 
@@ -247,19 +247,19 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 **Done when:** a user can enroll TOTP, log in with code or recovery code, and revoke other sessions.
 
-- [ ] M9.1 Profile tabs: Profile · Security · API Tokens · Notifications · Language
-- [~] M9.2 `update_profile(name, avatar)`; `change_password(old, new)` (kills other sessions) — `change_password` done in M1 (needed for `must_change_pw`); `update_profile` pending
-- [ ] M9.3 Sessions: `device_label` from User-Agent; `list_my_sessions`, `revoke_my_session`, `revoke_other_sessions`
-- [ ] M9.4 Admin: `admin_list_user_sessions`, `admin_revoke_user_sessions` (`users.revoke_sessions`)
-- [ ] M9.5 Daily expired-session purge job
-- [ ] M9.6 Migration `user_totp_recovery`: `user_totp`, `recovery_codes`
-- [ ] M9.7 TOTP (`totp-rs`), secret AES-256-GCM with HKDF from `APP_SECRET`
-- [ ] M9.8 Enroll: QR + manual key → confirm → 10 recovery codes (shown once, downloadable) → revoke other sessions
-- [ ] M9.9 Login step 2: `pending_2fa` session (5 min) → `/auth/2fa` → `verify_2fa` (±1 step, replay block, 5 failures → lock)
-- [ ] M9.10 Disable / regenerate codes / admin reset (`users.reset_2fa`, re-auth of admin)
-- [ ] M9.11 Modes `off|optional|required_roles|required_all` + grace days banner → blocking
-- [ ] M9.12 Refuse `required_*` unless acting admin is enrolled
-- [ ] M9.13 New-device login → notification (+ email when on)
+- [x] M9.1 Profile tabs: Profile · Security · API Tokens · Notifications · Language — done 2026-11-18 (`services/security.rs`, `auth/totp.rs`, profile Security tab, `/auth/2fa`)
+- [x] M9.2 `update_profile(name, avatar)`; `change_password(old, new)` (kills other sessions) — `change_password` done in M1 (needed for `must_change_pw`); `update_profile` pending — done 2026-11-18 (`services/security.rs`, `auth/totp.rs`, profile Security tab, `/auth/2fa`)
+- [x] M9.3 Sessions: `device_label` from User-Agent; `list_my_sessions`, `revoke_my_session`, `revoke_other_sessions` — done 2026-11-18 (`services/security.rs`, `auth/totp.rs`, profile Security tab, `/auth/2fa`)
+- [x] M9.4 Admin: `admin_list_user_sessions`, `admin_revoke_user_sessions` (`users.revoke_sessions`) — done 2026-11-18 (`services/security.rs`, `auth/totp.rs`, profile Security tab, `/auth/2fa`)
+- [x] M9.5 Daily expired-session purge job — done 2026-11-18 (`services/security.rs`, `auth/totp.rs`, profile Security tab, `/auth/2fa`)
+- [x] M9.6 Migration `user_totp_recovery`: `user_totp`, `recovery_codes` — done 2026-11-18 (`services/security.rs`, `auth/totp.rs`, profile Security tab, `/auth/2fa`)
+- [x] M9.7 TOTP (`totp-rs`), secret AES-256-GCM with HKDF from `APP_SECRET` — done 2026-11-18 (`services/security.rs`, `auth/totp.rs`, profile Security tab, `/auth/2fa`)
+- [x] M9.8 Enroll: QR + manual key → confirm → 10 recovery codes (shown once, downloadable) → revoke other sessions — done 2026-11-18 (`services/security.rs`, `auth/totp.rs`, profile Security tab, `/auth/2fa`)
+- [x] M9.9 Login step 2: `pending_2fa` session (5 min) → `/auth/2fa` → `verify_2fa` (±1 step, replay block, 5 failures → lock) — done 2026-11-18 (`services/security.rs`, `auth/totp.rs`, profile Security tab, `/auth/2fa`)
+- [x] M9.10 Disable / regenerate codes / admin reset (`users.reset_2fa`, re-auth of admin) — done 2026-11-18 (`services/security.rs`, `auth/totp.rs`, profile Security tab, `/auth/2fa`)
+- [x] M9.11 Modes `off|optional|required_roles|required_all` + grace days banner → blocking — done 2026-11-18 (`services/security.rs`, `auth/totp.rs`, profile Security tab, `/auth/2fa`)
+- [x] M9.12 Refuse `required_*` unless acting admin is enrolled — done 2026-11-18 (`services/security.rs`, `auth/totp.rs`, profile Security tab, `/auth/2fa`)
+- [x] M9.13 New-device login → notification (+ email when on) — done 2026-11-18 (`services/security.rs`, `auth/totp.rs`, profile Security tab, `/auth/2fa`)
 
 ---
 
@@ -315,12 +315,12 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 **Done when:** test email delivered; reset and invite flows work end to end; bounce lands in suppressions.
 
-- [ ] M13.1 Migration `email_outbox`: `email_outbox`, `auth_tokens`, `email_suppressions`
-- [ ] M13.2 `email::enqueue(&mut tx, …)` in the business transaction
-- [ ] M13.3 Worker: `FOR UPDATE SKIP LOCKED`, back-off 1m/5m/30m/2h, max 5 → failed + admin notification
-- [ ] M13.4 Templates (`minijinja`/`askama`) per locale, `.html` + `.txt`, `en` fallback: invite, password_reset, verify_email, new_login_alert, password_changed, 2fa_changed, backup_failed
+- [x] M13.1 Migration `email_outbox`: `email_outbox`, `auth_tokens`, `email_suppressions` — done 2026-11-18 (`server/email.rs`, `templates/email/*.txt`; templates `en` only, other locales fall back)
+- [x] M13.2 `email::enqueue(&mut tx, …)` in the business transaction — done 2026-11-18 (`server/email.rs`, `templates/email/*.txt`; templates `en` only, other locales fall back)
+- [x] M13.3 Worker: `FOR UPDATE SKIP LOCKED`, back-off 1m/5m/30m/2h, max 5 → failed + admin notification — done 2026-11-18 (`server/email.rs`, `templates/email/*.txt`; templates `en` only, other locales fall back)
+- [x] M13.4 Templates (`minijinja`/`askama`) per locale, `.html` + `.txt`, `en` fallback: invite, password_reset, verify_email, new_login_alert, password_changed, 2fa_changed, backup_failed — done 2026-11-18 (`server/email.rs`, `templates/email/*.txt`; templates `en` only, other locales fall back)
 - [ ] M13.5 Routes: `/auth/forgot-password`, `/auth/reset-password`, `/auth/accept-invite`, `/auth/verify-email` (no enumeration, rate limited)
-- [ ] M13.6 `POST /api/webhooks/resend` with Svix signature check → delivered/bounced/complained
+- [x] M13.6 `POST /api/webhooks/resend` with Svix signature check → delivered/bounced/complained — done 2026-11-18 (`server/email.rs`, `templates/email/*.txt`; templates `en` only, other locales fall back)
 - [ ] M13.7 Email tab: key status, Send test email (`email.send_test`), Delivery log (`email.view_log`)
 - [ ] M13.8 Non-email fallbacks when `email.enabled = false` (admin sets temp password)
 

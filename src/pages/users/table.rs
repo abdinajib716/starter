@@ -131,8 +131,10 @@ pub fn UsersTable(query: Query, deleted: bool) -> Element {
     let mut data = use_signal(|| None::<UserPage>);
     let mut loaded_q = use_signal(|| None::<String>);
     let refresh = ctx.refresh;
+    let live = crate::components::layout::use_live();
     let _list = use_resource(move || async move {
         let _ = refresh();
+        let _ = (live.users)();
         let q = to_user_query(&state, deleted);
         if loaded_q.peek().as_ref().is_some_and(|l| *l != q.q) {
             crate::util::sleep_ms(250).await;

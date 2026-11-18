@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT timezone, failed_attempts, locked_until, updated_at,\n                  (SELECT count(*) FROM sessions s WHERE s.user_id = u.id AND s.kind = 'web'\n                     AND s.expires_at > now()) AS \"sessions!\"\n           FROM users u WHERE id = $1",
+  "query": "SELECT timezone, failed_attempts, locked_until, updated_at,\n                  (SELECT count(*) FROM sessions s WHERE s.user_id = u.id AND s.kind = 'web'\n                     AND s.expires_at > now()) AS \"sessions!\",\n                  EXISTS (SELECT 1 FROM user_totp t WHERE t.user_id = u.id\n                          AND t.confirmed_at IS NOT NULL) AS \"twofa!\"\n           FROM users u WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -52,6 +52,12 @@
         "name": "sessions!",
         "type_info": "Int8",
         "origin": "Expression"
+      },
+      {
+        "ordinal": 5,
+        "name": "twofa!",
+        "type_info": "Bool",
+        "origin": "Expression"
       }
     ],
     "parameters": {
@@ -64,8 +70,9 @@
       false,
       true,
       false,
+      null,
       null
     ]
   },
-  "hash": "8dd223cbd2d81fe1dd7447efa106f513401360b6a47b606cfda05578eb930796"
+  "hash": "c9643863e54dfd39a378b3686a5e19f7b8db43ad7e58e0e9e3397244993183db"
 }

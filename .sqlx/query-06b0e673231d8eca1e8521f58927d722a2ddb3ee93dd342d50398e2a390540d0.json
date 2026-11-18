@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT s.id AS session_id, s.last_seen_at < now() - interval '1 minute' AS \"stale!\",\n                  u.id AS user_id, u.org_id, u.email::text AS \"email!\", u.full_name,\n                  u.must_change_pw, u.locale, u.timezone,\n                  r.id AS role_id, r.name AS role_name, r.is_system,\n                  COALESCE(array_agg(rp.permission_key) FILTER (WHERE rp.permission_key IS NOT NULL),\n                           '{}') AS \"permissions!\"\n           FROM sessions s\n           JOIN users u ON u.id = s.user_id\n           JOIN roles r ON r.id = u.role_id\n           LEFT JOIN role_permissions rp ON rp.role_id = r.id\n           WHERE s.token_hash = $1 AND s.kind = 'web' AND s.expires_at > now()\n             AND u.is_active AND u.deleted_at IS NULL\n           GROUP BY s.id, u.id, r.id",
+  "query": "SELECT s.id AS session_id, s.last_seen_at < now() - interval '1 minute' AS \"stale!\",\n                  u.id AS user_id, u.org_id, u.email::text AS \"email!\", u.full_name,\n                  u.must_change_pw, u.locale, u.timezone,\n                  r.id AS role_id, r.name AS role_name, r.is_system, r.require_2fa,\n                  EXISTS (SELECT 1 FROM user_totp t\n                          WHERE t.user_id = u.id AND t.confirmed_at IS NOT NULL) AS \"enrolled!\",\n                  GREATEST(u.created_at, (SELECT st.updated_at FROM settings st\n                                          WHERE st.key = 'security.2fa_mode')) AS \"twofa_since!\",\n                  COALESCE(array_agg(rp.permission_key) FILTER (WHERE rp.permission_key IS NOT NULL),\n                           '{}') AS \"permissions!\"\n           FROM sessions s\n           JOIN users u ON u.id = s.user_id\n           JOIN roles r ON r.id = u.role_id\n           LEFT JOIN role_permissions rp ON rp.role_id = r.id\n           WHERE s.token_hash = $1 AND s.kind = 'web' AND s.expires_at > now()\n             AND u.is_active AND u.deleted_at IS NULL\n           GROUP BY s.id, u.id, r.id",
   "describe": {
     "columns": [
       {
@@ -127,6 +127,29 @@
       },
       {
         "ordinal": 12,
+        "name": "require_2fa",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "roles",
+            "name": "require_2fa"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "enrolled!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 14,
+        "name": "twofa_since!",
+        "type_info": "Timestamptz",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 15,
         "name": "permissions!",
         "type_info": "TextArray",
         "origin": "Expression"
@@ -150,8 +173,11 @@
       false,
       false,
       false,
+      false,
+      null,
+      null,
       null
     ]
   },
-  "hash": "4abe53d1b362253d4bfebc2f7ff3e4fd7be25f117467173f550edf42680c65f0"
+  "hash": "06b0e673231d8eca1e8521f58927d722a2ddb3ee93dd342d50398e2a390540d0"
 }

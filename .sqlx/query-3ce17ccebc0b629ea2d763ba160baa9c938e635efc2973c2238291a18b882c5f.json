@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, password_hash, is_active, must_change_pw, failed_attempts,\n                  COALESCE(locked_until > now(), false) AS \"locked!\"\n           FROM users WHERE org_id = $1 AND email = $2::text::citext AND deleted_at IS NULL",
+  "query": "SELECT id, password_hash, is_active, must_change_pw, failed_attempts,\n                  COALESCE(locked_until > now(), false) AS \"locked!\",\n                  EXISTS (SELECT 1 FROM user_totp t WHERE t.user_id = users.id\n                          AND t.confirmed_at IS NOT NULL) AS \"enrolled!\"\n           FROM users WHERE org_id = $1 AND email = $2::text::citext AND deleted_at IS NULL",
   "describe": {
     "columns": [
       {
@@ -63,6 +63,12 @@
         "name": "locked!",
         "type_info": "Bool",
         "origin": "Expression"
+      },
+      {
+        "ordinal": 6,
+        "name": "enrolled!",
+        "type_info": "Bool",
+        "origin": "Expression"
       }
     ],
     "parameters": {
@@ -77,8 +83,9 @@
       false,
       false,
       false,
+      null,
       null
     ]
   },
-  "hash": "665ab5aea6da19a89810d7ee665619664bb73c96fd599eec93a3f0b03e289188"
+  "hash": "3ce17ccebc0b629ea2d763ba160baa9c938e635efc2973c2238291a18b882c5f"
 }

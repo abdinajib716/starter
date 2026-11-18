@@ -18,6 +18,7 @@ pub fn ProfileDropdown() -> Element {
     };
     let initials = user.initials();
     rsx! {
+        super::notification_bell::NotificationBell {}
         Menu {
             align: Align::End,
             class: "w-56",

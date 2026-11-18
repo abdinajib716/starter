@@ -1,0 +1,4 @@
+Subject: {{app_name}} test email
+Hello,
+
+This is a test email from {{app_name}}. Email delivery works.

@@ -9,22 +9,40 @@ use super::token;
 use crate::server::ctx::CurrentUser;
 
 /// Insert a session in `tx` and return the raw token for the cookie (only its hash is stored).
-pub async fn create(
+/// `web` (signed in; `mfa` = the second factor was checked) or `pending_2fa` (password ok,
+/// waiting for the code — invisible to `load`).
+#[derive(Clone, Copy)]
+pub enum Kind {
+    Web { mfa: bool },
+    Pending2fa,
+}
+
+pub async fn create_kind(
     tx: &mut Transaction<'_, Postgres>,
     user_id: Uuid,
     ip: Option<IpAddr>,
     user_agent: Option<&str>,
-    hours: i64,
+    kind: Kind,
+    minutes: i64,
 ) -> sqlx::Result<String> {
     let raw = token::generate();
+    let (kind, mfa) = match kind {
+        Kind::Web { mfa } => ("web", mfa),
+        Kind::Pending2fa => ("pending_2fa", false),
+    };
     sqlx::query!(
-        r#"INSERT INTO sessions (token_hash, user_id, ip, user_agent, expires_at)
-           VALUES ($1, $2, $3, $4, now() + make_interval(hours => $5))"#,
+        r#"INSERT INTO sessions (token_hash, user_id, ip, user_agent, device_label, kind,
+                                 mfa_verified_at, expires_at)
+           VALUES ($1, $2, $3, $4, $5, $6, CASE WHEN $7 THEN now() END,
+                   now() + make_interval(mins => $8))"#,
         token::hash(&raw),
         user_id,
         ip.map(ipnet::IpNet::from),
         user_agent,
-        i32::try_from(hours).unwrap_or(12),
+        crate::domain::security::device_label(user_agent.unwrap_or("")),
+        kind,
+        mfa,
+        i32::try_from(minutes).unwrap_or(720),
     )
     .execute(&mut **tx)
     .await?;
@@ -38,7 +56,11 @@ pub async fn load(pool: &PgPool, raw: &str, hours: i64) -> sqlx::Result<Option<C
         r#"SELECT s.id AS session_id, s.last_seen_at < now() - interval '1 minute' AS "stale!",
                   u.id AS user_id, u.org_id, u.email::text AS "email!", u.full_name,
                   u.must_change_pw, u.locale, u.timezone,
-                  r.id AS role_id, r.name AS role_name, r.is_system,
+                  r.id AS role_id, r.name AS role_name, r.is_system, r.require_2fa,
+                  EXISTS (SELECT 1 FROM user_totp t
+                          WHERE t.user_id = u.id AND t.confirmed_at IS NOT NULL) AS "enrolled!",
+                  GREATEST(u.created_at, (SELECT st.updated_at FROM settings st
+                                          WHERE st.key = 'security.2fa_mode')) AS "twofa_since!",
                   COALESCE(array_agg(rp.permission_key) FILTER (WHERE rp.permission_key IS NOT NULL),
                            '{}') AS "permissions!"
            FROM sessions s
@@ -85,5 +107,8 @@ pub async fn load(pool: &PgPool, raw: &str, hours: i64) -> sqlx::Result<Option<C
         must_change_pw: r.must_change_pw,
         locale: r.locale,
         timezone: r.timezone,
+        twofa_enrolled: r.enrolled,
+        role_require_2fa: r.require_2fa,
+        twofa_since: r.twofa_since,
     }))
 }

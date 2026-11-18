@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO notifications (org_id, user_id, kind, params, link)\n           SELECT $1, u.id, $5, $6, $7\n           FROM users u JOIN roles r ON r.id = u.role_id\n           WHERE u.org_id = $1 AND u.deleted_at IS NULL AND u.is_active\n             AND ( ($2::uuid IS NOT NULL AND u.id = $2)\n                OR ($3::text IS NOT NULL AND (\n                      (r.is_system AND r.name = 'Super Admin')\n                      OR EXISTS (SELECT 1 FROM role_permissions rp\n                                 WHERE rp.role_id = r.id AND rp.permission_key = $3)))\n                OR $4 )\n             AND NOT EXISTS (SELECT 1 FROM notification_prefs p\n                             WHERE p.user_id = u.id AND p.kind = $5 AND NOT p.in_app)\n           RETURNING user_id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "notifications",
+            "name": "user_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Bool",
+        "Text",
+        "Jsonb",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "3c5f5f989e8bb4f142d6ab121d6e716fb6a9fca9c59b1bb58ca7974ef8573ad7"
+}

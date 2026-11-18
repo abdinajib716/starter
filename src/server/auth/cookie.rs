@@ -5,11 +5,17 @@ use crate::server::config::Config;
 
 /// `HttpOnly; SameSite=Lax; Path=/` (+ `Secure` with `COOKIE_SECURE`). No `Domain`.
 pub fn set(cfg: &Config, token: &str, max_age_secs: i64) -> String {
+    set_named(cfg, cfg.session_cookie_name(), token, max_age_secs)
+}
+
+pub fn set_named(cfg: &Config, name: &str, token: &str, max_age_secs: i64) -> String {
     let secure = if cfg.cookie_secure { "; Secure" } else { "" };
-    format!(
-        "{}={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age={max_age_secs}{secure}",
-        cfg.session_cookie_name()
-    )
+    format!("{name}={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age={max_age_secs}{secure}")
+}
+
+/// Cookie holding the password-step token while the 2FA code is asked (5 minutes).
+pub fn pending_name(cfg: &Config) -> String {
+    format!("{}_2fa", cfg.session_cookie_name())
 }
 
 pub fn clear(cfg: &Config) -> String {

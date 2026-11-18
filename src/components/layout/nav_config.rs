@@ -146,6 +146,8 @@ mod tests {
             flags: Default::default(),
             timezone: "UTC".into(),
             own_timezone: None,
+            twofa: Default::default(),
+            locale: None,
         }
     }
 

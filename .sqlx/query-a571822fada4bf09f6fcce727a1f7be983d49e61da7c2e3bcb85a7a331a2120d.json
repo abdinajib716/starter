@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT secret_enc, last_step FROM user_totp WHERE user_id = $1\n           AND (confirmed_at IS NOT NULL) = $2 FOR UPDATE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "secret_enc",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "user_totp",
+            "name": "secret_enc"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "last_step",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "user_totp",
+            "name": "last_step"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "a571822fada4bf09f6fcce727a1f7be983d49e61da7c2e3bcb85a7a331a2120d"
+}

@@ -26,10 +26,14 @@ pub struct CurrentUser {
     pub is_super_admin: bool,
     pub permissions: HashSet<String>,
     pub must_change_pw: bool,
-    #[allow(dead_code)] // M3.9 locale resolution
     pub locale: Option<String>,
     /// Own time zone; `None` = the organization default (`app.timezone`).
     pub timezone: Option<String>,
+    /// A confirmed TOTP exists (§21).
+    pub twofa_enrolled: bool,
+    pub role_require_2fa: bool,
+    /// When 2FA became required for this user (later of: account created, mode changed).
+    pub twofa_since: time::OffsetDateTime,
 }
 
 #[derive(Debug, Clone)]
@@ -116,4 +120,25 @@ pub async fn ctx_layer(
         meta,
     });
     next.run(req).await
+}
+
+impl CurrentUser {
+    /// Second-factor state under the current `security.2fa_mode` (§21, M9.11).
+    pub fn twofa_info(&self) -> crate::domain::security::TwoFaInfo {
+        use crate::domain::TwoFaMode;
+        let m = super::modules::Modules::get();
+        let required = match m.twofa_mode() {
+            TwoFaMode::RequiredAll => true,
+            TwoFaMode::RequiredRoles => self.role_require_2fa,
+            _ => false,
+        };
+        let deadline = (required && !self.twofa_enrolled)
+            .then(|| self.twofa_since + time::Duration::days(m.twofa_grace_days()));
+        crate::domain::security::TwoFaInfo {
+            enrolled: self.twofa_enrolled,
+            required,
+            blocked: deadline.is_some_and(|d| d <= time::OffsetDateTime::now_utc()),
+            deadline,
+        }
+    }
 }

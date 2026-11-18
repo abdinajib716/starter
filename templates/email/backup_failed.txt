@@ -1,0 +1,6 @@
+Subject: {{app_name}} backup failed
+Hello,
+
+The backup "{{file}}" failed: {{error}}
+
+Check System Setting → Backup and the Backup page.

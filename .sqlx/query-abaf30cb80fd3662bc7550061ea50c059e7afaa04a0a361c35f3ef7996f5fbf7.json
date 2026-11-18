@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE email_outbox SET status = $2 WHERE provider_id = $1 RETURNING to_email::text AS \"t!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "t!",
+        "type_info": "Text",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "abaf30cb80fd3662bc7550061ea50c059e7afaa04a0a361c35f3ef7996f5fbf7"
+}

@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT EXISTS (SELECT 1 FROM audit_logs WHERE actor_id = $1 AND action = 'auth.login'\n                          AND after->>'device' = $2 AND at > now() - interval '90 days') AS \"e!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "e!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "9e55833e102f214d2bd066199ba5c87904b21e55ebaa64657f0a77ecf8c7131e"
+}

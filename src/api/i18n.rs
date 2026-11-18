@@ -19,3 +19,17 @@ pub async fn set_locale(locale: String) -> Result<(), ServerFnError> {
     );
     Ok(())
 }
+
+/// Session required (own account, M3.8): save `users.locale` (`None` = follow the default)
+/// and the cookie, so the next page load renders in that language.
+#[post("/api/profile/locale")]
+pub async fn set_my_locale(locale: Option<String>) -> Result<(), ServerFnError> {
+    let ctx = crate::server::ctx::Ctx::current().await?;
+    let user = ctx.require_user()?;
+    let st = crate::server::state::get()?;
+    crate::server::services::auth::set_locale(&st.pool, &ctx, user, locale.clone()).await?;
+    if let Some(l) = locale {
+        set_locale(l).await?;
+    }
+    Ok(())
+}

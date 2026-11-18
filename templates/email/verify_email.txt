@@ -1,0 +1,8 @@
+Subject: Confirm your email for {{app_name}}
+Hello {{name}},
+
+Confirm this email address for your {{app_name}} account:
+
+{{link}}
+
+The link expires in {{hours}} hours.

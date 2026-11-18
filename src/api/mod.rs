@@ -5,7 +5,9 @@ pub mod auth;
 pub mod backups;
 pub mod dashboard;
 pub mod i18n;
+pub mod notifications;
 pub mod roles;
+pub mod security;
 pub mod settings;
 pub mod system;
 pub mod users;
@@ -15,7 +17,13 @@ pub mod users;
 /// public allow-list below. A forgotten check fails this test (and CI).
 #[cfg(all(test, feature = "server"))]
 mod convention {
-    const PUBLIC: &[&str] = &["login", "current_user", "server_info", "set_locale"];
+    const PUBLIC: &[&str] = &[
+        "login",
+        "verify_2fa",
+        "current_user",
+        "server_info",
+        "set_locale",
+    ];
 
     #[test]
     fn every_server_fn_checks_access() {

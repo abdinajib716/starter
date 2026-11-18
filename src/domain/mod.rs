@@ -4,7 +4,9 @@ use serde::{Deserialize, Serialize};
 pub mod audit;
 pub mod backups;
 pub mod dashboard;
+pub mod notifications;
 pub mod roles;
+pub mod security;
 pub mod settings;
 pub mod users;
 
@@ -42,6 +44,8 @@ pub enum AfterLogin {
     Home,
     /// `must_change_pw`: the profile page with the change-password form.
     ChangePassword,
+    /// Password ok, a second factor is needed: `/auth/2fa` (§21).
+    TwoFactor,
 }
 
 /// `security.2fa_mode` (§21).
@@ -78,6 +82,8 @@ pub struct ModuleFlags {
     pub public_api: bool,
     pub notifications: bool,
     pub i18n: bool,
+    /// Languages users may choose (Profile → Language).
+    pub locales: Vec<String>,
 }
 
 /// The signed-in user as the UI sees it (`current_user()`, §8). No secrets.
@@ -97,6 +103,10 @@ pub struct UserInfo {
     pub timezone: String,
     /// The user's own choice (`None` = follow the organization).
     pub own_timezone: Option<String>,
+    /// Second-factor state for the banner / forced enrolment (§21).
+    pub twofa: security::TwoFaInfo,
+    /// Own language choice (`None` = organization default / browser).
+    pub locale: Option<String>,
 }
 
 impl UserInfo {

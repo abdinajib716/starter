@@ -112,7 +112,9 @@ fn AuditTable(query: Query) -> Element {
 
     let mut data = use_signal(|| None::<AuditPage>);
     let mut loaded_q = use_signal(|| None::<String>);
+    let live = crate::components::layout::use_live();
     let _list = use_resource(move || async move {
+        let _ = (live.audit)();
         let result = state.column_filter("result");
         let q = AuditQuery {
             q: (state.filter)().trim().to_string(),

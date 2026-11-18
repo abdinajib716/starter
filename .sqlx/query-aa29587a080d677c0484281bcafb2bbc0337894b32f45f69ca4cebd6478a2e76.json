@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO sessions (token_hash, user_id, ip, user_agent, device_label, kind,\n                                 mfa_verified_at, expires_at)\n           VALUES ($1, $2, $3, $4, $5, $6, CASE WHEN $7 THEN now() END,\n                   now() + make_interval(mins => $8))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bytea",
+        "Uuid",
+        "Inet",
+        "Text",
+        "Text",
+        "Text",
+        "Bool",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "aa29587a080d677c0484281bcafb2bbc0337894b32f45f69ca4cebd6478a2e76"
+}

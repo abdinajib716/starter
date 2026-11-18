@@ -107,6 +107,10 @@ pub async fn sync_permissions(pool: &PgPool) -> sqlx::Result<()> {
 pub fn require<'a>(ctx: &'a Ctx, key: &str) -> Result<&'a CurrentUser, AppError> {
     let user = ctx.user.as_ref().ok_or(AppError::Unauthenticated)?;
     debug_assert!(is_known(key), "unknown permission key {key}");
+    // Required 2FA past its grace period: nothing but the own Security tab works (§21).
+    if !user.twofa_enrolled && user.twofa_info().blocked {
+        return Err(AppError::Conflict("auth.2fa_required"));
+    }
     if user.permissions.contains(key) {
         Ok(user)
     } else {
@@ -225,6 +229,9 @@ mod tests {
             must_change_pw: false,
             locale: None,
             timezone: None,
+            twofa_enrolled: false,
+            role_require_2fa: false,
+            twofa_since: time::OffsetDateTime::UNIX_EPOCH,
         }
     }
 

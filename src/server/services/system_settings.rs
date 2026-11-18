@@ -98,8 +98,11 @@ pub fn check(
         return Err("settings.email_needs_key");
     }
     if touched("security.2fa_mode") && s("security.2fa_mode").starts_with("required") {
-        // Needs the acting admin to have 2FA enrolled (self-lockout guard); 2FA arrives in M9.
-        return Err("settings.2fa_actor_not_enrolled");
+        // Self-lockout guard (M9.12): the acting admin must have 2FA enrolled. `secret` also
+        // answers the pseudo-key `@actor_2fa`.
+        if !secret("@actor_2fa") {
+            return Err("settings.2fa_actor_not_enrolled");
+        }
     }
     if b("api.public_enabled") && !b("email.enabled") {
         return Err("settings.api_needs_email");
@@ -197,7 +200,15 @@ pub async fn update(
     if changed.is_empty() {
         return Ok(0);
     }
-    check(&merged, &changed, &secret_set).map_err(AppError::Conflict)?;
+    let enrolled = actor.twofa_enrolled;
+    let known = move |n: &str| {
+        if n == "@actor_2fa" {
+            enrolled
+        } else {
+            secret_set(n)
+        }
+    };
+    check(&merged, &changed, &known).map_err(AppError::Conflict)?;
     for k in &changed {
         sqlx::query!(
             "UPDATE settings SET value = $2, updated_by = $3, updated_at = now() WHERE key = $1",
@@ -386,9 +397,17 @@ mod tests {
             check(
                 &with("security.2fa_mode", json!("required_all")),
                 &["security.2fa_mode".into()],
-                &all
+                &none
             ),
             Err("settings.2fa_actor_not_enrolled")
+        );
+        assert_eq!(
+            check(
+                &with("security.2fa_mode", json!("required_all")),
+                &["security.2fa_mode".into()],
+                &all
+            ),
+            Ok(())
         );
         assert_eq!(
             check(&with("storage.primary_driver", json!("r2")), &[], &none),
@@ -455,6 +474,9 @@ mod tests {
                 must_change_pw: false,
                 locale: None,
                 timezone: None,
+                twofa_enrolled: false,
+                role_require_2fa: false,
+                twofa_since: time::OffsetDateTime::UNIX_EPOCH,
             }),
             request_id: None,
             meta: Default::default(),

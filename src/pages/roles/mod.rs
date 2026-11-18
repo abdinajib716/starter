@@ -52,8 +52,10 @@ pub fn Roles() -> Element {
     });
     let mut data = use_signal(|| None::<Vec<RoleSummary>>);
     let refresh = ctx.refresh;
+    let live = crate::components::layout::use_live();
     let _load = use_resource(move || async move {
         let _ = refresh();
+        let _ = (live.roles)();
         match list_roles().await {
             Ok(r) => data.set(Some(r)),
             Err(e) => toast_error(&e),

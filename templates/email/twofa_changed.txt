@@ -1,0 +1,4 @@
+Subject: Two-factor authentication {{state}} on {{app_name}}
+Hello {{name}},
+
+Two-factor authentication was {{state}} on your {{app_name}} account. If you didn't do this, contact your administrator immediately.

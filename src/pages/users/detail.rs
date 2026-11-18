@@ -172,6 +172,7 @@ fn Detail(d: UserDetail) -> Element {
                         {fact(t!("users-detail-updated"), datetime(d.updated_at, &tz))}
                         {fact(t!("users-col-last-login"), u.last_login_at.map(|t| datetime(t, &tz)).unwrap_or_else(|| never.clone()))}
                         {fact(t!("users-detail-sessions"), d.active_sessions.to_string())}
+                        {fact(t!("twofa-card-title"), t!(if d.twofa_enrolled { "twofa-on" } else { "twofa-off" }))}
                         {fact(t!("profile-timezone"), d.timezone.clone().unwrap_or_else(|| t!("profile-timezone-ph")))}
                         {fact(t!("users-detail-must-change"), t!(if u.must_change_pw { "users-yes" } else { "users-no" }))}
                         {fact(t!("users-detail-failed"), d.failed_attempts.to_string())}
@@ -207,6 +208,76 @@ fn Detail(d: UserDetail) -> Element {
                     }
                 }
             }
+            if !deleted {
+                UserSecurity { id, twofa: d.twofa_enrolled, is_me }
+            }
+        }
+    }
+}
+
+/// Sessions of this user + admin actions (M9.4, M9.10).
+#[component]
+fn UserSecurity(id: Uuid, twofa: bool, is_me: bool) -> Element {
+    use crate::api::security::{reset_user_2fa, revoke_user_sessions, user_sessions};
+    let ctx = use_context::<UsersCtx>();
+    let me = use_current_user();
+    let can = |p: &str| me.as_ref().is_some_and(|u| u.can(p));
+    let (can_revoke, can_reset) = (can("users.revoke_sessions"), can("users.reset_2fa"));
+    let mut list = use_resource(move || async move { user_sessions(id).await });
+    let mut reset_open = use_signal(|| false);
+    let admin_pw = use_signal(String::new);
+    let rows = list.read().clone().and_then(Result::ok).unwrap_or_default();
+    let any = !rows.is_empty();
+    rsx! {
+        Card { class: "lg:col-span-5",
+            CardHeader {
+                CardTitle { {t!("sessions-title")} }
+                CardDescription { {t!("users-sessions-desc")} }
+            }
+            CardContent { class: "space-y-4",
+                crate::pages::profile_security::SessionList { rows }
+                div { class: "flex flex-wrap gap-2",
+                    if can_revoke && any && !is_me {
+                        Button { id: "user-revoke-sessions", variant: ButtonVariant::Outline,
+                            onclick: move |_| async move {
+                                match revoke_user_sessions(id).await {
+                                    Ok(n) => { toast(ToastType::Success, crate::ta!("sessions-revoked-n", count: n)); list.restart(); ctx.reload(); }
+                                    Err(e) => toast_error(&e),
+                                }
+                            },
+                            Icon { icon: IconType::LogOut, class: "size-4" } {t!("users-revoke-sessions")}
+                        }
+                    }
+                    if can_reset && twofa && !is_me {
+                        Button { id: "user-reset-2fa", variant: ButtonVariant::Destructive, onclick: move |_| reset_open.set(true),
+                            Icon { icon: IconType::ShieldOff, class: "size-4" } {t!("users-reset-2fa")}
+                        }
+                    }
+                }
+            }
+        }
+        crate::components::ui_extra::dialog::ConfirmDialog {
+            open: reset_open,
+            title: t!("users-reset-2fa"),
+            desc: String::new(),
+            confirm_text: t!("users-reset-2fa"),
+            cancel_text: t!("action-cancel"),
+            destructive: true,
+            on_confirm: move |_| async move {
+                let mut pw = admin_pw;
+                match reset_user_2fa(id, pw()).await {
+                    Ok(()) => { toast(ToastType::Success, t!("users-2fa-reset-done")); reset_open.set(false); list.restart(); ctx.reload(); }
+                    Err(e) => toast_error(&e),
+                }
+                pw.set(String::new());
+            },
+            body: rsx! {
+                p { class: "text-sm text-muted-foreground", {t!("users-reset-2fa-desc")} }
+                crate::components::ui_extra::form::FormItem {
+                    crate::components::ui_extra::form::FormLabel { html_for: "admin-pw", {t!("field-your-password")} }
+                    crate::components::password_input::PasswordInput { id: "admin-pw", value: admin_pw }
+                }
+            },
         }
     }
 }

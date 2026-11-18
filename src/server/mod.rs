@@ -4,12 +4,15 @@ pub mod auth;
 pub mod config;
 pub mod ctx;
 pub mod db;
+pub mod email;
 pub mod error;
 pub mod export;
 pub mod flags;
 pub mod modules;
+pub mod notify;
 pub mod pdf;
 pub mod rbac;
+pub mod realtime;
 pub mod request;
 pub mod routes;
 pub mod security;
@@ -31,6 +34,11 @@ pub async fn router() -> anyhow::Result<Router> {
     // request-id → trace → headers/limits → CSRF → state → ctx (session) → page guard → app.
     let router = dioxus::server::router(crate::app::App)
         .route("/healthz", get(routes::healthz))
+        .route("/api/stream", get(realtime::stream_route))
+        .route(
+            "/api/webhooks/resend",
+            axum::routing::post(routes::resend_webhook),
+        )
         .route("/api/export/users.csv", get(services::users::export_route))
         .route(
             "/api/export/audit.csv",

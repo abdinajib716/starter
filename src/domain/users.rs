@@ -237,6 +237,7 @@ pub struct UserDetail {
     pub updated_at: OffsetDateTime,
     /// Signed-in sessions that have not expired.
     pub active_sessions: i64,
+    pub twofa_enrolled: bool,
     /// Latest audit entries by or about this user (newest first, max 20).
     pub activity: Vec<crate::domain::audit::AuditRow>,
 }

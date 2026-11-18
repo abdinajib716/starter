@@ -89,6 +89,9 @@ pub async fn pages(req: Request, next: Next) -> Response {
             format!("/sign-in?redirect={path}")
         }),
         Some(u) if u.must_change_pw && path != "/profile" => Some("/profile".to_string()),
+        Some(u) if path != "/profile" && !u.twofa_enrolled && u.twofa_info().blocked => {
+            Some("/profile?tab=security".to_string())
+        }
         // Signed-in users may still open the auth screens (they are listed under Pages › Auth,
         // as in the reference); the old `/login` URL sends them home.
         Some(_) if path == "/login" => Some("/".to_string()),

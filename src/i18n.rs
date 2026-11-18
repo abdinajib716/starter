@@ -100,8 +100,20 @@ pub fn request_locale() -> String {
             .headers
             .get(ACCEPT_LANGUAGE)
             .and_then(|v| v.to_str().ok());
-        // `users.locale` is added as the first argument once sessions exist (M1).
-        return resolve(None, cookie.as_deref(), accept, SUPPORTED, DEFAULT_LOCALE);
+        let user = parts
+            .extensions
+            .get::<crate::server::ctx::Ctx>()
+            .and_then(|c| c.user.as_ref())
+            .and_then(|u| u.locale.clone());
+        let (enabled, default) = crate::server::modules::Modules::get().locales();
+        let enabled: Vec<&str> = enabled.iter().map(String::as_str).collect();
+        return resolve(
+            user.as_deref(),
+            cookie.as_deref(),
+            accept,
+            &enabled,
+            &default,
+        );
     }
     DEFAULT_LOCALE.to_string()
 }
@@ -117,6 +129,16 @@ pub fn strip_isolation(s: String) -> String {
 #[macro_export]
 macro_rules! ta {
     ($($arg:tt)*) => { $crate::i18n::strip_isolation(dioxus_i18n::t!($($arg)*)) };
+}
+
+/// Translate a key chosen at run time with string arguments (notifications, audit labels).
+pub fn tr(key: &str, args: &std::collections::HashMap<String, String>) -> String {
+    use dioxus_i18n::fluent::FluentArgs;
+    let mut a = FluentArgs::new();
+    for (k, v) in args {
+        a.set(k.clone(), v.clone());
+    }
+    strip_isolation(dioxus_i18n::prelude::i18n().translate_with_args(key, Some(&a)))
 }
 
 #[cfg(test)]

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO email_suppressions (email, reason) VALUES ($1::text::citext, $2)\n             ON CONFLICT (email) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fc7cc5a26f40d6a7bf823b93304c1ae46579427eb32d62f13fbf0509e8c223b2"
+}

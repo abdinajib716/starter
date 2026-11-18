@@ -16,6 +16,10 @@ pub enum AuthError {
     RateLimited,
     /// Change password: current password wrong.
     WrongPassword,
+    /// Second step: wrong code.
+    Invalid2fa,
+    /// Second step: the pending sign-in expired or was dropped after too many tries.
+    Expired2fa,
     Policy(password::PolicyError),
     Internal(anyhow::Error),
 }
@@ -66,7 +70,9 @@ pub async fn login(
     // 2. Load the user (non-deleted, this org).
     let user = sqlx::query!(
         r#"SELECT id, password_hash, is_active, must_change_pw, failed_attempts,
-                  COALESCE(locked_until > now(), false) AS "locked!"
+                  COALESCE(locked_until > now(), false) AS "locked!",
+                  EXISTS (SELECT 1 FROM user_totp t WHERE t.user_id = users.id
+                          AND t.confirmed_at IS NOT NULL) AS "enrolled!"
            FROM users WHERE org_id = $1 AND email = $2::text::citext AND deleted_at IS NULL"#,
         ctx.org_id,
         email,
@@ -123,7 +129,16 @@ pub async fn login(
         .await?;
         audit::record(&mut tx, fail("bad_password")).await?;
         if lock {
-            // M1.19: the in-app notification is added with the notifications table (M8.7).
+            // M1.19: tell the user (in-app; by email when the module is on).
+            crate::server::notify::send(
+                &mut tx,
+                ctx.org_id,
+                crate::server::notify::Target::User(u.id),
+                "account_locked",
+                serde_json::json!({ "minutes": s.lockout_minutes }),
+                None,
+            )
+            .await?;
             audit::record(
                 &mut tx,
                 Entry {
@@ -145,29 +160,23 @@ pub async fn login(
         return Err(AuthError::InvalidCredentials);
     }
 
-    // 6–7. Success: reset counters, open a session, audit.
-    sqlx::query!(
-        "UPDATE users SET failed_attempts = 0, locked_until = NULL, last_login_at = now()
-         WHERE id = $1",
-        u.id
-    )
-    .execute(&mut *tx)
-    .await?;
-    let token = session::create(&mut tx, u.id, ip, ua, s.session_hours).await?;
-    audit::record(
-        &mut tx,
-        Entry {
-            org_id: Some(ctx.org_id),
-            actor_id: Some(u.id),
-            actor_email: Some(email.as_str()),
-            action: "auth.login",
-            ip,
-            user_agent: ua,
-            success: true,
-            ..Default::default()
-        },
-    )
-    .await?;
+    // 6. Second factor (§21): password ok, the code comes next on `/auth/2fa`.
+    if u.enrolled
+        && crate::server::modules::Modules::get().twofa_mode() != crate::domain::TwoFaMode::Off
+    {
+        let token =
+            session::create_kind(&mut tx, u.id, ip, ua, session::Kind::Pending2fa, 5).await?;
+        tx.commit().await?;
+        ratelimit::reset(&k_pair);
+        return Ok(LoginOk {
+            token,
+            max_age_secs: 300,
+            next: AfterLogin::TwoFactor,
+        });
+    }
+
+    // 7. Success: reset counters, open a session, audit.
+    let token = finish_login(&mut tx, ctx, u.id, &email, false, s.session_hours).await?;
     tx.commit().await?;
     ratelimit::reset(&k_pair);
 
@@ -180,6 +189,68 @@ pub async fn login(
             AfterLogin::Home
         },
     })
+}
+
+/// The last step of every successful sign-in (password only, or after the 2FA code):
+/// reset counters, open the `web` session, audit, flag a new device (§22, M9.13).
+pub async fn finish_login(
+    tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+    ctx: &Ctx,
+    user_id: uuid::Uuid,
+    email: &str,
+    mfa: bool,
+    session_hours: i64,
+) -> Result<String, AuthError> {
+    let (ip, ua) = (ctx.meta.ip, ctx.meta.user_agent.as_deref());
+    sqlx::query!(
+        "UPDATE users SET failed_attempts = 0, locked_until = NULL, last_login_at = now()
+         WHERE id = $1",
+        user_id
+    )
+    .execute(&mut **tx)
+    .await?;
+    // New device = no session in the last 90 days from the same browser + OS.
+    let device = crate::domain::security::device_label(ua.unwrap_or(""));
+    let known = sqlx::query_scalar!(
+        r#"SELECT EXISTS (SELECT 1 FROM audit_logs WHERE actor_id = $1 AND action = 'auth.login'
+                          AND after->>'device' = $2 AND at > now() - interval '90 days') AS "e!""#,
+        user_id,
+        device
+    )
+    .fetch_one(&mut **tx)
+    .await?;
+    let first = !sqlx::query_scalar!(
+        r#"SELECT EXISTS (SELECT 1 FROM audit_logs WHERE actor_id = $1 AND action = 'auth.login') AS "e!""#,
+        user_id
+    )
+    .fetch_one(&mut **tx)
+    .await?;
+    let token = session::create_kind(
+        tx,
+        user_id,
+        ip,
+        ua,
+        session::Kind::Web { mfa },
+        session_hours * 60,
+    )
+    .await?;
+    let entry = |action| Entry {
+        org_id: Some(ctx.org_id),
+        actor_id: Some(user_id),
+        actor_email: Some(email),
+        action,
+        after: Some(serde_json::json!({ "device": device, "mfa": mfa })),
+        ip,
+        user_agent: ua,
+        success: true,
+        ..Default::default()
+    };
+    audit::record(tx, entry("auth.login")).await?;
+    if !known && !first {
+        audit::record(tx, entry("auth.new_device")).await?;
+        crate::server::notify::new_device(tx, ctx.org_id, user_id, &device, ip).await?;
+    }
+    Ok(token)
 }
 
 pub async fn logout(pool: &PgPool, ctx: &Ctx, user: &CurrentUser) -> Result<(), AuthError> {
@@ -230,6 +301,22 @@ pub async fn change_password(
     .execute(&mut *tx)
     .await?;
     audit::record(&mut tx, user_entry(ctx, user, "profile.password_change")).await?;
+    crate::server::notify::send(
+        &mut tx,
+        ctx.org_id,
+        crate::server::notify::Target::User(user.id),
+        "password_changed",
+        serde_json::json!({}),
+        None,
+    )
+    .await?;
+    crate::server::email::queue_for_user(
+        &mut tx,
+        user.id,
+        "password_changed",
+        serde_json::json!({}),
+    )
+    .await?;
     tx.commit().await?;
     Ok(())
 }
@@ -281,7 +368,43 @@ pub async fn update_profile(
     Ok(())
 }
 
-fn user_entry<'a>(ctx: &'a Ctx, user: &'a CurrentUser, action: &'a str) -> Entry<'a> {
+/// Own language (M3.8); must be one of the enabled locales.
+pub async fn set_locale(
+    pool: &PgPool,
+    ctx: &Ctx,
+    user: &CurrentUser,
+    locale: Option<String>,
+) -> Result<(), crate::server::error::AppError> {
+    let (enabled, _) = crate::server::modules::Modules::get().locales();
+    if let Some(l) = &locale
+        && !enabled.contains(l)
+    {
+        return Err(crate::server::error::AppError::Validation(
+            "i18n.locale_not_enabled",
+        ));
+    }
+    let mut tx = pool.begin().await?;
+    sqlx::query!(
+        "UPDATE users SET locale = $2, updated_at = now() WHERE id = $1",
+        user.id,
+        locale
+    )
+    .execute(&mut *tx)
+    .await?;
+    audit::record(
+        &mut tx,
+        Entry {
+            before: Some(serde_json::json!({ "locale": user.locale })),
+            after: Some(serde_json::json!({ "locale": locale })),
+            ..user_entry(ctx, user, "profile.locale")
+        },
+    )
+    .await?;
+    tx.commit().await?;
+    Ok(())
+}
+
+pub(crate) fn user_entry<'a>(ctx: &'a Ctx, user: &'a CurrentUser, action: &'a str) -> Entry<'a> {
     Entry {
         org_id: Some(ctx.org_id),
         actor_id: Some(user.id),
@@ -304,6 +427,8 @@ impl From<AuthError> for dioxus::prelude::ServerFnError {
             AuthError::InvalidCredentials => coded(401, "auth.invalid_credentials"),
             AuthError::RateLimited => coded(429, "auth.rate_limited"),
             AuthError::WrongPassword => coded(400, "auth.wrong_password"),
+            AuthError::Invalid2fa => coded(400, "twofa.invalid_code"),
+            AuthError::Expired2fa => coded(401, "twofa.expired"),
             AuthError::Policy(p) => coded(400, p.code()),
             AuthError::Internal(err) => {
                 tracing::error!(error = ?err, "auth internal error");
@@ -314,13 +439,13 @@ impl From<AuthError> for dioxus::prelude::ServerFnError {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
     use crate::server::{request::RequestMeta, seed};
     use uuid::Uuid;
 
     /// Default org + Super Admin role + one user with password `correct-horse-1`.
-    async fn setup(pool: &PgPool, email: &str) -> (Ctx, Uuid) {
+    pub(crate) async fn setup(pool: &PgPool, email: &str) -> (Ctx, Uuid) {
         let org_id = seed::ensure_default_org(pool).await.unwrap();
         let role_id = seed::ensure_super_admin_role(pool).await.unwrap();
         let hash = password::hash("correct-horse-1".into()).await.unwrap();

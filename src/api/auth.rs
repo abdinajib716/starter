@@ -10,6 +10,36 @@ pub async fn login(email: String, password: String) -> Result<AfterLogin, Server
     let ctx = ctx::Ctx::current().await?;
     let st = state::get()?;
     let ok = auth::login(&st.pool, &ctx, &email, password).await?;
+    if ok.next == AfterLogin::TwoFactor {
+        let name = cookie::pending_name(&st.config);
+        ctx::set_cookie(&cookie::set_named(
+            &st.config,
+            &name,
+            &ok.token,
+            ok.max_age_secs,
+        ))?;
+    } else {
+        ctx::set_cookie(&cookie::set(&st.config, &ok.token, ok.max_age_secs))?;
+    }
+    Ok(ok.next)
+}
+
+/// Public (second sign-in step): the pending cookie from `login` + a TOTP or recovery code.
+#[post("/api/auth/2fa")]
+pub async fn verify_2fa(code: String) -> Result<AfterLogin, ServerFnError> {
+    use crate::server::{auth::cookie, ctx, services::security, state};
+    use dioxus::fullstack::{FullstackContext, http::HeaderMap};
+    let ctx = ctx::Ctx::current().await?;
+    let st = state::get()?;
+    let headers = FullstackContext::extract::<HeaderMap, _>()
+        .await
+        .map_err(|_| ServerFnError::new("headers"))?;
+    let name = cookie::pending_name(&st.config);
+    let pending = cookie::read(&headers, &name)
+        .ok_or_else(|| crate::domain::errors::coded(401, "twofa.expired"))?
+        .to_string();
+    let ok = security::verify_login(&st.pool, &ctx, &pending, &code).await?;
+    ctx::set_cookie(&cookie::set_named(&st.config, &name, "", 0))?;
     ctx::set_cookie(&cookie::set(&st.config, &ok.token, ok.max_age_secs))?;
     Ok(ok.next)
 }
@@ -32,6 +62,7 @@ pub async fn current_user() -> Result<Option<UserInfo>, ServerFnError> {
     let ctx = crate::server::ctx::Ctx::current().await?;
     Ok(ctx.user.map(|u| {
         let flags = crate::server::flags::for_user(&u);
+        let twofa = u.twofa_info();
         let mut permissions: Vec<String> = u.permissions.into_iter().collect();
         permissions.sort();
         UserInfo {
@@ -48,6 +79,8 @@ pub async fn current_user() -> Result<Option<UserInfo>, ServerFnError> {
                 .timezone
                 .clone()
                 .unwrap_or_else(crate::server::modules::Modules::app_timezone),
+            twofa,
+            locale: u.locale.clone(),
             own_timezone: u.timezone,
         }
     }))

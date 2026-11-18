@@ -57,6 +57,20 @@ impl Modules {
         self.email_enabled() && self.flag("auth.email_verification")
     }
 
+    pub fn twofa_grace_days(&self) -> i64 {
+        (self.get)("security.2fa_grace_days").as_i64().unwrap_or(7)
+    }
+
+    pub fn twofa_issuer(&self) -> String {
+        match (self.get)("security.2fa_issuer").as_str() {
+            Some(s) if !s.trim().is_empty() => s.trim().to_string(),
+            _ => (self.get)("app.name")
+                .as_str()
+                .unwrap_or("Starter")
+                .to_string(),
+        }
+    }
+
     pub fn twofa_mode(&self) -> TwoFaMode {
         TwoFaMode::parse((self.get)("security.2fa_mode").as_str().unwrap_or(""))
     }
@@ -66,6 +80,29 @@ impl Modules {
     pub fn notifications(&self) -> bool {
         self.flag("notifications.enabled")
     }
+    /// Enabled locales and the default (M3.9). With `i18n.enabled = false` only the default.
+    pub fn locales(&self) -> (Vec<String>, String) {
+        let default = (self.get)("i18n.default_locale")
+            .as_str()
+            .filter(|l| crate::i18n::SUPPORTED.contains(l))
+            .unwrap_or(crate::i18n::DEFAULT_LOCALE)
+            .to_string();
+        if !self.i18n() {
+            return (vec![default.clone()], default);
+        }
+        let mut list: Vec<String> = (self.get)("i18n.enabled_locales")
+            .as_str()
+            .unwrap_or("en")
+            .split(',')
+            .map(|l| l.trim().to_string())
+            .filter(|l| crate::i18n::SUPPORTED.contains(&l.as_str()))
+            .collect();
+        if !list.contains(&default) {
+            list.push(default.clone());
+        }
+        (list, default)
+    }
+
     pub fn i18n(&self) -> bool {
         self.flag("i18n.enabled")
     }
@@ -117,6 +154,7 @@ impl Modules {
             public_api: self.public_api(),
             notifications: self.notifications(),
             i18n: self.i18n(),
+            locales: self.locales().0,
         }
     }
 }

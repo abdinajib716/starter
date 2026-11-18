@@ -1,5 +1,6 @@
-//! `/profile` (§9.1): own name, password (required when `must_change_pw`, M1.13) and
-//! appearance (theme, font). Sessions, 2FA, API tokens and language arrive with M9 / M15.
+//! `/profile` (§9.1, M9.1): tabs Profile (name, time zone, password, appearance) · Security
+//! (2FA, sessions) · Notifications (preferences) · Language · API tokens (when the public API
+//! is on).
 use dioxus::prelude::*;
 use dioxus_i18n::t;
 
@@ -20,8 +21,15 @@ use crate::ui::toast::ToastType;
 use crate::util::{toast, toast_error};
 
 #[component]
-pub fn Profile() -> Element {
-    let must_change = use_current_user().is_some_and(|u| u.must_change_pw);
+pub fn Profile(tab: String) -> Element {
+    let me = use_current_user();
+    let must_change = me.as_ref().is_some_and(|u| u.must_change_pw);
+    let api = me.as_ref().is_some_and(|u| u.modules.public_api);
+    let tab = match tab.as_str() {
+        "security" | "notifications" | "language" => tab,
+        "tokens" if api => tab,
+        _ => "profile".to_string(),
+    };
     rsx! {
         Header { fixed: true,
             Search { class: "me-auto" }
@@ -35,13 +43,24 @@ pub fn Profile() -> Element {
                 p { class: "text-muted-foreground", {t!("profile-desc")} }
             }
             div { role: "separator", class: "my-4 h-px w-full shrink-0 bg-border lg:my-6" }
-            div { class: "grid max-w-5xl gap-6 lg:grid-cols-2",
-                if must_change {
-                    div { class: "lg:col-span-2", Alert { span { id: "must-change", {t!("profile-must-change")} } } }
+            ProfileTabs { tab: tab.clone(), api }
+            if tab == "security" {
+                super::profile_security::SecurityTab {}
+            } else if tab == "notifications" {
+                super::profile_prefs::NotificationsTab {}
+            } else if tab == "language" {
+                super::profile_prefs::LanguageTab {}
+            } else if tab == "tokens" {
+                super::api_tokens::TokensTab {}
+            } else {
+                div { class: "grid max-w-5xl gap-6 lg:grid-cols-2",
+                    if must_change {
+                        div { class: "lg:col-span-2", Alert { span { id: "must-change", {t!("profile-must-change")} } } }
+                    }
+                    NameCard {}
+                    PasswordCard {}
+                    AppearanceCard {}
                 }
-                NameCard {}
-                PasswordCard {}
-                AppearanceCard {}
             }
         }
     }
@@ -226,6 +245,30 @@ fn AppearanceCard() -> Element {
                         trigger_class: "w-48",
                         onchange: move |v: String| ui.set_theme(Theme::parse(&v)),
                     }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn ProfileTabs(tab: String, api: bool) -> Element {
+    let mut tabs = vec![
+        ("profile", t!("profile-tab-profile")),
+        ("security", t!("profile-tab-security")),
+        ("notifications", t!("profile-tab-notifications")),
+        ("language", t!("profile-tab-language")),
+    ];
+    if api {
+        tabs.push(("tokens", t!("profile-tab-tokens")));
+    }
+    rsx! {
+        div { role: "tablist", class: "mb-6 inline-flex h-9 w-fit max-w-full items-center overflow-x-auto rounded-lg bg-muted p-[3px] text-muted-foreground",
+            for (key, label) in tabs {
+                Link { key: "{key}", role: "tab", "aria-selected": "{tab == key}",
+                    to: crate::app::Route::Profile { tab: if key == "profile" { String::new() } else { key.to_string() } },
+                    class: if tab == key { "inline-flex h-[calc(100%-1px)] items-center rounded-md bg-background px-3 py-1 text-sm font-medium text-foreground shadow-sm dark:bg-input/30" } else { "inline-flex h-[calc(100%-1px)] items-center rounded-md px-3 py-1 text-sm font-medium hover:text-foreground" },
+                    "{label}"
                 }
             }
         }

@@ -5,3 +5,4 @@ pub mod password;
 pub mod ratelimit;
 pub mod session;
 pub mod token;
+pub mod totp;

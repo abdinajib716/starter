@@ -92,12 +92,17 @@ fn UserAuthForm(redirect: String) -> Element {
             let mut pw = password;
             match login(email(), pw()).await {
                 Ok(next) => {
-                    show_toast(
-                        ToastType::Success,
-                        crate::ta!("auth-welcome", email: email()),
-                    );
+                    if next != AfterLogin::TwoFactor {
+                        show_toast(
+                            ToastType::Success,
+                            crate::ta!("auth-welcome", email: email()),
+                        );
+                    }
                     let target = match next {
-                        AfterLogin::ChangePassword => Route::Profile {},
+                        AfterLogin::ChangePassword => Route::Profile { tab: String::new() },
+                        AfterLogin::TwoFactor => Route::TwoFactor {
+                            redirect: redirect.clone(),
+                        },
                         AfterLogin::Home => {
                             redirect.parse::<Route>().unwrap_or(Route::Dashboard {})
                         }

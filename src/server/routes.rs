@@ -35,3 +35,40 @@ pub fn make_span(req: &Request) -> Span {
         .unwrap_or("-");
     tracing::info_span!("http", method = %req.method(), uri = %req.uri(), request_id = %id)
 }
+
+/// `POST /api/webhooks/resend` (M13.6): Svix-signed delivery events → outbox status +
+/// suppression list. Needs `RESEND_WEBHOOK_SECRET`; without it every call is refused.
+pub async fn resend_webhook(
+    Extension(state): Extension<AppState>,
+    headers: dioxus::server::axum::http::HeaderMap,
+    body: dioxus::server::axum::body::Bytes,
+) -> impl IntoResponse {
+    let h = |n: &str| headers.get(n).and_then(|v| v.to_str().ok()).unwrap_or("");
+    let Some(secret) = std::env::var("RESEND_WEBHOOK_SECRET")
+        .ok()
+        .filter(|s| !s.is_empty())
+    else {
+        return StatusCode::NOT_FOUND;
+    };
+    let now = time::OffsetDateTime::now_utc().unix_timestamp();
+    if !super::email::verify_webhook(
+        &secret,
+        h("svix-id"),
+        h("svix-timestamp"),
+        &body,
+        h("svix-signature"),
+        now,
+    ) {
+        return StatusCode::UNAUTHORIZED;
+    }
+    let Ok(event) = serde_json::from_slice::<serde_json::Value>(&body) else {
+        return StatusCode::BAD_REQUEST;
+    };
+    match super::email::apply_event(&state.pool, &event).await {
+        Ok(()) => StatusCode::NO_CONTENT,
+        Err(e) => {
+            tracing::error!("resend webhook: {e}");
+            StatusCode::INTERNAL_SERVER_ERROR
+        }
+    }
+}

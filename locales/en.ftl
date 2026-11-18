@@ -530,3 +530,128 @@ export-csv = CSV (spreadsheet)
 export-pdf = PDF (print)
 export-pdf-preparing = Preparing PDF…
 err-pdf-unavailable = The PDF service isn't reachable. Start it with: docker compose up -d chrome
+
+# ---- M9: profile tabs, sessions, two-factor ----
+profile-tab-profile = Profile
+profile-tab-security = Security
+profile-tab-notifications = Notifications
+profile-tab-language = Language
+profile-tab-tokens = API tokens
+field-your-password = Your password
+sessions-title = Signed-in devices
+sessions-desc = Devices where your account is signed in. Sign out any you don't recognise.
+sessions-none = No active sessions.
+sessions-this-device = This device
+sessions-last-seen = Last active { $when }
+sessions-sign-out = Sign out
+sessions-revoke-others = Sign out all other devices
+sessions-revoked = Device signed out.
+sessions-revoked-n = { $count ->
+    [one] { $count } device signed out.
+   *[other] { $count } devices signed out.
+}
+users-sessions-desc = Devices where this user is signed in.
+users-revoke-sessions = Sign out everywhere
+users-reset-2fa = Reset two-factor
+users-reset-2fa-desc = The user's authenticator and recovery codes are removed and they are signed out. Confirm with your own password.
+users-2fa-reset-done = Two-factor authentication was reset.
+twofa-title = Two-factor authentication
+twofa-desc = Enter the 6-digit code from your authenticator app.
+twofa-desc-recovery = Enter one of your recovery codes. Each code works once.
+twofa-code = Authentication code
+twofa-recovery-code = Recovery code
+twofa-verify = Verify
+twofa-use-recovery = Use a recovery code instead
+twofa-use-app = Use the authenticator app instead
+twofa-card-title = Two-factor authentication
+twofa-card-desc = A code from an authenticator app (Google Authenticator, Microsoft Authenticator, 1Password …) is asked after your password.
+twofa-on = On
+twofa-off = Off
+twofa-not-available = Two-factor authentication is switched off for this organization.
+twofa-set-up = Set up two-factor
+twofa-scan = Scan this QR code with your authenticator app, then enter the 6-digit code it shows.
+twofa-manual = Can't scan? Enter this key in the app:
+twofa-confirm = Confirm
+twofa-enabled = Two-factor authentication is on. Your other devices were signed out.
+twofa-disable = Turn off two-factor
+twofa-disabled = Two-factor authentication is off.
+twofa-codes-once = Save these recovery codes somewhere safe. They are shown only once; each one signs you in once if you lose your phone.
+twofa-codes-download = Download codes
+twofa-codes-left = { $count ->
+    [one] { $count } recovery code left.
+   *[other] { $count } recovery codes left.
+}
+twofa-regenerate = New recovery codes
+twofa-regenerate-desc = Enter a code from your authenticator app. Your old recovery codes stop working.
+twofa-required-by = Your organization requires two-factor authentication. Set it up before { $date }.
+twofa-required-now = Two-factor authentication is required. Set it up to continue using the app.
+err-twofa-invalid-code = That code is not valid. Check the time on your phone and try again.
+err-twofa-expired = Your sign-in expired. Please sign in again.
+err-twofa-disabled = Two-factor authentication is switched off.
+err-twofa-already-enrolled = Two-factor authentication is already on.
+err-twofa-required = Two-factor authentication is required for your account and can't be turned off.
+err-auth-2fa-required = Set up two-factor authentication first (Profile → Security).
+err-sessions-current = Use Sign out to end the session you are using.
+audit-auth-new-device = Signed in from a new device
+audit-auth-2fa-failed = Wrong two-factor code
+audit-auth-recovery-code-used = Signed in with a recovery code
+audit-twofa-enabled = Turned on two-factor
+audit-twofa-disabled = Turned off two-factor
+audit-twofa-recovery-regenerated = Generated new recovery codes
+audit-user-twofa-reset = Reset a user's two-factor
+audit-user-sessions-revoked = Signed a user out everywhere
+audit-session-revoke = Signed out a device
+audit-session-revoke-others = Signed out other devices
+audit-profile-locale = Changed language
+
+# ---- M8: notifications ----
+notif-title = Notifications
+notif-desc = Everything you were notified about.
+notif-empty = No notifications.
+notif-mark-all = Mark all as read
+notif-view-all = View all
+notif-all = All
+notif-unread = Unread ({ $count })
+notif-announce = Send announcement
+notif-announce-desc = Every active user receives it in the notification bell.
+notif-ann-title = Title
+notif-ann-body = Message
+notif-send = Send
+notif-announced = { $count ->
+    [one] Announcement sent to { $count } user.
+   *[other] Announcement sent to { $count } users.
+}
+notif-new-device = { $ip ->
+    [none] New sign-in from { $device }.
+   *[other] New sign-in from { $device } ({ $ip }).
+}
+notif-account-locked = Your account was locked after too many failed sign-ins.
+notif-password-changed = Your password was changed.
+notif-twofa-changed = Two-factor authentication was { $state }.
+notif-backup-failed = Backup { $file } failed: { $error }
+notif-backup-offsite-failed = Off-site copy of { $file } failed: { $error }
+notif-email-failed = Email "{ $template }" to { $to } could not be delivered.
+notif-announcement = { $title }: { $body }
+notif-restore-done = The database was restored from { $file }.
+err-notifications-unknown-kind = Unknown notification type.
+err-notifications-invalid-announcement = Give the announcement a title (max 120 characters) and a message (max 1000).
+audit-notification-broadcast = Sent an announcement
+prefs-desc = Choose what you are told about, in the app and by email.
+prefs-module-off = Notifications are switched off for this organization.
+prefs-kind = Notification
+prefs-in-app = In app
+prefs-email = Email
+prefs-saved = Saved.
+prefs-kind-new-device = Sign-in from a new device
+prefs-kind-account-locked = Account locked
+prefs-kind-password-changed = Password changed
+prefs-kind-twofa-changed = Two-factor changes
+prefs-kind-backup-failed = Backup failures
+prefs-kind-announcement = Announcements
+
+# ---- M3: language ----
+language-desc = The language of the app for you. The organization default applies when nothing is chosen.
+language-default = Organization default
+language-name-en = English
+language-name-so = Soomaali
+err-i18n-locale-not-enabled = That language is not enabled.

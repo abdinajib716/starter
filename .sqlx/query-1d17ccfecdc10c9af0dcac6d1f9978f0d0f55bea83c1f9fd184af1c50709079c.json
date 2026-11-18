@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT kind, in_app, email FROM notification_prefs WHERE user_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "notification_prefs",
+            "name": "kind"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "in_app",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "notification_prefs",
+            "name": "in_app"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "email",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "notification_prefs",
+            "name": "email"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "1d17ccfecdc10c9af0dcac6d1f9978f0d0f55bea83c1f9fd184af1c50709079c"
+}

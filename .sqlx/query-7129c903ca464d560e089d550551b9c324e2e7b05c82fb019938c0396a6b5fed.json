@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT locked_until > now() AS \"l!\" FROM users WHERE email = 'lk@test.local'",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "l!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "7129c903ca464d560e089d550551b9c324e2e7b05c82fb019938c0396a6b5fed"
+}

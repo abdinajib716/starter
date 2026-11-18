@@ -1,0 +1,8 @@
+Subject: You're invited to {{app_name}}
+Hello {{name}},
+
+{{inviter}} invited you to {{app_name}}. Set your password to start:
+
+{{link}}
+
+This link works once and expires in {{hours}} hours.

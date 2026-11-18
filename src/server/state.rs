@@ -34,6 +34,9 @@ pub async fn init() -> anyhow::Result<&'static AppState> {
             seed::ensure_super_admin_role(&pool).await?;
             seed::ensure_first_admin(&pool, &config, default_org_id).await?;
             super::services::backups::start_scheduler(pool.clone());
+            super::email::start_worker(pool.clone());
+            super::realtime::start(pool.clone());
+            super::services::security::start_jobs(pool.clone());
             tracing::info!(tenancy = %config.tenancy_mode, "app state ready");
             Ok(AppState {
                 pool,

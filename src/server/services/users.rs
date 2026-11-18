@@ -194,7 +194,9 @@ pub async fn detail(
     let extra = sqlx::query!(
         r#"SELECT timezone, failed_attempts, locked_until, updated_at,
                   (SELECT count(*) FROM sessions s WHERE s.user_id = u.id AND s.kind = 'web'
-                     AND s.expires_at > now()) AS "sessions!"
+                     AND s.expires_at > now()) AS "sessions!",
+                  EXISTS (SELECT 1 FROM user_totp t WHERE t.user_id = u.id
+                          AND t.confirmed_at IS NOT NULL) AS "twofa!"
            FROM users u WHERE id = $1"#,
         id
     )
@@ -236,6 +238,7 @@ pub async fn detail(
         locked_until: extra.locked_until,
         updated_at: extra.updated_at,
         active_sessions: extra.sessions,
+        twofa_enrolled: extra.twofa,
         activity,
     })
 }
@@ -961,6 +964,9 @@ mod tests {
                 must_change_pw: false,
                 locale: None,
                 timezone: None,
+                twofa_enrolled: false,
+                role_require_2fa: false,
+                twofa_since: time::OffsetDateTime::UNIX_EPOCH,
             }),
             request_id: None,
             meta: RequestMeta::default(),

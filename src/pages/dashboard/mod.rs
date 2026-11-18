@@ -26,7 +26,18 @@ const REFRESH_MS: u32 = 30_000;
 pub fn Dashboard() -> Element {
     let mut data = use_signal(|| None::<DashboardData>);
     let mut failed = use_signal(|| false);
-    // First load, then a quiet refresh every 30 s; the server caches for 5 s.
+    // Reload on every live signal (SSE, debounced on the server), plus a quiet refresh
+    // every 30 s as a fallback; the server caches for 5 s.
+    let live = crate::components::layout::use_live();
+    let _live = use_resource(move || async move {
+        if (live.dashboard)() == 0 {
+            return;
+        }
+        if let Ok(d) = get_dashboard().await {
+            data.set(Some(d));
+            failed.set(false);
+        }
+    });
     use_future(move || async move {
         loop {
             match get_dashboard().await {

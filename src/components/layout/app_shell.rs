@@ -39,6 +39,7 @@ pub fn AppShell() -> Element {
     let user: UserResource = use_server_future(current_user)?;
     use_context_provider(|| user);
     let search = use_context_provider(|| SearchOpen(Signal::new(false)));
+    super::live::use_live_provider();
 
     // Ctrl/Cmd+K toggles the command palette (search-provider.tsx).
     use_effect(move || {
@@ -73,6 +74,7 @@ pub fn AppShell() -> Element {
             SidebarInset {
                 // Container queries for <Main>; fixed layouts take the viewport height.
                 class: "@container/content has-data-[layout=fixed]:h-svh peer-data-[variant=inset]:has-data-[layout=fixed]:h-[calc(100svh-(var(--spacing)*4))]",
+                TwoFaBanner {}
                 // Pages that wait for data suspend only the content area; the sidebar stays.
                 SuspenseBoundary { fallback: |_| rsx! { crate::components::skeletons::PageSkeleton {} }, Outlet::<Route> {} }
             }
@@ -91,4 +93,29 @@ fn GoToLogin() -> Element {
         });
     });
     rsx! {}
+}
+
+/// 2FA is required for this account but not set up (§21, M9.11): a banner during the grace
+/// period (after it, the server only allows the Security tab).
+#[component]
+fn TwoFaBanner() -> Element {
+    let tz = use_tz();
+    let Some(u) = use_current_user() else {
+        return rsx! {};
+    };
+    if !u.twofa.required || u.twofa.enrolled {
+        return rsx! {};
+    }
+    let date = u
+        .twofa
+        .deadline
+        .map(|d| crate::util::time::datetime(d, &tz))
+        .unwrap_or_default();
+    rsx! {
+        div { id: "twofa-banner", role: "alert", class: "flex flex-wrap items-center justify-center gap-2 border-b border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm",
+            if u.twofa.blocked { {dioxus_i18n::t!("twofa-required-now")} }
+            else { {crate::ta!("twofa-required-by", date: date)} }
+            Link { to: Route::Profile { tab: "security".into() }, class: "font-medium underline underline-offset-4", {dioxus_i18n::t!("twofa-set-up")} }
+        }
+    }
 }

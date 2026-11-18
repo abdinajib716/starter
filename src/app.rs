@@ -7,13 +7,14 @@ use dioxus_i18n::prelude::use_init_i18n;
 
 use crate::components::layout::AppShell;
 use crate::i18n;
-use crate::pages::auth::{Login, SignIn};
+use crate::pages::auth::{Login, SignIn, TwoFactor};
 use crate::pages::errors::{Error401, Error403, Error404, Error500, Error503, ShellError};
 use crate::pages::{
     audit::Audit,
     backups::Backups,
     dashboard::Dashboard,
     not_found::NotFound,
+    notifications::Notifications,
     permissions::Permissions,
     profile::Profile,
     roles::Roles,
@@ -34,6 +35,9 @@ pub enum Route {
     #[route("/sign-in?:redirect&:reason")]
     SignIn { redirect: String, reason: String },
     /// Old login URL, kept as a redirect to `/sign-in`.
+    /// Second sign-in step (§21): TOTP or recovery code.
+    #[route("/auth/2fa?:redirect")]
+    TwoFactor { redirect: String },
     #[route("/login?:next")]
     Login { next: String },
     #[route("/401")]
@@ -49,8 +53,10 @@ pub enum Route {
     #[layout(AppShell)]
         #[route("/")]
         Dashboard {},
-        #[route("/profile")]
-        Profile {},
+        #[route("/profile?:tab")]
+        Profile { tab: String },
+        #[route("/notifications")]
+        Notifications {},
         #[route("/users?:..query")]
         Users { query: Query },
         #[route("/users/:id")]
@@ -131,6 +137,9 @@ mod tests {
             "//evil.example/x".parse::<Route>(),
             Ok(Route::NotFound { .. })
         ));
-        assert_eq!("/profile".parse::<Route>().ok(), Some(Route::Profile {}));
+        assert_eq!(
+            "/profile".parse::<Route>().ok(),
+            Some(Route::Profile { tab: String::new() })
+        );
     }
 }
