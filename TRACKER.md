@@ -30,7 +30,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 12 | Backup encryption, R2, off-site, **restore** | ✅ done | age encryption, R2/S3 + Drive copies, verify, restore under maintenance |
 | 13 | Email via Resend | ✅ done | outbox + worker, templates, reset/invite/verify, webhook, test + log |
 | 14 | Multi-instance hardening | ✅ done | PG rate limiter, maintenance flag, /readyz, CLI |
-| 15 | Public API v1 *(optional)* | ⚪ | only if a project needs it |
+| 15 | Public API v1 *(optional)* | ✅ done | tokens, mobile auth, problem+json, cursors, idempotency, CORS, OpenAPI |
 | 16 | Multi-tenant mode *(optional)* | ⚪ | only if a project needs it |
 | 17 | CI/CD + VPS deploy (+ GDrive driver) | ⚪ | |
 
@@ -344,14 +344,14 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 **Done when:** a script can log in, refresh, and list users with a scoped token; every call audited with `channel='api'`.
 
-- [ ] M15.1 Cargo feature `public-api`; runtime `api.public_enabled` (404 when off)
-- [ ] M15.2 Migration `api_tokens_idempotency`: `api_tokens`, `idempotency_keys`
-- [ ] M15.3 Mobile auth: access (15 min) + rotating refresh (30 d, `sessions.kind='api_refresh'`), MFA step
-- [ ] M15.4 Personal API tokens (shown once, prefix, scopes ∩ owner perms, TTL, max per user)
-- [ ] M15.5 RFC 9457 problem+json errors, cursor pagination, `Idempotency-Key`, CORS allow-list, rate limit + `Retry-After`
-- [ ] M15.6 Endpoint set from §19 (1:1 with existing services)
-- [ ] M15.7 OpenAPI (`utoipa`) at `/api/docs`
-- [ ] M15.8 Profile → API Tokens tab; admin view/revoke all
+- [x] M15.1 Cargo feature `public-api`; runtime `api.public_enabled` (404 when off) — done 2026-11-18 (`server/api_v1.rs`; verified with curl + browser)
+- [x] M15.2 Migration `api_tokens_idempotency`: `api_tokens`, `idempotency_keys` — done 2026-11-18 (`server/api_v1.rs`; verified with curl + browser)
+- [x] M15.3 Mobile auth: access (15 min) + rotating refresh (30 d, `sessions.kind='api_refresh'`), MFA step — done 2026-11-18 (`server/api_v1.rs`; verified with curl + browser)
+- [x] M15.4 Personal API tokens (shown once, prefix, scopes ∩ owner perms, TTL, max per user) — done 2026-11-18 (`server/api_v1.rs`; verified with curl + browser)
+- [x] M15.5 RFC 9457 problem+json errors, cursor pagination, `Idempotency-Key`, CORS allow-list, rate limit + `Retry-After` — done 2026-11-18 (`server/api_v1.rs`; verified with curl + browser)
+- [x] M15.6 Endpoint set from §19 (1:1 with existing services) — done 2026-11-18 (`server/api_v1.rs`; verified with curl + browser)
+- [x] M15.7 OpenAPI (`utoipa`) at `/api/docs` — done 2026-11-18: OpenAPI 3.1 written next to the handlers (`api_v1::spec`, `/api/v1/openapi.json`), Scalar UI at `/api/docs` — no `utoipa` macros (deviation)
+- [x] M15.8 Profile → API Tokens tab; admin view/revoke all — done 2026-11-18 (`server/api_v1.rs`; verified with curl + browser)
 
 ---
 

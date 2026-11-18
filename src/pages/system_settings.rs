@@ -246,6 +246,9 @@ fn SettingsTab(
                 if tab == "email" {
                     EmailTools {}
                 }
+                if tab == "api" && crate::components::layout::use_current_user().is_some_and(|u| u.can("api_keys.view_all")) {
+                    crate::pages::api_tokens::AllTokens {}
+                }
                 if tab == "storage" && can_update {
                     div { class: "flex flex-wrap items-center gap-2 rounded-lg border p-4",
                         p { class: "me-auto text-sm text-muted-foreground", {t!("offsite-test-desc")} }

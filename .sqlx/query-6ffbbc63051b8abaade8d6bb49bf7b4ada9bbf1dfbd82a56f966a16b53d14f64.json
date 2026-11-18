@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM sessions s USING users u\n           WHERE s.token_hash = $1 AND s.kind = 'api_refresh' AND s.expires_at > now()\n             AND u.id = s.user_id AND u.is_active AND u.deleted_at IS NULL\n           RETURNING s.user_id, s.mfa_verified_at IS NOT NULL AS \"mfa!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "sessions",
+            "name": "user_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "mfa!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bytea"
+      ]
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "6ffbbc63051b8abaade8d6bb49bf7b4ada9bbf1dfbd82a56f966a16b53d14f64"
+}

@@ -2,6 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 pub mod account;
+pub mod api;
 pub mod audit;
 pub mod backups;
 pub mod dashboard;

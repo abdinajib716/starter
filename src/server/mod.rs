@@ -1,4 +1,6 @@
 //! Server-only code (`feature = "server"`): config, state, DB, request context, plain routes.
+#[cfg(feature = "public-api")]
+pub mod api_v1;
 pub mod audit;
 pub mod auth;
 pub mod backup_crypto;
@@ -37,7 +39,10 @@ pub async fn router() -> anyhow::Result<Router> {
 
     // Layers wrap everything above them; the last one listed sees the request first:
     // request-id → trace → headers/limits → CSRF → state → ctx (session) → page guard → app.
-    let router = dioxus::server::router(crate::app::App)
+    let router = dioxus::server::router(crate::app::App);
+    #[cfg(feature = "public-api")]
+    let router = router.merge(api_v1::router());
+    let router = router
         .route("/healthz", get(routes::healthz))
         .route("/readyz", get(routes::readyz))
         .route("/api/stream", get(realtime::stream_route))

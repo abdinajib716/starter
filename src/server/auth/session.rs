@@ -52,6 +52,17 @@ pub async fn create_kind(
 /// Resolve a cookie token to the signed-in user. Expired sessions, inactive or deleted
 /// users and non-`web` sessions (e.g. `pending_2fa`, M9) yield `None`.
 pub async fn load(pool: &PgPool, raw: &str, hours: i64) -> sqlx::Result<Option<CurrentUser>> {
+    load_kind(pool, raw, "web", Some(hours)).await
+}
+
+/// Like `load` for another session kind (`api_access`, `api_token`, M15); `slide_hours =
+/// None` keeps the expiry fixed.
+pub async fn load_kind(
+    pool: &PgPool,
+    raw: &str,
+    kind: &str,
+    slide_hours: Option<i64>,
+) -> sqlx::Result<Option<CurrentUser>> {
     let row = sqlx::query!(
         r#"SELECT s.id AS session_id, s.last_seen_at < now() - interval '1 minute' AS "stale!",
                   u.id AS user_id, u.org_id, u.email::text AS "email!", u.full_name,
@@ -67,10 +78,11 @@ pub async fn load(pool: &PgPool, raw: &str, hours: i64) -> sqlx::Result<Option<C
            JOIN users u ON u.id = s.user_id
            JOIN roles r ON r.id = u.role_id
            LEFT JOIN role_permissions rp ON rp.role_id = r.id
-           WHERE s.token_hash = $1 AND s.kind = 'web' AND s.expires_at > now()
+           WHERE s.token_hash = $1 AND s.kind = $2 AND s.expires_at > now()
              AND u.is_active AND u.deleted_at IS NULL
            GROUP BY s.id, u.id, r.id"#,
         token::hash(raw),
+        kind,
     )
     .fetch_optional(pool)
     .await?;
@@ -83,7 +95,9 @@ pub async fn load(pool: &PgPool, raw: &str, hours: i64) -> sqlx::Result<Option<C
     } else {
         r.permissions.into_iter().collect::<HashSet<_>>()
     };
-    if r.stale {
+    if let Some(hours) = slide_hours
+        && r.stale
+    {
         // Sliding expiry, written at most once a minute per session.
         sqlx::query!(
             "UPDATE sessions SET last_seen_at = now(),

@@ -59,7 +59,10 @@ default = ["web"]
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop"]
 mobile = ["dioxus/mobile"]
+# Public REST API v1 (§19). Part of `server`; remove it from there to build without the API.
+public-api = []
 server = [
+    "public-api",
     "dioxus/server",
     "dep:anyhow",
     "dep:aes-gcm",

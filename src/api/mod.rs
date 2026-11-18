@@ -11,6 +11,7 @@ pub mod roles;
 pub mod security;
 pub mod settings;
 pub mod system;
+pub mod tokens;
 pub mod users;
 
 /// M2.12: every server function in `api/` must check access — `require(` (permission),

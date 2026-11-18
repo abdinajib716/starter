@@ -733,3 +733,26 @@ dt-page-selected = All { $count } rows on this page are selected.
 dt-select-all-matching = Select all { $count } matching
 dt-all-matching-selected = All { $count } matching rows are selected.
 audit-user-purge-auto = Permanently deleted (retention)
+
+# ---- M15: API tokens ----
+tokens-new = New API token
+tokens-new-desc = For scripts and other apps. Send it as "Authorization: Bearer <token>". It can do only what you can, limited to the scopes you tick.
+tokens-docs = API reference
+tokens-copy-now = Copy this token now. It is shown only once.
+tokens-name = Name
+tokens-days = Days valid
+tokens-scopes = Scopes
+tokens-create = Create token
+tokens-mine = My tokens
+tokens-all = All API tokens
+tokens-owner = Owner
+tokens-expires = Expires
+tokens-last-used = Last used
+tokens-none = No tokens.
+tokens-revoke = Revoke
+tokens-revoked = Revoked
+err-api-token-name = Give the token a name (max 60 characters).
+err-api-token-scopes = Pick at least one scope you hold.
+err-api-too-many-tokens = You have the maximum number of tokens. Revoke one first.
+audit-api-token-create = Created an API token
+audit-api-token-revoke = Revoked an API token

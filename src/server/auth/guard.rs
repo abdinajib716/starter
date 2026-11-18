@@ -15,7 +15,10 @@ use crate::server::state::AppState;
 
 /// Reject cross-site state-changing requests (M1.9).
 pub async fn csrf(State(state): State<AppState>, req: Request, next: Next) -> Response {
-    if matches!(*req.method(), Method::GET | Method::HEAD | Method::OPTIONS) {
+    // Bearer-token API (§19): no cookies, so no CSRF; CORS decides who may call it.
+    if matches!(*req.method(), Method::GET | Method::HEAD | Method::OPTIONS)
+        || req.uri().path().starts_with("/api/v1/")
+    {
         return next.run(req).await;
     }
     let h = req.headers();
