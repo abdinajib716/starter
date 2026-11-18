@@ -246,6 +246,20 @@ fn SettingsTab(
                 if tab == "email" {
                     EmailTools {}
                 }
+                if tab == "storage" && can_update {
+                    div { class: "flex flex-wrap items-center gap-2 rounded-lg border p-4",
+                        p { class: "me-auto text-sm text-muted-foreground", {t!("offsite-test-desc")} }
+                        Button { id: "offsite-test", variant: crate::ui::button::ButtonVariant::Outline,
+                            onclick: move |_| async move {
+                                match crate::api::backups::test_offsite().await {
+                                    Ok(()) => crate::util::toast(crate::ui::toast::ToastType::Success, t!("offsite-test-ok")),
+                                    Err(e) => crate::util::toast_error(&e),
+                                }
+                            },
+                            Icon { icon: IconType::CloudUpload } {t!("offsite-test")}
+                        }
+                    }
+                }
             }
         }
     }

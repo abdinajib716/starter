@@ -448,6 +448,14 @@ impl Cache {
     }
 }
 
+/// Reload this instance's cache now (after a restore replaced the table).
+pub async fn reload_now(pool: &PgPool) -> sqlx::Result<()> {
+    match cache() {
+        Some(c) => c.reload(pool).await,
+        None => Ok(()),
+    }
+}
+
 async fn load_all(pool: &PgPool) -> sqlx::Result<HashMap<String, Value>> {
     Ok(sqlx::query!("SELECT key, value FROM settings")
         .fetch_all(pool)

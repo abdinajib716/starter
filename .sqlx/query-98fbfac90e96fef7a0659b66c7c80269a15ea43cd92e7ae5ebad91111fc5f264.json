@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO rate_limits (key, window_start, count) VALUES ($1, now(), 1)\n               ON CONFLICT (key) DO UPDATE SET\n                 count = CASE WHEN rate_limits.window_start < now() - make_interval(secs => $2)\n                              THEN 1 ELSE rate_limits.count + 1 END,\n                 window_start = CASE WHEN rate_limits.window_start < now() - make_interval(secs => $2)\n                                     THEN now() ELSE rate_limits.window_start END\n               RETURNING count",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "rate_limits",
+            "name": "count"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Float8"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "98fbfac90e96fef7a0659b66c7c80269a15ea43cd92e7ae5ebad91111fc5f264"
+}

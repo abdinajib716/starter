@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO backups (id, filename, size_bytes, sha256, status, kind, error, created_by,\n                               created_at, finished_at, encrypted, enc_scheme, verified_at, verify_error)\n           SELECT r.id, r.filename, r.size_bytes, r.sha256, r.status, r.kind, r.error,\n                  (SELECT u.id FROM users u WHERE u.id = r.created_by),\n                  r.created_at, r.finished_at, r.encrypted, r.enc_scheme, r.verified_at, r.verify_error\n           FROM jsonb_populate_recordset(NULL::backups, $1) r",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "da6f100197f04a71dde57b4c405ddd7d1eb3b131a3000f8e3997142bb7c06aaf"
+}

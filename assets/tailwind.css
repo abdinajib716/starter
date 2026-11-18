@@ -1393,6 +1393,12 @@
       border-color: color-mix(in oklab, var(--destructive) 10%, transparent);
     }
   }
+  .border-destructive\/20 {
+    border-color: var(--destructive);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in oklab, var(--destructive) 20%, transparent);
+    }
+  }
   .border-destructive\/50 {
     border-color: var(--destructive);
     @supports (color: color-mix(in lab, red, red)) {
@@ -2942,6 +2948,13 @@
     &:hover {
       @media (hover: hover) {
         text-decoration-line: underline;
+      }
+    }
+  }
+  .hover\:opacity-75 {
+    &:hover {
+      @media (hover: hover) {
+        opacity: 75%;
       }
     }
   }

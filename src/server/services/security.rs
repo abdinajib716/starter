@@ -300,7 +300,9 @@ pub async fn confirm_enroll(pool: &PgPool, ctx: &Ctx, code: &str) -> Result<Vec<
         &format!("2fa-enroll:{}", user.id),
         10,
         std::time::Duration::from_secs(900),
-    ) {
+    )
+    .await
+    {
         return Err(AppError::Conflict("auth.rate_limited"));
     }
     let mut tx = pool.begin().await?;
@@ -541,6 +543,9 @@ pub fn start_jobs(pool: PgPool) {
                 }
                 Ok(_) => {}
                 Err(e) => tracing::error!("session purge: {e}"),
+            }
+            if let Err(e) = crate::server::auth::ratelimit::purge(&pool).await {
+                tracing::error!("rate limit purge: {e}");
             }
             if let Err(e) = crate::server::services::notifications::retention(&pool).await {
                 tracing::error!("notification retention: {e}");

@@ -34,9 +34,12 @@ pub async fn init() -> anyhow::Result<&'static AppState> {
             seed::ensure_super_admin_role(&pool).await?;
             seed::ensure_first_admin(&pool, &config, default_org_id).await?;
             super::services::backups::start_scheduler(pool.clone());
+            super::services::backups::start_offsite_worker(pool.clone());
             super::email::start_worker(pool.clone());
             super::realtime::start(pool.clone());
             super::services::security::start_jobs(pool.clone());
+            super::system_state::start(pool.clone()).await?;
+            check_instances(&pool).await?;
             tracing::info!(tenancy = %config.tenancy_mode, "app state ready");
             Ok(AppState {
                 pool,
@@ -70,4 +73,25 @@ impl AppState {
             password_reset: super::modules::Modules::get().password_reset(),
         }
     }
+}
+
+/// M14.5: several app instances can't share files on a local disk.
+async fn check_instances(pool: &sqlx::PgPool) -> anyhow::Result<()> {
+    let instances: u32 = std::env::var("APP_INSTANCES")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(1);
+    let driver = sqlx::query_scalar!(
+        r#"SELECT value #>> '{}' AS "v" FROM settings WHERE key = 'storage.primary_driver'"#
+    )
+    .fetch_optional(pool)
+    .await?
+    .flatten()
+    .unwrap_or_else(|| "local".into());
+    if instances > 1 && driver == "local" {
+        anyhow::bail!(
+            "APP_INSTANCES={instances} but storage.primary_driver = local: use R2/S3 storage for more than one instance"
+        );
+    }
+    Ok(())
 }

@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT value #>> '{}' AS \"v\" FROM settings WHERE key = 'storage.primary_driver'",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "v",
+        "type_info": "Text",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "93816df47bb029725e7522a399d8e6ae7b71eb8802278731fc07eee60f54959b"
+}

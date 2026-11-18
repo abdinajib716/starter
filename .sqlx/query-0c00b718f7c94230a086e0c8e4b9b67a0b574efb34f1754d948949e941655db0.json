@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE backup_copies SET attempts = $2, error = $3,\n                            status = CASE WHEN $4 THEN 'failed' ELSE 'pending' END,\n                            next_attempt_at = now() + make_interval(mins => $5) WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4",
+        "Text",
+        "Bool",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0c00b718f7c94230a086e0c8e4b9b67a0b574efb34f1754d948949e941655db0"
+}

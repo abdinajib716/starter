@@ -107,8 +107,8 @@ pub async fn forgot_password(pool: &PgPool, ctx: &Ctx, email_in: &str) -> Result
     let email_in = email_in.trim().to_lowercase();
     let ip = ctx.meta.ip.map(|i| i.to_string()).unwrap_or_default();
     let window = std::time::Duration::from_secs(3600);
-    if !ratelimit::hit(&format!("forgot-ip:{ip}"), 20, window)
-        || !ratelimit::hit(&format!("forgot:{email_in}"), 3, window)
+    if !ratelimit::hit(&format!("forgot-ip:{ip}"), 20, window).await
+        || !ratelimit::hit(&format!("forgot:{email_in}"), 3, window).await
     {
         return Ok(());
     }
@@ -239,7 +239,9 @@ pub async fn send_verification(pool: &PgPool, ctx: &Ctx) -> Result<(), AppError>
         &format!("verify:{}", user.id),
         3,
         std::time::Duration::from_secs(3600),
-    ) {
+    )
+    .await
+    {
         return Err(AppError::Conflict("auth.rate_limited"));
     }
     let mut tx = pool.begin().await?;

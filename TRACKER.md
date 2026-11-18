@@ -27,9 +27,9 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 9 | Profile: password, sessions, 2FA | ✅ done | TOTP + recovery codes, modes + grace, sessions, admin reset |
 | 10 | Dashboard KPIs + charts | 🟢 done | branch `m10/dashboard`; live push waits for M8 |
 | 11 | Storage (local) + avatars + Backup | 🟡 in progress | backups done (branch `m6/access-control`); open: `files` table + avatars (M11.2/M11.3) |
-| 12 | Backup encryption, R2, off-site, **restore** | ⚪ | |
+| 12 | Backup encryption, R2, off-site, **restore** | ✅ done | age encryption, R2/S3 + Drive copies, verify, restore under maintenance |
 | 13 | Email via Resend | ✅ done | outbox + worker, templates, reset/invite/verify, webhook, test + log |
-| 14 | Multi-instance hardening | ⚪ | |
+| 14 | Multi-instance hardening | ✅ done | PG rate limiter, maintenance flag, /readyz, CLI |
 | 15 | Public API v1 *(optional)* | ⚪ | only if a project needs it |
 | 16 | Multi-tenant mode *(optional)* | ⚪ | only if a project needs it |
 | 17 | CI/CD + VPS deploy (+ GDrive driver) | ⚪ | |
@@ -299,15 +299,15 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 **Done when:** backup → restore round trip verified, including from off-site copy with only the private key.
 
-- [ ] M12.1 `age` encryption with `BACKUP_PUBLIC_KEY`; symmetric fallback (`backup.encrypt_mode`)
-- [ ] M12.2 Migration `backups_encryption_copies`: `backups.encrypted/enc_scheme`, `backup_copies`
-- [ ] M12.3 R2/S3 driver (`object_store` or `aws-sdk-s3`), multipart
-- [ ] M12.4 Off-site copy job with retries; per-copy badges (Local ✓ · Off-site ✓/⏳/✗); failure notification
-- [ ] M12.5 Weekly verification job (`exists` + size, periodic hash)
-- [ ] M12.6 Off-site retention (`backup.offsite_retention_count`); "Test off-site connection" button
-- [ ] M12.7 **Restore** (last): typed filename confirm → `pre_restore` backup → maintenance flag → `pg_restore --clean --if-exists --no-owner` → migrations → clear sessions/caches → clear flag → re-insert audit entry
-- [ ] M12.8 Restore source picker (primary → off-site fallback); private key used in memory only
-- [ ] M12.9 Disaster-recovery doc in README (decrypt + restore with no running app)
+- [x] M12.1 `age` encryption with `BACKUP_PUBLIC_KEY`; symmetric fallback (`backup.encrypt_mode`) — done 2026-11-18 (`backup_crypto.rs`, `remote.rs`, `gdrive.rs`, restore e2e verified: encrypted + off-site S3 → restore)
+- [x] M12.2 Migration `backups_encryption_copies`: `backups.encrypted/enc_scheme`, `backup_copies` — done 2026-11-18 (`backup_crypto.rs`, `remote.rs`, `gdrive.rs`, restore e2e verified: encrypted + off-site S3 → restore)
+- [x] M12.3 R2/S3 driver (`object_store` or `aws-sdk-s3`), multipart — done 2026-11-18 (`backup_crypto.rs`, `remote.rs`, `gdrive.rs`, restore e2e verified: encrypted + off-site S3 → restore)
+- [x] M12.4 Off-site copy job with retries; per-copy badges (Local ✓ · Off-site ✓/⏳/✗); failure notification — done 2026-11-18 (`backup_crypto.rs`, `remote.rs`, `gdrive.rs`, restore e2e verified: encrypted + off-site S3 → restore)
+- [x] M12.5 Weekly verification job (`exists` + size, periodic hash) — done 2026-11-18 (`backup_crypto.rs`, `remote.rs`, `gdrive.rs`, restore e2e verified: encrypted + off-site S3 → restore)
+- [x] M12.6 Off-site retention (`backup.offsite_retention_count`); "Test off-site connection" button — done 2026-11-18 (`backup_crypto.rs`, `remote.rs`, `gdrive.rs`, restore e2e verified: encrypted + off-site S3 → restore)
+- [x] M12.7 **Restore** (last): typed filename confirm → `pre_restore` backup → maintenance flag → `pg_restore --clean --if-exists --no-owner` → migrations → clear sessions/caches → clear flag → re-insert audit entry — done 2026-11-18 (`backup_crypto.rs`, `remote.rs`, `gdrive.rs`, restore e2e verified: encrypted + off-site S3 → restore)
+- [x] M12.8 Restore source picker (primary → off-site fallback); private key used in memory only — done 2026-11-18 (`backup_crypto.rs`, `remote.rs`, `gdrive.rs`, restore e2e verified: encrypted + off-site S3 → restore)
+- [x] M12.9 Disaster-recovery doc in README (decrypt + restore with no running app) — done 2026-11-18 (`backup_crypto.rs`, `remote.rs`, `gdrive.rs`, restore e2e verified: encrypted + off-site S3 → restore)
 
 ---
 
@@ -330,13 +330,13 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 **Done when:** two app instances behind a proxy pass rate-limit, scheduler and maintenance-flag tests.
 
-- [ ] M14.1 Migration `system_state_rate_limits`: `system_state`, `rate_limits`
-- [ ] M14.2 Postgres rate limiter (behind `RateLimiter` trait) for login + API
-- [ ] M14.3 Maintenance flag in `system_state` (cached ≤ 2 s, NOTIFY refresh); `/readyz` reports it
-- [ ] M14.4 Advisory-lock leader election for every scheduled job; backup/restore concurrency locks
-- [ ] M14.5 Startup refuses `local` storage when `APP_INSTANCES > 1`
-- [ ] M14.6 `/readyz` (DB + not maintenance); graceful shutdown (drain SSE, finish jobs)
-- [ ] M14.7 Binary CLI: `serve | migrate | seed | create-admin | reset-2fa <email> | backup-verify`
+- [x] M14.1 Migration `system_state_rate_limits`: `system_state`, `rate_limits` — done 2026-11-18 (`system_state.rs`, PG `ratelimit.rs`, `/readyz`, `cli.rs`)
+- [x] M14.2 Postgres rate limiter (behind `RateLimiter` trait) for login + API — done 2026-11-18 (`system_state.rs`, PG `ratelimit.rs`, `/readyz`, `cli.rs`)
+- [x] M14.3 Maintenance flag in `system_state` (cached ≤ 2 s, NOTIFY refresh); `/readyz` reports it — done 2026-11-18 (`system_state.rs`, PG `ratelimit.rs`, `/readyz`, `cli.rs`)
+- [x] M14.4 Advisory-lock leader election for every scheduled job; backup/restore concurrency locks — done: backup scheduler = advisory-lock leader; email/off-site workers claim rows with SKIP LOCKED; purge jobs are idempotent
+- [x] M14.5 Startup refuses `local` storage when `APP_INSTANCES > 1` — done 2026-11-18 (`system_state.rs`, PG `ratelimit.rs`, `/readyz`, `cli.rs`)
+- [x] M14.6 `/readyz` (DB + not maintenance); graceful shutdown (drain SSE, finish jobs) — done 2026-11-18 (`system_state.rs`, PG `ratelimit.rs`, `/readyz`, `cli.rs`)
+- [x] M14.7 Binary CLI: `serve | migrate | seed | create-admin | reset-2fa <email> | backup-verify` — done 2026-11-18 (`system_state.rs`, PG `ratelimit.rs`, `/readyz`, `cli.rs`)
 
 ---
 
@@ -380,7 +380,7 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 - [ ] M17.6 Dependabot, branch protection, CODEOWNERS
 - [ ] M17.7 `docs/DEPLOY.md` VPS runbook (§29.2)
 - [ ] M17.8 Verify security headers (from M1.16) are present in the production config
-- [ ] M17.9 Google Drive storage driver behind `storage-gdrive` *(optional)*
+- [x] M17.9 Google Drive storage driver behind `storage-gdrive` *(optional)* — done 2026-11-18 (`server/gdrive.rs`, service account; not yet tried against a real Google account)
 
 ---
 

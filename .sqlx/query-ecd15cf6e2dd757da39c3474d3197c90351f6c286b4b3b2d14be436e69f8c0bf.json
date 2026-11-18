@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT target, remote_key FROM backup_copies WHERE backup_id = $1 AND status = 'done' LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "target",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "backup_copies",
+            "name": "target"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "remote_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "backup_copies",
+            "name": "remote_key"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "ecd15cf6e2dd757da39c3474d3197c90351f6c286b4b3b2d14be436e69f8c0bf"
+}

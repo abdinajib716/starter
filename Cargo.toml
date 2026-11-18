@@ -22,6 +22,10 @@ uuid = { version = "1", features = ["serde"] }
 
 # ---- server-only (feature "server"); must never reach the wasm build ----
 anyhow = { version = "1", optional = true }
+age = { version = "0.11", optional = true }
+object_store = { version = "0.12", default-features = false, features = ["aws"], optional = true }
+bytes = { version = "1", optional = true }
+jsonwebtoken = { version = "9", optional = true }
 aes-gcm = { version = "0.10", optional = true }
 hkdf = { version = "0.12", optional = true }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
@@ -58,6 +62,10 @@ server = [
     "dioxus/server",
     "dep:anyhow",
     "dep:aes-gcm",
+    "dep:age",
+    "dep:object_store",
+    "dep:bytes",
+    "dep:jsonwebtoken",
     "dep:hkdf",
     "dep:qrcode",
     "dep:reqwest",

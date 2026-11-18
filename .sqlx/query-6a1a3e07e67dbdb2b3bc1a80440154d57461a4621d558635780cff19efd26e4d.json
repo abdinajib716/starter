@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO backups (id, filename, size_bytes, sha256, status, kind, finished_at)\n                     VALUES ($1, $2, $3, $4, 'completed', $5, now()) ON CONFLICT (id) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Int8",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6a1a3e07e67dbdb2b3bc1a80440154d57461a4621d558635780cff19efd26e4d"
+}

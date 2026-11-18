@@ -1,6 +1,8 @@
 //! Server-only code (`feature = "server"`): config, state, DB, request context, plain routes.
 pub mod audit;
 pub mod auth;
+pub mod backup_crypto;
+pub mod cli;
 pub mod config;
 pub mod ctx;
 pub mod db;
@@ -8,11 +10,13 @@ pub mod email;
 pub mod error;
 pub mod export;
 pub mod flags;
+pub mod gdrive;
 pub mod modules;
 pub mod notify;
 pub mod pdf;
 pub mod rbac;
 pub mod realtime;
+pub mod remote;
 pub mod request;
 pub mod routes;
 pub mod security;
@@ -21,6 +25,7 @@ pub mod services;
 pub mod settings;
 pub mod state;
 pub mod storage;
+pub mod system_state;
 
 use dioxus::server::axum::{self, Extension, Router, routing::get};
 use tower_http::request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer};
@@ -34,6 +39,7 @@ pub async fn router() -> anyhow::Result<Router> {
     // request-id → trace → headers/limits → CSRF → state → ctx (session) → page guard → app.
     let router = dioxus::server::router(crate::app::App)
         .route("/healthz", get(routes::healthz))
+        .route("/readyz", get(routes::readyz))
         .route("/api/stream", get(realtime::stream_route))
         .route(
             "/api/webhooks/resend",
@@ -61,6 +67,7 @@ pub async fn router() -> anyhow::Result<Router> {
             get(services::reports::backups_pdf),
         )
         .layer(axum::middleware::from_fn(auth::guard::pages))
+        .layer(axum::middleware::from_fn(system_state::layer))
         .layer(axum::middleware::from_fn(ctx::ctx_layer))
         .layer(Extension(state.clone()))
         .layer(axum::middleware::from_fn_with_state(

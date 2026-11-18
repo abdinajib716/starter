@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT user_id AS \"u!\" FROM notifications WHERE kind = $1 AND created_at > now() - interval '5 seconds'",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "u!",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "notifications",
+            "name": "user_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "0b66faee4072999477490b53fee1c0eb1e818ed5bff571b8b2602f9dd1bc4d60"
+}

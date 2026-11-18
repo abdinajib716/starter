@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM backups",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "579ca6fbd1ef03be512bd04badd3dddac910b2c4bf94ef61791cbc84650e799d"
+}

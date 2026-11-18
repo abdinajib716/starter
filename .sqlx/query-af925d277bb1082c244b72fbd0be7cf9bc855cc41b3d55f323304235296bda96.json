@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT COALESCE((value->>'on')::boolean, false) AS \"on!\" FROM system_state WHERE key = 'maintenance'",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "on!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "af925d277bb1082c244b72fbd0be7cf9bc855cc41b3d55f323304235296bda96"
+}

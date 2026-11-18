@@ -1,0 +1,74 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT c.id, c.target, c.remote_key, c.attempts, b.filename\n           FROM backup_copies c JOIN backups b ON b.id = c.backup_id\n           WHERE c.status = 'pending' AND c.next_attempt_at <= now()\n           ORDER BY c.created_at LIMIT 3 FOR UPDATE OF c SKIP LOCKED",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "backup_copies",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "target",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "backup_copies",
+            "name": "target"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "remote_key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "backup_copies",
+            "name": "remote_key"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "attempts",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "backup_copies",
+            "name": "attempts"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "filename",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "backups",
+            "name": "filename"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "9014e03c7fcbf5f911daabb7c76073e8c462275c0cd209d06b728046a87f97f4"
+}

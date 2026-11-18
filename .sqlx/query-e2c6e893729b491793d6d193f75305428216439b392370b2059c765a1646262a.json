@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT b.id, b.filename, b.size_bytes, b.sha256, b.status, b.kind, b.error,\n                  u.email::text AS created_by, b.created_at, b.finished_at\n           FROM backups b LEFT JOIN users u ON u.id = b.created_by\n           ORDER BY b.created_at DESC",
+  "query": "SELECT b.id, b.filename, b.size_bytes, b.sha256, b.status, b.kind, b.error,\n                  u.email::text AS created_by, b.created_at, b.finished_at,\n                  b.encrypted, c.status AS \"offsite?\", c.error AS offsite_error,\n                  b.verified_at, b.verify_error\n           FROM backups b LEFT JOIN users u ON u.id = b.created_by\n           LEFT JOIN backup_copies c ON c.backup_id = b.id\n           ORDER BY b.created_at DESC",
   "describe": {
     "columns": [
       {
@@ -107,6 +107,61 @@
             "name": "finished_at"
           }
         }
+      },
+      {
+        "ordinal": 10,
+        "name": "encrypted",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "backups",
+            "name": "encrypted"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "offsite?",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "backup_copies",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "offsite_error",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "backup_copies",
+            "name": "error"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "verified_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "backups",
+            "name": "verified_at"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "verify_error",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "backups",
+            "name": "verify_error"
+          }
+        }
       }
     ],
     "parameters": {
@@ -122,8 +177,13 @@
       true,
       null,
       false,
+      true,
+      false,
+      false,
+      true,
+      true,
       true
     ]
   },
-  "hash": "7248ace0679b1603c536ff7c8ef758b815d11b49120528fdf1ee33963a035a8b"
+  "hash": "e2c6e893729b491793d6d193f75305428216439b392370b2059c765a1646262a"
 }

@@ -92,6 +92,7 @@ fn topics(table: &str) -> &'static [(&'static str, &'static str)] {
         "users" => &[("users", "users.view"), ("dashboard", "dashboard.view")],
         "sessions" => &[("dashboard", "dashboard.view")],
         "backups" => &[("backups", "backup.view"), ("dashboard", "dashboard.view")],
+        "backup_copies" => &[("backups", "backup.view")],
         "roles" => &[("roles", "roles.view")],
         _ => &[],
     }

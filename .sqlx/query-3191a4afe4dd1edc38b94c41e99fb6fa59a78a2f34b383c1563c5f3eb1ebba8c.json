@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE backups SET verify_error = $2, verified_at = CASE WHEN $2::text IS NULL THEN now() ELSE verified_at END WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3191a4afe4dd1edc38b94c41e99fb6fa59a78a2f34b383c1563c5f3eb1ebba8c"
+}

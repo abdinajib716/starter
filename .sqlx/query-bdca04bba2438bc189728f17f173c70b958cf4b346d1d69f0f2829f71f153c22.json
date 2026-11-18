@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO backup_copies (backup_id, target, remote_key) VALUES ($1, $2, $3)\n         ON CONFLICT (backup_id, target) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bdca04bba2438bc189728f17f173c70b958cf4b346d1d69f0f2829f71f153c22"
+}

@@ -7,7 +7,7 @@ use tracing::Span;
 
 use super::state::AppState;
 
-/// Liveness + DB ping (§13). `/readyz` (maintenance aware) comes in M14.
+/// Liveness + DB ping (§13).
 pub async fn healthz(Extension(state): Extension<AppState>) -> impl IntoResponse {
     let db = state.db_ok().await;
     let code = if db {
@@ -71,4 +71,20 @@ pub async fn resend_webhook(
             StatusCode::INTERNAL_SERVER_ERROR
         }
     }
+}
+
+/// Readiness (M14.6): DB reachable and not in maintenance. Load balancers stop sending traffic
+/// while it answers 503.
+pub async fn readyz(Extension(state): Extension<AppState>) -> impl IntoResponse {
+    let db = state.db_ok().await;
+    let maintenance = super::system_state::maintenance();
+    let ready = db && !maintenance;
+    (
+        if ready {
+            StatusCode::OK
+        } else {
+            StatusCode::SERVICE_UNAVAILABLE
+        },
+        Json(json!({ "ready": ready, "db": db, "maintenance": maintenance })),
+    )
 }

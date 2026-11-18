@@ -60,9 +60,13 @@ pub async fn login(
         "login:{}:{email}",
         ip.map(|i| i.to_string()).unwrap_or_default()
     );
-    let allowed = ratelimit::hit(&k_pair, 5, WINDOW)
-        & ratelimit::hit(&format!("login-email:{email}"), 20, WINDOW)
-        & ip.is_none_or(|i| ratelimit::hit(&format!("login-ip:{i}"), 50, WINDOW));
+    let pair_ok = ratelimit::hit(&k_pair, 5, WINDOW).await;
+    let email_ok = ratelimit::hit(&format!("login-email:{email}"), 20, WINDOW).await;
+    let ip_ok = match ip {
+        Some(i) => ratelimit::hit(&format!("login-ip:{i}"), 50, WINDOW).await,
+        None => true,
+    };
+    let allowed = pair_ok && email_ok && ip_ok;
     if !allowed {
         return Err(AuthError::RateLimited);
     }
@@ -167,7 +171,7 @@ pub async fn login(
         let token =
             session::create_kind(&mut tx, u.id, ip, ua, session::Kind::Pending2fa, 5).await?;
         tx.commit().await?;
-        ratelimit::reset(&k_pair);
+        ratelimit::reset(&k_pair).await;
         return Ok(LoginOk {
             token,
             max_age_secs: 300,
@@ -178,7 +182,7 @@ pub async fn login(
     // 7. Success: reset counters, open a session, audit.
     let token = finish_login(&mut tx, ctx, u.id, &email, false, s.session_hours).await?;
     tx.commit().await?;
-    ratelimit::reset(&k_pair);
+    ratelimit::reset(&k_pair).await;
 
     Ok(LoginOk {
         token,
@@ -273,7 +277,7 @@ pub async fn change_password(
 ) -> Result<(), AuthError> {
     let s = SecuritySettings::load(pool).await?;
     password::check_policy(&new, s.password_min_length).map_err(AuthError::Policy)?;
-    if !ratelimit::hit(&format!("chpw:{}", user.id), 10, WINDOW) {
+    if !ratelimit::hit(&format!("chpw:{}", user.id), 10, WINDOW).await {
         return Err(AuthError::RateLimited);
     }
     let stored = sqlx::query_scalar!("SELECT password_hash FROM users WHERE id = $1", user.id)
@@ -497,7 +501,7 @@ pub(crate) mod tests {
             assert!(matches!(r, Err(AuthError::InvalidCredentials)));
         }
         // Rate limiter (5 per IP+email) would also block now: reset it to test the lock itself.
-        ratelimit::reset("login::lock@test.local");
+        ratelimit::reset("login::lock@test.local").await;
         let r = login(&pool, &ctx, "lock@test.local", "correct-horse-1".into()).await;
         assert!(matches!(r, Err(AuthError::InvalidCredentials)));
         let actions = audit_actions(&pool).await;

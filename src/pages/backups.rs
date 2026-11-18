@@ -134,10 +134,13 @@ pub fn Backups() -> Element {
 fn BackupLine(b: BackupRow, on_change: EventHandler<()>) -> Element {
     let tz = crate::components::layout::use_tz();
     let me = use_current_user();
-    let (can_download, can_delete) = (
+    let (can_download, can_delete, can_restore) = (
         me.as_ref().is_some_and(|u| u.can("backup.download")),
         me.as_ref().is_some_and(|u| u.can("backup.delete")),
+        me.as_ref().is_some_and(|u| u.can("backup.restore")),
     );
+    let mut restore_open = use_signal(|| false);
+    let restore_row = b.clone();
     let mut confirm = use_signal(|| false);
     let id: Uuid = b.id;
     let done = b.status == "completed";
@@ -160,7 +163,23 @@ fn BackupLine(b: BackupRow, on_change: EventHandler<()>) -> Element {
                 div { class: "font-medium tabular-nums", "{when(b.created_at, &tz)}" }
                 div { class: "font-mono text-xs text-muted-foreground", "{b.filename}" }
             }
-            td { class: TD, {status} }
+            td { class: TD,
+                div { class: "flex flex-wrap items-center gap-1",
+                    {status}
+                    if b.encrypted {
+                        span { class: "{BADGE} gap-1", title: t!("backup-encrypted"), Icon { icon: IconType::Lock, class: "size-3" } {t!("backup-encrypted-short")} }
+                    }
+                    if let Some(o) = b.offsite.clone() {
+                        span { class: if o == "done" { "{BADGE} border-teal-200 text-teal-900 dark:text-teal-200" } else if o == "failed" { "{BADGE} border-destructive/20 text-destructive" } else { "{BADGE} text-muted-foreground" },
+                            title: b.offsite_error.clone().unwrap_or_default(),
+                            {crate::ta!("backup-offsite", state: if o == "done" { "✓" } else if o == "failed" { "✗" } else { "⏳" })}
+                        }
+                    }
+                    if b.verify_error.is_some() {
+                        span { class: "{BADGE} border-destructive/20 text-destructive", title: b.verify_error.clone().unwrap_or_default(), {t!("backup-verify-failed")} }
+                    }
+                }
+            }
             td { class: TD, {dioxus_i18n::te!(&format!("backup-kind-{}", b.kind.replace('_', "-"))).unwrap_or(b.kind.clone())} }
             td { class: tw_merge!(TD, "tabular-nums"), if done { "{human_size(b.size_bytes)}" } }
             td { class: tw_merge!(TD, "font-mono text-xs text-muted-foreground"), title: b.sha256.clone().unwrap_or_default(),
@@ -168,7 +187,7 @@ fn BackupLine(b: BackupRow, on_change: EventHandler<()>) -> Element {
             }
             td { class: tw_merge!(TD, "text-muted-foreground"), {b.created_by.clone().unwrap_or_else(|| t!("dash-system"))} }
             td { class: TD,
-                if (can_download && done) || (can_delete && b.status != "running") {
+                if (can_download && done) || (can_delete && b.status != "running") || (can_restore && done) {
                     Menu {
                         align: Align::End,
                         class: "w-44",
@@ -184,6 +203,12 @@ fn BackupLine(b: BackupRow, on_change: EventHandler<()>) -> Element {
                                 MenuShortcut { Icon { icon: IconType::Download, class: "size-4" } }
                             }
                         }
+                        if can_restore && done {
+                            button { r#type: "button", class: ITEM, onclick: move |_| restore_open.set(true),
+                                {t!("backup-restore")}
+                                MenuShortcut { Icon { icon: IconType::RotateCcw, class: "size-4" } }
+                            }
+                        }
                         if can_delete && b.status != "running" {
                             MenuSeparator {}
                             button { r#type: "button", class: "{ITEM} text-red-500!", onclick: move |_| confirm.set(true),
@@ -192,6 +217,9 @@ fn BackupLine(b: BackupRow, on_change: EventHandler<()>) -> Element {
                             }
                         }
                     }
+                }
+                if restore_open() {
+                    RestoreDialog { open: restore_open, b: restore_row.clone() }
                 }
                 ConfirmDialog {
                     open: confirm,
@@ -212,6 +240,84 @@ fn BackupLine(b: BackupRow, on_change: EventHandler<()>) -> Element {
                     },
                 }
             }
+        }
+    }
+}
+
+/// Restore (M12.7/8): type the file name, choose the source, give the key (encrypted backups)
+/// and your password. The app goes into maintenance until it's done; everyone signs in again.
+#[component]
+fn RestoreDialog(open: Signal<bool>, b: BackupRow) -> Element {
+    use crate::components::password_input::PasswordInput;
+    use crate::components::ui_extra::form::{FormItem, FormLabel, SelectBox, TextArea, TextInput};
+    let confirm = use_signal(String::new);
+    let secret = use_signal(String::new);
+    let password = use_signal(String::new);
+    let source = use_signal(|| "primary".to_string());
+    let mut busy = use_signal(|| false);
+    let ok = confirm().trim() == b.filename;
+    let id = b.id;
+    let mut sources = vec![("primary".to_string(), t!("backup-source-primary"))];
+    if b.offsite.as_deref() == Some("done") {
+        sources.push(("offsite".to_string(), t!("backup-source-offsite")));
+    }
+    let encrypted = b.encrypted;
+    rsx! {
+        ConfirmDialog {
+            open,
+            title: t!("backup-restore-title"),
+            title_destructive: true,
+            desc: String::new(),
+            confirm_text: t!("backup-restore"),
+            cancel_text: t!("action-cancel"),
+            destructive: true,
+            disabled: !ok || busy(),
+            on_confirm: move |_| async move {
+                busy.set(true);
+                let req = crate::domain::backups::RestoreRequest {
+                    id,
+                    confirm: confirm(),
+                    source: source(),
+                    secret: Some(secret()).filter(|s| !s.trim().is_empty()),
+                    password: password(),
+                };
+                match crate::api::backups::restore_backup(req).await {
+                    Ok(()) => {
+                        toast(ToastType::Success, t!("backup-restore-started"));
+                        open.set(false);
+                        // The app is in maintenance now; reload to show it.
+                        crate::util::sleep_ms(1500).await;
+                        let _ = dioxus::document::eval("location.reload()");
+                    }
+                    Err(e) => toast_error(&e),
+                }
+                busy.set(false);
+            },
+            body: rsx! {
+                div { class: "grid gap-3 text-start",
+                    p { {t!("backup-restore-desc")} }
+                    FormItem {
+                        FormLabel { html_for: "restore-confirm", {crate::ta!("backup-restore-type", file: b.filename.clone())} }
+                        TextInput { id: "restore-confirm", value: confirm, placeholder: b.filename.clone() }
+                    }
+                    if sources.len() > 1 {
+                        FormItem {
+                            FormLabel { html_for: "restore-source", {t!("backup-source")} }
+                            SelectBox { value: source, options: sources.clone(), placeholder: t!("backup-source"), class: "w-full", trigger_class: "w-full" }
+                        }
+                    }
+                    if encrypted {
+                        FormItem {
+                            FormLabel { html_for: "restore-secret", {t!("backup-restore-key")} }
+                            TextArea { id: "restore-secret", value: secret, placeholder: "AGE-SECRET-KEY-1…" }
+                        }
+                    }
+                    FormItem {
+                        FormLabel { html_for: "restore-password", {t!("field-your-password")} }
+                        PasswordInput { id: "restore-password", value: password }
+                    }
+                }
+            },
         }
     }
 }

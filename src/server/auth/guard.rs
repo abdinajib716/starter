@@ -66,7 +66,9 @@ fn same_origin(origin: &str, app_url: &str) -> bool {
 
 /// Paths that are never page navigations or never need a session.
 fn is_passthrough(path: &str) -> bool {
-    path.starts_with("/api/") || path == "/healthz" || crate::server::ctx::is_asset(path)
+    path.starts_with("/api/")
+        || matches!(path, "/healthz" | "/readyz")
+        || crate::server::ctx::is_asset(path)
 }
 
 /// Public pages (§12, §30.4). Everything else needs a session.

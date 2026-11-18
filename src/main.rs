@@ -24,5 +24,10 @@ fn main() {
     // `dioxus::serve` binds to IP/PORT (set by `dx` in dev, by the container in prod)
     // and re-invokes the closure on hot-patch; `server::router` initialises state once.
     #[cfg(feature = "server")]
-    dioxus::serve(|| async move { server::router().await })
+    {
+        if let Some(code) = server::cli::run() {
+            std::process::exit(code);
+        }
+        dioxus::serve(|| async move { server::router().await })
+    }
 }

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE backup_copies SET verified_at = now(), error = NULL WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "9345027d58a4e83d5e2cb78c741ef3d2b0ba2bc67fb616e3dcafcc60d325dade"
+}
