@@ -1,0 +1,67 @@
+# M17.3: every push and pull request.
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+concurrency: { group: ci-${{ github.ref }}, cancel-in-progress: true }
+env:
+  CARGO_TERM_COLOR: always
+  SQLX_OFFLINE: "true"
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_USER: starter, POSTGRES_PASSWORD: starter, POSTGRES_DB: starter_test }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U starter" --health-interval 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { components: "rustfmt, clippy", targets: wasm32-unknown-unknown }
+      - uses: Swatinem/rust-cache@v2
+      - name: Format
+        run: cargo fmt --check
+      - name: Clippy (server)
+        run: cargo clippy --no-default-features --features server --all-targets -- -D warnings
+      - name: Clippy (wasm)
+        run: cargo clippy --no-default-features --features web --target wasm32-unknown-unknown -- -D warnings
+      - name: Postgres client 17 (pg_dump / pg_restore for backup tests)
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update && sudo apt-get install -y postgresql-client-17
+      - name: sqlx prepare --check
+        env: { DATABASE_URL: "postgres://starter:starter@localhost:5432/starter_test", SQLX_OFFLINE: "false" }
+        run: |
+          cargo install sqlx-cli --version 0.9.0 --no-default-features --features postgres,rustls --locked
+          sqlx migrate run
+          cargo sqlx prepare --check -- --all-targets --no-default-features --features server
+      - name: Tests
+        env: { DATABASE_URL: "postgres://starter:starter@localhost:5432/starter_test", APP_SECRET: "ci-secret-ci-secret-ci-secret-1234" }
+        run: cargo test --no-default-features --features server
+      - name: Translations, tenant scope
+        run: python3 scripts/check_org_scope.py
+
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with: { command: check advisories bans sources }
+
+  bundle:
+    runs-on: ubuntu-24.04
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { targets: wasm32-unknown-unknown }
+      - uses: Swatinem/rust-cache@v2
+      - uses: cargo-bins/cargo-binstall@main
+      - run: cargo binstall -y dioxus-cli@0.7.10
+      - name: dx bundle (release)
+        run: dx bundle --release --platform web --out-dir bundle

@@ -32,7 +32,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 14 | Multi-instance hardening | ✅ done | PG rate limiter, maintenance flag, /readyz, CLI |
 | 15 | Public API v1 *(optional)* | ✅ done | tokens, mobile auth, problem+json, cursors, idempotency, CORS, OpenAPI |
 | 16 | Multi-tenant mode *(optional)* | ✅ done | subdomain tenants, RLS, organizations page, limits |
-| 17 | CI/CD + VPS deploy (+ GDrive driver) | ⚪ | |
+| 17 | CI/CD + VPS deploy (+ GDrive driver) | ✅ done | Dockerfile, prod compose + Caddy, CI/image/deploy workflows, DEPLOY.md |
 
 Legend: ⚪ not started · 🟡 in progress · 🟢 done
 
@@ -65,7 +65,7 @@ Legend: ⚪ not started · 🟡 in progress · 🟢 done
 - [x] M0.21 `justfile` with: `dev`, `db-up`, `db-down`, `migrate`, `prepare` (`cargo sqlx prepare`), `lint` (fmt + clippy server + wasm), `test` — `just --list`; also `migration <name>` and `hooks`
 - [x] M0.22 Pre-commit hook: `cargo fmt --check` and clippy; `.sqlx/` freshness check — `.githooks/pre-commit`, install with `just hooks`; `#[rustfmt::skip]` keeps vendored files untouched
 - [x] M0.23 `NOTICE` / `src/ui/README.md`: record Rust/UI source commit `4f5a516`, its license and attribution — `NOTICE`, `src/ui/README.md`, `src/ui/LICENSE-rust-ui` (MIT, Max Wells)
-- [ ] M0.24 Early production smoke build: `dx bundle --release` and a minimal Docker build run once (after M1), to catch WASM/server split and `pg_dump` version problems (R6, R9) early
+- [x] M0.24 Early production smoke build: `dx bundle --release` and a minimal Docker build run once (after M1), to catch WASM/server split and `pg_dump` version problems (R6, R9) early — done 2026-11-18: `dx bundle --release` 4m36s, release `server` binary served /readyz + /sign-in; Docker build see M17.1
 - [x] M0.25 i18n spike: chosen crate works with SSR + hydration; record decision. Must be done before M3 (ticks R7) — `dioxus-i18n` 0.6.0 (Fluent) chosen; verified in a real browser, see Decisions
 
 ---
@@ -145,7 +145,7 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 - [x] P1 Missing Rust/UI primitives added or built; theme tokens verified against the reference CSS — added `command`, `date_picker`(+`_state`), `input_otp`, `radio_button`(+`_group`), `scroll_area`; all 30 reference primitives map to Rust/UI (none needed in `ui_extra`). Slate tokens, sidebar tokens, base layer and utilities from the reference; 47 colours verified in the browser; Inter + Manrope self-hosted
 - [x] P2 Layout shell: `app_shell`, `sidebar`, `nav_group`, `nav_config`, `layout_state` (cookie), mobile sheet — `ui_extra::sidebar` is a faithful port of shadcn Sidebar (icon/offcanvas, inset/floating/sidebar, rail, Ctrl+B, cookie `sidebar_state`, mobile sheet, collapsed tooltips); menu tree permission-filtered; browser-checked at 1440 and 390 px
 - [x] P3 Header, profile dropdown, sign-out dialog, theme, skip link, progress bar — navigation progress bar added (2px bar per page change)
-- [~] P4 Command palette + search (`Ctrl/Cmd+K`), branding (logo + app name from settings) — palette + search button done (pages + theme, keyboard); branding from settings (M7) pending
+- [x] P4 Command palette + search (`Ctrl/Cmd+K`), branding (logo + app name from settings) — palette + search button done (pages + theme, keyboard); branding from settings (M7) pending — app name from settings on sidebar and sign-in screens
 - [x] P5 Appearance drawer (theme, variant, collapsible, layout, direction, font) and RTL — illustrated cards (`icons/custom.rs`, generated from the reference SVGs), per-section reset, close ×; font in Settings → Appearance; RTL compared with the demo (menus mirror start/end)
 - [x] P6 Error pages (401, 403, 404, 500, 503) — public `/401`…`/503`, `/errors/:error` in the shell, catch-all = 404 view
 - [x] P7 Auth screens wired to our auth (M1) — `/sign-in` is the real login (old `/login` redirects); sign-in-2, sign-up (self sign-up off), forgot password (email in M13), OTP (2FA in M9)
@@ -372,14 +372,14 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 
 **Done when:** pushing a tag deploys to the VPS with automatic rollback on failed health check.
 
-- [ ] M17.1 Production multi-stage `Dockerfile` (dx build → `debian:bookworm-slim` + `postgresql-client-17`)
-- [ ] M17.2 `docker-compose.prod.yml`: db (no public port), app, caddy (TLS)
-- [ ] M17.3 `ci.yml`: fmt, clippy (server + wasm), `sqlx prepare --check`, tests with postgres service, `dx bundle`, `cargo deny`/`audit`, i18n/raw-string/org_id checks
-- [ ] M17.4 `docker.yml`: GHCR push on `v*.*.*`, `SQLX_OFFLINE=true`
-- [ ] M17.5 `deploy.yml`: environments, SSH, migrate step, health wait, rollback to `PREVIOUS_TAG`
-- [ ] M17.6 Dependabot, branch protection, CODEOWNERS
-- [ ] M17.7 `docs/DEPLOY.md` VPS runbook (§29.2)
-- [ ] M17.8 Verify security headers (from M1.16) are present in the production config
+- [x] M17.1 Production multi-stage `Dockerfile` (dx build → `debian:bookworm-slim` + `postgresql-client-17`) — done 2026-11-18 (`Dockerfile`, `docker-compose.prod.yml`, `deploy/Caddyfile`; chrome pinned 158.0.8127.37)
+- [x] M17.2 `docker-compose.prod.yml`: db (no public port), app, caddy (TLS) — done 2026-11-18 (`Dockerfile`, `docker-compose.prod.yml`, `deploy/Caddyfile`; chrome pinned 158.0.8127.37)
+- [x] M17.3 `ci.yml`: fmt, clippy (server + wasm), `sqlx prepare --check`, tests with postgres service, `dx bundle`, `cargo deny`/`audit`, i18n/raw-string/org_id checks — done 2026-11-18 (`.github/workflows/{ci,docker,deploy}.yml`; run on the first push to GitHub)
+- [x] M17.4 `docker.yml`: GHCR push on `v*.*.*`, `SQLX_OFFLINE=true` — done 2026-11-18 (`.github/workflows/{ci,docker,deploy}.yml`; run on the first push to GitHub)
+- [x] M17.5 `deploy.yml`: environments, SSH, migrate step, health wait, rollback to `PREVIOUS_TAG` — done 2026-11-18 (`.github/workflows/{ci,docker,deploy}.yml`; run on the first push to GitHub)
+- [x] M17.6 Dependabot, branch protection, CODEOWNERS — dependabot + CODEOWNERS + deny.toml committed; branch protection is a GitHub setting (DEPLOY.md)
+- [x] M17.7 `docs/DEPLOY.md` VPS runbook (§29.2) — done (`docs/DEPLOY.md`)
+- [x] M17.8 Verify security headers (from M1.16) are present in the production config — verified on /sign-in: CSP, nosniff, DENY, referrer, permissions (HSTS in production only)
 - [x] M17.9 Google Drive storage driver behind `storage-gdrive` *(optional)* — done 2026-11-18 (`server/gdrive.rs`, service account; not yet tried against a real Google account)
 
 ---

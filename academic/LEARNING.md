@@ -1943,3 +1943,201 @@ pub async fn render(base: &str, html: &str, opt: &PrintOptions) -> anyhow::Resul
 **Concepts:** [async and Future](CONCEPTS.md#async), [Arc and Clone](CONCEPTS.md#arc), [Result and ?](CONCEPTS.md#result)
 
 **Try it:** start the service with `docker compose up -d chrome`, then run `cargo test --features server renders_a_pdf -- --ignored --nocapture`. Expected: passes in well under a second. Then stop it with `docker compose stop chrome` and press Export → PDF on the Users page: the toast says the PDF service isn't reachable instead of the page hanging.
+
+## 45. A 6-digit code that works once: TOTP check with a replay block
+**Feature:** after the password, a user with two-factor authentication types the code from their phone app. The server accepts the code for the current 30-second step or the one before/after (clock drift), and never twice.
+
+**Code:**
+
+`src/server/auth/totp.rs` lines 53–65
+
+```rust
+pub fn verify(secret: &[u8], code: &str, last_step: i64, now: u64) -> Option<i64> {
+    let code: String = code.chars().filter(char::is_ascii_digit).collect();
+    if code.len() != 6 {
+        return None;
+    }
+    let t = totp(secret).ok()?;
+    let current = now / STEP;
+    [current.saturating_sub(1), current, current + 1]
+        .into_iter()
+        .filter(|s| i64::try_from(*s).is_ok_and(|s| s > last_step))
+        .find(|s| constant_eq(&t.generate(s * STEP), &code))
+        .and_then(|s| i64::try_from(s).ok())
+}
+```
+
+**Line notes:**
+
+1. L54 — keep only digits, so "123 456" typed with a space still works.
+2. L59 — a TOTP "step" is the Unix time divided by 30 seconds; both the phone and the server compute the same code for the same step.
+3. L60 — try three steps: the previous, the current and the next one, to forgive a phone clock that is a few seconds off.
+4. L62 — `last_step` is stored per user after every success; a step not newer than it is skipped, so a code seen over someone's shoulder can't be reused.
+5. L63 — `constant_eq` compares every byte instead of stopping at the first difference, so response time says nothing about how many digits were right.
+6. L64 — the step that matched is returned; the caller saves it as the new `last_step` in the same transaction.
+
+**Concepts:** [Option](CONCEPTS.md#option), [iterators](CONCEPTS.md#iterator), [closures](CONCEPTS.md#closure)
+
+**Try it:** `cargo test --no-default-features --features server totp`. Expected: `verify_window_and_replay` passes. Change `s > last_step` to `s >= last_step` and run it again: the replay assertion fails.
+
+## 46. Sending email without losing it: an outbox claimed with SKIP LOCKED
+**Feature:** emails (password reset, invites, alerts) are written to an `email_outbox` table inside the same transaction as the change that caused them; a worker sends them later with retries. Several app servers can run the worker at once without sending anything twice.
+
+**Code:**
+
+`src/server/email.rs` lines 246–258
+
+```rust
+pub async fn send_due(pool: &PgPool) -> anyhow::Result<usize> {
+    let mut tx = pool.begin().await?;
+    let rows = sqlx::query!(
+        r#"SELECT id, org_id, to_email::text AS "to!", template, params, attempts
+           FROM email_outbox WHERE status = 'pending' AND next_attempt_at <= now()
+           ORDER BY id LIMIT 10 FOR UPDATE SKIP LOCKED"#
+    )
+    .fetch_all(&mut *tx)
+    .await?;
+    let n = rows.len();
+    let app = app_name();
+    for r in rows {
+        let result = match render(&r.template, &r.params, &app) {
+```
+
+**Line notes:**
+
+1. L247 — one transaction for the whole batch: the row locks taken below last until it commits.
+2. L250 — only `pending` rows whose retry time has come.
+3. L251 — `FOR UPDATE SKIP LOCKED`: rows another instance is already sending are skipped instead of waited for, so two workers never pick the same email.
+4. L251 — `LIMIT 10` keeps one slow batch from holding many locks; the loop calls again while full batches come back.
+5. L258 — templates are rendered at send time, so a fixed typo in a template applies to emails still waiting.
+
+**Concepts:** [transactions](CONCEPTS.md#transaction), [sqlx macros](CONCEPTS.md#sqlx-macros), [async](CONCEPTS.md#async)
+
+**Try it:** with the app running and email on, run `psql` and `SELECT status, attempts, last_error FROM email_outbox ORDER BY id DESC LIMIT 5;` after "Forgot password?". Without a valid `RESEND_API_KEY` you'll see `attempts` grow with back-off and the error text, and the row turns `failed` after 5 tries.
+
+## 47. One rate limit for every server: a counter row in Postgres
+**Feature:** sign-in, password reset and the public API are rate limited. With several app servers, an in-memory counter would let an attacker get N times the limit; one row per key in Postgres is shared by all.
+
+**Code:**
+
+`src/server/auth/ratelimit.rs` lines 16–39
+
+```rust
+pub async fn hit(key: &str, max: u32, window: Duration) -> bool {
+    if let Some(pool) = pool() {
+        let secs = window.as_secs_f64();
+        let n = sqlx::query_scalar!(
+            r#"INSERT INTO rate_limits (key, window_start, count) VALUES ($1, now(), 1)
+               ON CONFLICT (key) DO UPDATE SET
+                 count = CASE WHEN rate_limits.window_start < now() - make_interval(secs => $2)
+                              THEN 1 ELSE rate_limits.count + 1 END,
+                 window_start = CASE WHEN rate_limits.window_start < now() - make_interval(secs => $2)
+                                     THEN now() ELSE rate_limits.window_start END
+               RETURNING count"#,
+            key,
+            secs
+        )
+        .fetch_one(&pool)
+        .await;
+        return match n {
+            Ok(n) => u32::try_from(n).unwrap_or(u32::MAX) <= max,
+            Err(e) => {
+                tracing::error!("rate limiter: {e}");
+                true
+            }
+        };
+    }
+```
+
+**Line notes:**
+
+1. L17 — the app state exists (normal run): count in the database; in unit tests there's no pool, so `memory_hit` keeps the old behaviour.
+2. L20–21 — `INSERT … ON CONFLICT DO UPDATE` is one atomic statement: two requests at the same moment can't both read "4" and both write "5".
+3. L22–25 — a fixed window: when the stored window is older than the limit's duration, the count restarts at 1 and the window at `now()`.
+4. L26 — `RETURNING count` gives the new value in the same round trip.
+5. L33 — allowed while the count is at most `max`.
+6. L34–37 — if the database fails, let the request through ("fail open") and log it: a broken limiter must not lock everyone out of sign-in.
+
+**Concepts:** [Result and ?](CONCEPTS.md#result), [match](CONCEPTS.md#match), [connection pool](CONCEPTS.md#pool)
+
+**Try it:** sign in with a wrong password 6 times in a row for the same email. The 6th answer is "Too many attempts". In `psql`: `SELECT * FROM rate_limits;` shows the key and its count.
+
+## 48. Every query sees only its tenant: row-level security set per connection
+**Feature:** in multi-tenant mode each organization lives at its own subdomain. Besides `WHERE org_id = …` in the code, Postgres itself hides other tenants' rows, using the organization of the request.
+
+**Code:**
+
+`src/server/db.rs` lines 20–31
+
+```rust
+        .before_acquire(move |conn, _meta| {
+            Box::pin(async move {
+                if multi {
+                    let org = ORG.try_with(|o| o.to_string()).unwrap_or_default();
+                    sqlx::query("SELECT set_config('app.org_id', $1, false)")
+                        .bind(org)
+                        .execute(&mut *conn)
+                        .await?;
+                }
+                Ok(true)
+            })
+        })
+```
+
+**Line notes:**
+
+1. L20 — `before_acquire` runs every time the pool hands a connection to our code.
+2. L22 — only in multi mode; single-tenant installs skip the extra statement.
+3. L23 — `ORG` is a tokio task-local set by the request middleware; background jobs have none, so the value is empty.
+4. L24 — `set_config('app.org_id', …)` stores the organization on this connection; the RLS policies read it through `app_org()`.
+5. L24 — it must be set on every acquire (not once per connection), because the pool reuses connections across requests of different tenants.
+6. L29 — `Ok(true)` = use this connection.
+
+**Concepts:** [connection pool](CONCEPTS.md#pool), [closures](CONCEPTS.md#closure), [middleware](CONCEPTS.md#middleware)
+
+**Try it:** `cargo test --no-default-features --features server rls_hides_other_tenants`. It switches to a non-owner role, sets `app.org_id` and runs `SELECT email FROM users` with no `WHERE`: only one organization's user comes back.
+
+## 49. Never trust the file name: images recognised by their first bytes
+**Feature:** profile photos. The browser's file name and type can be anything, so the server looks at the bytes, decodes the image and stores its own re-encoded copy.
+
+**Code:**
+
+`src/server/services/files.rs` lines 40–62
+
+```rust
+pub fn sniff(bytes: &[u8]) -> Option<image::ImageFormat> {
+    match bytes {
+        [0x89, b'P', b'N', b'G', ..] => Some(image::ImageFormat::Png),
+        [0xFF, 0xD8, 0xFF, ..] => Some(image::ImageFormat::Jpeg),
+        [b'G', b'I', b'F', b'8', ..] => Some(image::ImageFormat::Gif),
+        [
+            b'R',
+            b'I',
+            b'F',
+            b'F',
+            _,
+            _,
+            _,
+            _,
+            b'W',
+            b'E',
+            b'B',
+            b'P',
+            ..,
+        ] => Some(image::ImageFormat::WebP),
+        _ => None,
+    }
+}
+```
+
+**Line notes:**
+
+1. L41 — matching on a byte slice with patterns: each format starts with a fixed "magic number".
+2. L42 — PNG files begin with byte `0x89` then the letters `PNG`; `..` means "any bytes after".
+3. L43 — JPEG starts with `FF D8 FF`.
+4. L45–59 — WebP is a RIFF container: `RIFF`, four bytes of size, then `WEBP`; `_` skips the size bytes.
+5. L60 — anything else (SVG, HTML, a renamed script) is `None` and refused before decoding.
+
+**Concepts:** [match](CONCEPTS.md#match), [arrays and slices](CONCEPTS.md#array), [Option](CONCEPTS.md#option)
+
+**Try it:** `cargo test --no-default-features --features server sniffs_and_reencodes`. Then in Profile, upload a `.png` that is really a text file: the toast says the file isn't an image.

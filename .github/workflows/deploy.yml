@@ -1,0 +1,39 @@
+# M17.5: deploy a published tag to a VPS over SSH, with health wait and rollback.
+# Secrets per environment: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_PATH.
+name: deploy
+on:
+  workflow_dispatch:
+    inputs:
+      tag: { description: "Image tag (e.g. 1.2.0)", required: true }
+      environment: { description: "staging or production", required: true, default: staging, type: choice, options: [staging, production] }
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.environment }}
+    concurrency: deploy-${{ inputs.environment }}
+    steps:
+      - name: Deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.DEPLOY_PATH }}"
+            NEW="ghcr.io/${{ github.repository }}:${{ inputs.tag }}"
+            PREVIOUS_TAG=$(cat .current_image 2>/dev/null || true)
+            docker pull "$NEW"
+            # Migrations first, with the new image (they are additive; see docs/DEPLOY.md).
+            docker compose -f docker-compose.prod.yml run --rm -e APP_IMAGE="$NEW" app migrate
+            APP_IMAGE="$NEW" docker compose -f docker-compose.prod.yml up -d app
+            for i in $(seq 1 30); do
+              if docker compose -f docker-compose.prod.yml exec -T app /app/server health; then
+                echo "$NEW" > .current_image; echo "healthy: $NEW"; exit 0
+              fi
+              sleep 4
+            done
+            echo "new version unhealthy, rolling back to ${PREVIOUS_TAG:-nothing}"
+            if [ -n "$PREVIOUS_TAG" ]; then APP_IMAGE="$PREVIOUS_TAG" docker compose -f docker-compose.prod.yml up -d app; fi
+            exit 1

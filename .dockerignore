@@ -1,4 +1,7 @@
-reference/
-target/
-node_modules/
+target
+data
 .env
+.git
+node_modules
+*.log
+docs/academic

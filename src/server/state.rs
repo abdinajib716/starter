@@ -71,6 +71,7 @@ impl AppState {
             tenancy: self.config.tenancy_mode,
             db: if self.db_ok().await { "ok" } else { "down" }.into(),
             password_reset: super::modules::Modules::get().password_reset(),
+            app_name: super::modules::Modules::get().app_name(),
         }
     }
 }

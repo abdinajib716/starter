@@ -32,7 +32,7 @@ you do not rewrite login, users, roles, audit, settings, exports, backups or the
 | Sign in / out | Argon2id passwords, DB sessions (HttpOnly cookie), lockout after failed attempts, rate limit, forced password change, CSRF check | `src/server/auth/`, `src/server/services/auth.rs`, `src/pages/auth/` |
 | Session ended | Any `401` from the server → reload to `/sign-in?reason=session` | `src/util/mod.rs` (`toast_error`) |
 | Permissions (RBAC) | 37 permission keys in code, synced to DB; Super Admin = all; guards: last Super Admin, not-self, no escalation | `src/server/rbac.rs` |
-| Sidebar | Dashboard + Access Control (System Setting, User, Role, Permission, Audit, Backup), filtered by permission | `src/components/layout/nav_config.rs` |
+| Sidebar | Dashboard + Access Control (System Setting, User, Role, Permission, Audit, Backup, Organizations in multi mode), filtered by permission | `src/components/layout/nav_config.rs` |
 | Dashboard | Real KPIs + charts (sign-ins, activity by module, users by role, new users/week), recent activity | `src/server/services/dashboard.rs`, `src/pages/dashboard/` |
 | Users | Server-side list (search, filters, sort, paging in URL), create/edit, activate/deactivate, soft delete, Deleted tab + restore + purge, bulk actions, details page `/users/:id` | `src/server/services/users.rs`, `src/pages/users/` |
 | Roles | Role editor (permission grid), require-2FA flag, delete only unused, bulk delete; changing permissions signs those users out | `src/server/services/roles.rs`, `src/pages/roles/` |
@@ -45,15 +45,20 @@ you do not rewrite login, users, roles, audit, settings, exports, backups or the
 | Backups | `pg_dump` create, download, delete, retention, cron schedule (one leader across instances) | `src/server/services/backups.rs`, `src/pages/backups.rs` |
 | Storage | `Storage` trait + local driver (traversal-safe, 0600 files) | `src/server/storage.rs` |
 | Time zones | Stored UTC, shown in the user's zone (own or organization default) | `src/util/time.rs` |
-| Profile | Own name, time zone, password, theme, font | `src/pages/profile.rs` |
+| Profile | Tabs: profile (photo, name, time zone, password, theme), security, notifications, language, API tokens | `src/pages/profile*.rs` |
 | UI kit | Data table kit, dialogs, sheets, menus, forms, date picker, charts, skeletons, toasts, permission/feature gates | `src/components/` |
 | Errors | One `AppError` → stable codes → translated messages | `src/server/error.rs`, `locales/en.ftl` (`err-*`) |
-| Multi-tenant groundwork | `organizations` table, `org_id` on users/roles/audit, request `Ctx { org_id, user }` | `src/server/ctx.rs` |
-
-**Also count as built** (finished in the starter, not in your system — see §9): 2FA, own
-sessions page, notifications + live updates, email, backup restore/encryption/off-site, avatars,
-language switching per user, multi-instance hardening, public API, multi-tenant mode, CI/CD +
-deploy. Plan your system as if these exist; when they land, your modules plug into them (§9).
+| Sessions + 2FA | TOTP with QR + recovery codes, modes off/optional/required (grace banner), own devices list, admin reset/revoke, new-device alert | `src/server/services/security.rs`, `src/server/auth/totp.rs`, `src/pages/profile_security.rs`, `/auth/2fa` |
+| Notifications + live updates | Bell, `/notifications`, per-kind preferences, announcements; SSE pushes changes to open pages | `src/server/notify.rs`, `src/server/realtime.rs`, `src/components/layout/live.rs` |
+| Email | Outbox + Resend worker (retries), templates, forgot/reset password, invitations, email verification, test email, delivery log, bounce webhook | `src/server/email.rs`, `src/server/services/account.rs`, `templates/email/` |
+| Backups (full) | `age` encryption, off-site copies to R2/S3 or Google Drive, weekly verification, **restore** under maintenance mode | `src/server/services/backups.rs`, `src/server/backup_crypto.rs`, `src/server/remote.rs`, `docs/DISASTER_RECOVERY.md` |
+| Files | `files` table, avatars (sniffed, re-encoded WebP), local or R2/Drive storage | `src/server/services/files.rs` |
+| Language | Per-user language (Profile → Language), enabled locales from settings | `src/i18n.rs` |
+| Bulk | "Select all matching" across pages, auto-purge of old deleted users | `services::users::{bulk_matching, purge_expired}` |
+| Multi-instance | Postgres rate limiter, maintenance flag, `/readyz`, CLI (`migrate`, `seed`, `create-admin`, `reset-2fa`, `backup-verify`, `backup-keygen`, `health`) | `src/server/system_state.rs`, `src/server/cli.rs` |
+| Public API v1 | Personal + mobile tokens, problem+json, cursors, idempotency, CORS, rate limit, OpenAPI at `/api/docs` | `src/server/api_v1.rs`, Profile → API tokens |
+| Multi-tenant | `TENANCY_MODE=multi`: tenants by subdomain, row-level security, Organizations page, user limits | `src/server/ctx.rs` (`resolve_org`), `src/server/services/orgs.rs` |
+| Deploy | Dockerfile, `docker-compose.prod.yml` + Caddy, CI / image / deploy-with-rollback workflows | `Dockerfile`, `.github/workflows/`, `docs/DEPLOY.md` |
 
 ---
 
@@ -217,37 +222,25 @@ Do not plan or estimate these: they exist and are tested.
   soft delete + restore, data tables, filters in URL, dialogs, toasts, loading skeletons.
 - Dashboard frame (add your KPIs only), sidebar, header, theme/dark mode, RTL, fonts, time zones.
 - Settings framework, feature flags, module switches, backups + schedule.
-- Everything in §9: 2FA, sessions page, notifications + live updates, email (reset, invites,
-  verification), backup restore/encryption/off-site, avatars and file uploads, per-user
-  language, rate limit + maintenance mode, public API, multi-tenant mode, CI/CD + deploy.
+- 2FA, sessions, notifications, email flows, backups/restore, avatars/files, per-user language,
+  rate limits, maintenance mode, public API, multi-tenant mode, CI/CD and deploy.
 
 Plan only: **your domain tables, their permissions, pages, KPIs, reports, and any settings or
 flags they need** (§6).
 
 ---
 
-## 9. Starter features finishing in the starter — count them as built
+## 9. Plugging your modules into the starter's services
 
-These belong to the starter, not to your system. Never build them inside your system's modules;
-they are finished in the starter (tracked in `TRACKER.md`) and your code only calls them.
-Until a milestone lands, its file paths below do not exist yet, so leave a `// TODO(M8)` at the
-call site instead of writing your own version.
-
-| Milestone | Provides | How your modules will use it |
-|---|---|---|
-| M9 | Own sessions page, 2FA (TOTP + recovery codes), 2FA required per role | Nothing to do; set "require 2FA" on sensitive roles |
-| M8 | Notifications bell, live updates (SSE) | `notify(user_ids, kind, payload)` after a change; pages refresh live |
-| M13 | Email (Resend) with outbox: forgot password, invites, verification | `email::queue(tx, to, template, data)` inside your transaction |
-| M12 | Backup restore, encryption, off-site copies (R2 / Drive) | Nothing to do; your tables are in every backup |
-| M11 | Files table + uploads, avatars | `files::upload(...)` returns a file id to store on your row |
-| M3 | Per-user language (Somali / English) | Keep every text in `locales/*.ftl` — already required |
-| M5 | "Select all matching" across pages, auto-purge of deleted rows | Same `TableState` / bulk pattern picks it up |
-| M14 | Rate limit + maintenance mode in Postgres, `/readyz` | Nothing to do; works across several app servers |
-| M15 | Public API v1 (tokens, OpenAPI) | Expose a module by adding its routes under `/api/v1` |
-| M16 | Multi-tenant mode (subdomains, row-level security) | Works if every table has `org_id` and every query filters on it (§4 rule 3) |
-| M17 | Production Docker, CI, VPS deploy with rollback | Your migrations and code ship with the same pipeline |
-
----
+| Need | Call |
+|---|---|
+| Tell users something | `notify::send(&mut tx, ctx.org_id, Target::Permission("orders.view"), "order_late", json!({..}), Some("/orders"))` + a `notif-order-late` string |
+| Email someone | `email::queue_for_user(&mut tx, user_id, "template", json!({..}))` (add `templates/email/<template>.txt`) |
+| Live page | add the table to the trigger list (migration `notify_event()`), a topic in `realtime::topics`, read `use_live().<topic>` in the page's resource |
+| Store a file | follow `services::files::set_avatar` (sniff, re-encode, `files` row, driver from `storage.primary_driver`) |
+| Expose in the API | a handler + route in `server/api_v1.rs` calling your service, and a path in `api_v1::spec()` |
+| Tenant safety | every table gets `org_id`, add it to the RLS list (copy migration `…_multi_tenant.sql`), run `python3 scripts/check_org_scope.py` |
+| Background job | spawn in `state::init`; claim rows with `FOR UPDATE SKIP LOCKED` or take an advisory lock so one instance runs it |
 
 ## 10. Brief for the new system (copy into its first prompt)
 
@@ -255,8 +248,8 @@ call site instead of writing your own version.
 > fullstack, SQLx/Postgres, Rust/UI, Tailwind). Read `docs/STARTER_GUIDE.md` and `TRACKER.md`
 > first. Auth, users, roles, permissions, audit, settings, feature flags, exports (CSV/PDF),
 > backups, dashboard frame and the UI kit already exist — reuse them, do not rebuild.
-> 2FA, sessions, notifications, email, uploads, API, multi-tenant and deploy belong to the
-> starter (guide §9) — never build them inside our modules; only call them.
+> 2FA, sessions, notifications, email, uploads, backups/restore, API, multi-tenant and deploy
+> already exist (guide §2) — never rebuild them; plug in with the calls in §9.
 > For each new feature follow §6 of the guide: migration with `org_id` → permissions in
 > `rbac.rs` → DTOs in `domain/` → service with transaction + `audit::record` + tests →
 > thin server functions with `ctx.require` → page copied from `pages/users` → sidebar entry →

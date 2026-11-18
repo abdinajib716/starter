@@ -1,0 +1,54 @@
+# Production stack (§29, M17.2): database (no public port), app, PDF renderer, Caddy (TLS).
+#   cp .env.example .env   # fill in the production values
+#   APP_IMAGE=ghcr.io/<owner>/<repo>:v1.0.0 docker compose -f docker-compose.prod.yml up -d
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-starter}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-starter}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-starter}"]
+      interval: 5s
+      retries: 20
+
+  chrome:
+    image: chromedp/headless-shell:${CHROME_TAG:-158.0.8127.37}
+    restart: unless-stopped
+    shm_size: "512m"
+
+  app:
+    image: ${APP_IMAGE:-starter:latest}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-starter}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-starter}
+      CHROME_URL: http://chrome:9222
+      APP_ENV: production
+      COOKIE_SECURE: "true"
+    volumes:
+      - appdata:/app/data
+    depends_on:
+      db: { condition: service_healthy }
+      chrome: { condition: service_started }
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN, e.g. app.example.com}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [app]
+
+volumes:
+  pgdata:
+  appdata:
+  caddy_data:
+  caddy_config:

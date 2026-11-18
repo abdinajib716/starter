@@ -22,13 +22,20 @@ pub fn Logo(#[props(into, optional)] class: Option<String>) -> Element {
 /// `auth-layout.tsx`.
 #[component]
 pub fn AuthLayout(children: Element) -> Element {
+    let info = use_server_future(crate::api::system::server_info)?;
+    let name = info
+        .read()
+        .as_ref()
+        .and_then(|r| r.as_ref().ok())
+        .map(|i| i.app_name.clone())
+        .unwrap_or_else(|| t!("app-name"));
     rsx! {
         crate::components::layout::NavigationProgress {}
         div { class: "container grid h-svh max-w-none items-center justify-center",
             div { class: "mx-auto flex w-full flex-col justify-center space-y-2 py-8 sm:p-8",
                 div { class: "mb-4 flex items-center justify-center",
                     Logo { class: "me-2" }
-                    h1 { class: "text-xl font-medium", {t!("app-name")} }
+                    h1 { class: "text-xl font-medium", "{name}" }
                 }
                 {children}
             }

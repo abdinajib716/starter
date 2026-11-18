@@ -1,0 +1,8 @@
+# cargo-deny (CI `audit` job): known vulnerabilities, yanked crates, unknown registries.
+[advisories]
+yanked = "deny"
+[bans]
+multiple-versions = "allow"
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

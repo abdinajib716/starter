@@ -1,0 +1,11 @@
+# TLS by Let's Encrypt; the app sets its own security headers (§13).
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:8080 {
+		header_up X-Forwarded-Host {host}
+		# SSE (/api/stream) must not be buffered.
+		flush_interval -1
+	}
+}
+
+# Multi-tenant mode: *.{$DOMAIN} needs a wildcard certificate (DNS challenge), see docs/DEPLOY.md.

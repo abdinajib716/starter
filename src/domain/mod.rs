@@ -41,6 +41,8 @@ pub struct ServerInfo {
     pub db: String,
     /// "Forgot password?" is offered on the sign-in page (email module + setting on).
     pub password_reset: bool,
+    /// `app.name` for the sign-in screens.
+    pub app_name: String,
 }
 
 /// Where the client goes after a successful login (§7 step 8).

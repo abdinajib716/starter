@@ -12,6 +12,7 @@ pub const HELP: &str = "usage: startup [command]
   reset-2fa <email>           remove a user's two-factor authentication and sign them out
   backup-verify               check every completed backup file against its size and SHA-256
   backup-keygen               print a new age key pair for BACKUP_PUBLIC_KEY (keep the private key offline)
+  health                      exit 0 when http://127.0.0.1:$PORT/readyz answers 200 (container healthcheck)
   help                        this text";
 
 /// `Some(code)` = a command ran and the process should exit; `None` = serve.
@@ -24,6 +25,20 @@ pub fn run() -> Option<i32> {
     if matches!(cmd, "help" | "--help" | "-h") {
         println!("{HELP}");
         return Some(0);
+    }
+    if cmd == "health" {
+        use std::io::{Read, Write};
+        let port = std::env::var("PORT").unwrap_or_else(|_| "8080".into());
+        let ok = std::net::TcpStream::connect(format!("127.0.0.1:{port}"))
+            .and_then(|mut s| {
+                s.set_read_timeout(Some(std::time::Duration::from_secs(3)))?;
+                s.write_all(b"GET /readyz HTTP/1.0\r\nHost: localhost\r\n\r\n")?;
+                let mut buf = [0u8; 16];
+                let n = s.read(&mut buf)?;
+                Ok(String::from_utf8_lossy(&buf[..n]).contains(" 200"))
+            })
+            .unwrap_or(false);
+        return Some(if ok { 0 } else { 1 });
     }
     if cmd == "backup-keygen" {
         let id = age::x25519::Identity::generate();
