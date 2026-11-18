@@ -67,6 +67,7 @@ impl AppState {
             version: env!("CARGO_PKG_VERSION").into(),
             tenancy: self.config.tenancy_mode,
             db: if self.db_ok().await { "ok" } else { "down" }.into(),
+            password_reset: super::modules::Modules::get().password_reset(),
         }
     }
 }

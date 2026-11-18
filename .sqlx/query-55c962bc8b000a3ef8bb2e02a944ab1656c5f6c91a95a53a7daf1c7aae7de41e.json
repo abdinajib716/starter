@@ -1,0 +1,48 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE auth_tokens t SET used_at = now()\n           FROM users u\n           WHERE t.token_hash = $1 AND t.purpose = $2 AND t.used_at IS NULL\n             AND t.expires_at > now() AND u.id = t.user_id AND u.deleted_at IS NULL\n           RETURNING u.id, u.org_id, u.email::text AS \"email!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "org_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "org_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "email!",
+        "type_info": "Text",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bytea",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "55c962bc8b000a3ef8bb2e02a944ab1656c5f6c91a95a53a7daf1c7aae7de41e"
+}

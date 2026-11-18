@@ -1,8 +1,10 @@
 //! `features/auth/*`: sign in, wired to our session login (M1). Forgot password / invites
 //! (email, M13) and the 2FA step (M9).
+mod account;
 mod sign_in;
 mod two_factor;
 
+pub use account::{AcceptInvite, ForgotPassword, ResetPassword, VerifyEmail};
 pub use sign_in::{Login, SignIn};
 pub use two_factor::TwoFactor;
 

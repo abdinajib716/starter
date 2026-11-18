@@ -104,6 +104,14 @@ pub fn check(
             return Err("settings.2fa_actor_not_enrolled");
         }
     }
+    // Password reset / invites depend on mail actually arriving: a successful test email in
+    // the last 24 h (pseudo-key `@email_tested`) is required when switching them on (M13.7).
+    let switched_on = |k: &str| touched(k) && b(k);
+    if (switched_on("auth.password_reset_enabled") || switched_on("auth.invites_enabled"))
+        && !secret("@email_tested")
+    {
+        return Err("settings.email_not_tested");
+    }
     if b("api.public_enabled") && !b("email.enabled") {
         return Err("settings.api_needs_email");
     }
@@ -201,12 +209,11 @@ pub async fn update(
         return Ok(0);
     }
     let enrolled = actor.twofa_enrolled;
-    let known = move |n: &str| {
-        if n == "@actor_2fa" {
-            enrolled
-        } else {
-            secret_set(n)
-        }
+    let tested = super::account::tested_recently(pool).await?;
+    let known = move |n: &str| match n {
+        "@actor_2fa" => enrolled,
+        "@email_tested" => tested,
+        _ => secret_set(n),
     };
     check(&merged, &changed, &known).map_err(AppError::Conflict)?;
     for k in &changed {

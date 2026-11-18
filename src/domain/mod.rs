@@ -1,6 +1,7 @@
 //! Shared DTOs + validation; compiled for both the server and wasm (§31.2).
 use serde::{Deserialize, Serialize};
 
+pub mod account;
 pub mod audit;
 pub mod backups;
 pub mod dashboard;
@@ -36,6 +37,8 @@ pub struct ServerInfo {
     pub version: String,
     pub tenancy: TenancyMode,
     pub db: String,
+    /// "Forgot password?" is offered on the sign-in page (email module + setting on).
+    pub password_reset: bool,
 }
 
 /// Where the client goes after a successful login (§7 step 8).

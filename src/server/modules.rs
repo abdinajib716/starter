@@ -52,7 +52,6 @@ impl Modules {
     pub fn invites(&self) -> bool {
         self.email_enabled() && self.flag("auth.invites_enabled")
     }
-    #[allow(dead_code)] // callers arrive with their modules (M9, M13, M15, M8)
     pub fn email_verification(&self) -> bool {
         self.email_enabled() && self.flag("auth.email_verification")
     }

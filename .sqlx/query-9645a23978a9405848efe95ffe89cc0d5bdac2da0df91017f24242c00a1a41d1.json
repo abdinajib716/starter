@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO auth_tokens (token_hash, user_id, purpose, expires_at)\n         VALUES ($1, $2, $3, now() + make_interval(mins => $4))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bytea",
+        "Uuid",
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "9645a23978a9405848efe95ffe89cc0d5bdac2da0df91017f24242c00a1a41d1"
+}

@@ -243,6 +243,90 @@ fn SettingsTab(
                         Button { disabled: busy() || n_dirty == 0, onclick: save, {t!("action-save-changes")} }
                     }
                 }
+                if tab == "email" {
+                    EmailTools {}
+                }
+            }
+        }
+    }
+}
+
+/// Email tab extras (M13.7): send a test email, delivery log.
+#[component]
+fn EmailTools() -> Element {
+    use crate::api::account::{email_log, send_test_email};
+    let me = crate::components::layout::use_current_user();
+    let (can_test, can_log) = (
+        me.as_ref().is_some_and(|u| u.can("email.send_test")),
+        me.as_ref().is_some_and(|u| u.can("email.view_log")),
+    );
+    let to = use_signal(|| me.as_ref().map(|u| u.email.clone()).unwrap_or_default());
+    let mut offset = use_signal(|| 0i64);
+    let mut log = use_resource(move || async move {
+        if !can_log {
+            return None;
+        }
+        email_log(offset()).await.ok()
+    });
+    let tz = crate::components::layout::use_tz();
+    let mut busy = use_signal(|| false);
+    let page = log.read().clone().flatten().unwrap_or_default();
+    rsx! {
+        if can_test {
+            div { class: "space-y-2 rounded-lg border p-4",
+                p { class: "text-sm font-medium", {t!("email-test-title")} }
+                p { class: "text-xs text-muted-foreground", {t!("email-test-desc")} }
+                div { class: "flex flex-wrap items-center gap-2",
+                    crate::components::ui_extra::form::TextInput { id: "email-test-to", value: to, class: "max-w-xs" }
+                    Button { id: "email-test-send", disabled: busy(), onclick: move |_| async move {
+                        busy.set(true);
+                        match send_test_email(to()).await {
+                            Ok(()) => crate::util::toast(crate::ui::toast::ToastType::Success, t!("email-test-sent")),
+                            Err(e) => crate::util::toast_error(&e),
+                        }
+                        busy.set(false);
+                        log.restart();
+                    }, Icon { icon: IconType::Send } {t!("email-test-send")} }
+                }
+            }
+        }
+        if can_log {
+            div { class: "space-y-2",
+                p { class: "text-sm font-medium", {t!("email-log-title")} }
+                div { class: "overflow-x-auto rounded-md border",
+                    table { class: "w-full text-sm",
+                        thead { tr { class: "border-b bg-muted/40 text-muted-foreground",
+                            th { class: "px-3 py-2 text-start font-medium", {t!("email-log-when")} }
+                            th { class: "px-3 py-2 text-start font-medium", {t!("email-log-to")} }
+                            th { class: "px-3 py-2 text-start font-medium", {t!("email-log-template")} }
+                            th { class: "px-3 py-2 text-start font-medium", {t!("email-log-status")} }
+                        } }
+                        tbody {
+                            if page.rows.is_empty() {
+                                tr { td { colspan: "4", class: "px-3 py-6 text-center text-muted-foreground", {t!("email-log-empty")} } }
+                            }
+                            for r in page.rows.iter() {
+                                tr { key: "{r.id}", class: "border-b last:border-0",
+                                    td { class: "px-3 py-2 whitespace-nowrap tabular-nums", {crate::util::time::datetime(r.created_at, &tz)} }
+                                    td { class: "px-3 py-2", "{r.to}" }
+                                    td { class: "px-3 py-2 font-mono text-xs", "{r.template}" }
+                                    td { class: "px-3 py-2",
+                                        span { class: if matches!(r.status.as_str(), "sent" | "delivered") { "text-teal-700 dark:text-teal-300" } else if r.status == "pending" { "text-muted-foreground" } else { "text-destructive" },
+                                            "{r.status}"
+                                        }
+                                        if let Some(e) = &r.error { span { class: "block max-w-xs truncate text-xs text-muted-foreground", title: "{e}", "{e}" } }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if page.total > 25 {
+                    div { class: "flex justify-end gap-2",
+                        Button { variant: crate::ui::button::ButtonVariant::Outline, disabled: offset() == 0, onclick: move |_| offset.set((offset() - 25).max(0)), Icon { icon: IconType::ChevronLeft } }
+                        Button { variant: crate::ui::button::ButtonVariant::Outline, disabled: offset() + 25 >= page.total, onclick: move |_| offset.set(offset() + 25), Icon { icon: IconType::ChevronRight } }
+                    }
+                }
             }
         }
     }

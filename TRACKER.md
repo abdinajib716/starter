@@ -28,7 +28,7 @@ Update rule: tick an item only when its **Done when** check has actually been ru
 | 10 | Dashboard KPIs + charts | 🟢 done | branch `m10/dashboard`; live push waits for M8 |
 | 11 | Storage (local) + avatars + Backup | 🟡 in progress | backups done (branch `m6/access-control`); open: `files` table + avatars (M11.2/M11.3) |
 | 12 | Backup encryption, R2, off-site, **restore** | ⚪ | |
-| 13 | Email via Resend | ⚪ | |
+| 13 | Email via Resend | ✅ done | outbox + worker, templates, reset/invite/verify, webhook, test + log |
 | 14 | Multi-instance hardening | ⚪ | |
 | 15 | Public API v1 *(optional)* | ⚪ | only if a project needs it |
 | 16 | Multi-tenant mode *(optional)* | ⚪ | only if a project needs it |
@@ -319,10 +319,10 @@ command palette and routes permission-filtered; demo pages off by default; no ha
 - [x] M13.2 `email::enqueue(&mut tx, …)` in the business transaction — done 2026-11-18 (`server/email.rs`, `templates/email/*.txt`; templates `en` only, other locales fall back)
 - [x] M13.3 Worker: `FOR UPDATE SKIP LOCKED`, back-off 1m/5m/30m/2h, max 5 → failed + admin notification — done 2026-11-18 (`server/email.rs`, `templates/email/*.txt`; templates `en` only, other locales fall back)
 - [x] M13.4 Templates (`minijinja`/`askama`) per locale, `.html` + `.txt`, `en` fallback: invite, password_reset, verify_email, new_login_alert, password_changed, 2fa_changed, backup_failed — done 2026-11-18 (`server/email.rs`, `templates/email/*.txt`; templates `en` only, other locales fall back)
-- [ ] M13.5 Routes: `/auth/forgot-password`, `/auth/reset-password`, `/auth/accept-invite`, `/auth/verify-email` (no enumeration, rate limited)
+- [x] M13.5 Routes: `/auth/forgot-password`, `/auth/reset-password`, `/auth/accept-invite`, `/auth/verify-email` (no enumeration, rate limited) — done 2026-11-18 (`services/account.rs`, `pages/auth/account.rs`, Email tab tools; without email the admin sets a temporary password as before)
 - [x] M13.6 `POST /api/webhooks/resend` with Svix signature check → delivered/bounced/complained — done 2026-11-18 (`server/email.rs`, `templates/email/*.txt`; templates `en` only, other locales fall back)
-- [ ] M13.7 Email tab: key status, Send test email (`email.send_test`), Delivery log (`email.view_log`)
-- [ ] M13.8 Non-email fallbacks when `email.enabled = false` (admin sets temp password)
+- [x] M13.7 Email tab: key status, Send test email (`email.send_test`), Delivery log (`email.view_log`) — done 2026-11-18 (`services/account.rs`, `pages/auth/account.rs`, Email tab tools; without email the admin sets a temporary password as before)
+- [x] M13.8 Non-email fallbacks when `email.enabled = false` (admin sets temp password) — done 2026-11-18 (`services/account.rs`, `pages/auth/account.rs`, Email tab tools; without email the admin sets a temporary password as before)
 
 ---
 

@@ -45,6 +45,8 @@ fn ActionDialog(open: Signal<bool>, #[props(optional)] current: Option<User>) ->
     let ctx = use_context::<UsersCtx>();
     let is_edit = current.is_some();
     let can_reset = use_current_user().is_some_and(|u| u.can("users.reset_password"));
+    let invites_on = use_current_user().is_some_and(|u| u.modules.invites);
+    let mut by_invite = use_signal(|| false);
     let c = current.clone();
     let name = use_signal(|| c.as_ref().map(|u| u.full_name.clone()).unwrap_or_default());
     let c = current.clone();
@@ -66,8 +68,10 @@ fn ActionDialog(open: Signal<bool>, #[props(optional)] current: Option<User>) ->
         role_id: role().parse().unwrap_or(Uuid::nil()),
         password: password().trim().to_string(),
     };
-    let errors = validate_input(&input(), !is_edit, MIN_PW);
-    let pw_mismatch = !password().trim().is_empty() && password().trim() != confirm().trim();
+    let invite = !is_edit && by_invite();
+    let errors = validate_input(&input(), !is_edit && !invite, MIN_PW);
+    let pw_mismatch =
+        !invite && !password().trim().is_empty() && password().trim() != confirm().trim();
     let show = submitted();
     let err = |field: &str| {
         show.then(|| {
@@ -105,6 +109,9 @@ fn ActionDialog(open: Signal<bool>, #[props(optional)] current: Option<User>) ->
         spawn(async move {
             let res = match id {
                 Some(id) => update_user(id, data).await.map(|_| "users-updated"),
+                None if invite => crate::api::account::invite_user(data)
+                    .await
+                    .map(|_| "users-invited"),
                 None => create_user(data).await.map(|_| "users-created"),
             };
             busy.set(false);
@@ -136,7 +143,13 @@ fn ActionDialog(open: Signal<bool>, #[props(optional)] current: Option<User>) ->
                     Field { id: "user-role", label: t!("users-col-role"), error: e_role.clone(),
                         SelectBox { value: role, options: role_options, placeholder: t!("users-select-role"), class: "col-span-4 w-full", trigger_class: "w-full", invalid: e_role.is_some() }
                     }
-                    if !is_edit || can_reset {
+                    if !is_edit && invites_on {
+                        label { class: "flex items-center gap-2 text-sm",
+                            input { r#type: "checkbox", id: "user-invite", class: "size-4 accent-primary", checked: by_invite(), onchange: move |e: FormEvent| by_invite.set(e.checked()) }
+                            {t!("users-invite-toggle")}
+                        }
+                    }
+                    if (!is_edit && !invite) || (is_edit && can_reset) {
                         Field { id: "user-password", label: t!(if is_edit { "users-new-password" } else { "users-password" }), error: e_pw.clone(),
                             PasswordInput { id: "user-password", value: password, placeholder: t!(if is_edit { "users-password-keep" } else { "users-password-ph" }), class: "col-span-4", invalid: e_pw.is_some() }
                         }

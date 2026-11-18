@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO email_outbox (org_id, to_email, template, status, attempts, sent_at, provider_id, last_error)\n           VALUES ($1, $2::text::citext, 'test', $3, 1, CASE WHEN $4 THEN now() END, $5, $6)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Bool",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a4492a2edc0c389a512ce58b3d7c7455971cce09913688cce8208bdd3e19ba43"
+}

@@ -1,5 +1,6 @@
 //! Thin server functions, one file per module (§4, §31.2).
 //! Rule (§3): session → permission check → service → audit → return. No logic here.
+pub mod account;
 pub mod audit;
 pub mod auth;
 pub mod backups;
@@ -20,6 +21,9 @@ mod convention {
     const PUBLIC: &[&str] = &[
         "login",
         "verify_2fa",
+        "forgot_password",
+        "set_password_with_token",
+        "verify_email",
         "current_user",
         "server_info",
         "set_locale",

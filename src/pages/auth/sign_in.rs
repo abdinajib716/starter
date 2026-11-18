@@ -58,6 +58,12 @@ fn SignInBlurb() -> Element {
 /// `user-auth-form.tsx`: the reference's checks, then our server login.
 #[component]
 fn UserAuthForm(redirect: String) -> Element {
+    let info = use_resource(crate::api::system::server_info);
+    let reset_on = info
+        .read()
+        .as_ref()
+        .and_then(|r| r.as_ref().ok())
+        .is_some_and(|i| i.password_reset);
     let email = use_signal(String::new);
     let password = use_signal(String::new);
     let mut submitted = use_signal(|| false);
@@ -126,7 +132,12 @@ fn UserAuthForm(redirect: String) -> Element {
                 FormMessage { message: e_email.filter(|_| show) }
             }
             FormItem { class: "relative",
-                FormLabel { html_for: "password", invalid: show && e_pw.is_some(), {t!("field-password")} }
+                div { class: "flex items-center justify-between",
+                    FormLabel { html_for: "password", invalid: show && e_pw.is_some(), {t!("field-password")} }
+                    if reset_on {
+                        Link { to: Route::ForgotPassword {}, id: "forgot-link", class: "text-sm font-medium text-muted-foreground hover:opacity-75", {t!("forgot-link")} }
+                    }
+                }
                 PasswordInput { id: "password", value: password, placeholder: "********", invalid: show && e_pw.is_some() }
                 FormMessage { message: e_pw.filter(|_| show) }
             }

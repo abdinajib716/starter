@@ -7,7 +7,9 @@ use dioxus_i18n::prelude::use_init_i18n;
 
 use crate::components::layout::AppShell;
 use crate::i18n;
-use crate::pages::auth::{Login, SignIn, TwoFactor};
+use crate::pages::auth::{
+    AcceptInvite, ForgotPassword, Login, ResetPassword, SignIn, TwoFactor, VerifyEmail,
+};
 use crate::pages::errors::{Error401, Error403, Error404, Error500, Error503, ShellError};
 use crate::pages::{
     audit::Audit,
@@ -38,6 +40,14 @@ pub enum Route {
     /// Second sign-in step (§21): TOTP or recovery code.
     #[route("/auth/2fa?:redirect")]
     TwoFactor { redirect: String },
+    #[route("/auth/forgot-password")]
+    ForgotPassword {},
+    #[route("/auth/reset-password?:token")]
+    ResetPassword { token: String },
+    #[route("/auth/accept-invite?:token")]
+    AcceptInvite { token: String },
+    #[route("/auth/verify-email?:token")]
+    VerifyEmail { token: String },
     #[route("/login?:next")]
     Login { next: String },
     #[route("/401")]

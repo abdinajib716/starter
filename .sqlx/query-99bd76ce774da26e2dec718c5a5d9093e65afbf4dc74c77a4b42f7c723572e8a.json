@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT EXISTS (SELECT 1 FROM email_outbox WHERE template = 'test' AND status IN ('sent','delivered')\n                          AND created_at > now() - interval '24 hours') AS \"e!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "e!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "99bd76ce774da26e2dec718c5a5d9093e65afbf4dc74c77a4b42f7c723572e8a"
+}
