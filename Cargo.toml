@@ -30,7 +30,7 @@ jsonwebtoken = { version = "9", optional = true }
 aes-gcm = { version = "0.10", optional = true }
 hkdf = { version = "0.12", optional = true }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
-hmac = { version = "0.12", optional = true }
+hmac = { version = "0.13", optional = true }
 qrcode = { version = "0.14", default-features = false, features = ["svg"], optional = true }
 totp-rs = { version = "5", optional = true }
 argon2 = { version = "0.6", optional = true }
